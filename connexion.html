@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Connexion — Mon Bot PC</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #0B1120;
+            color: white;
+            font-family: "Segoe UI", Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: #172033;
+            width: 100%;
+            max-width: 440px;
+            padding: 35px;
+            border-radius: 18px;
+            border: 1px solid #334155;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        h1 {
+            text-align: center;
+            color: #3B82F6;
+            margin-bottom: 10px;
+        }
+
+        .description {
+            text-align: center;
+            color: #94A3B8;
+            margin-bottom: 30px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 15px;
+            border-radius: 9px;
+            border: 1px solid #334155;
+            background: #0B1120;
+            color: white;
+            font-size: 15px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #3B82F6;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 9px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        .login {
+            background: #3B82F6;
+            color: white;
+        }
+
+        .register {
+            background: #8B5CF6;
+            color: white;
+        }
+
+        .google {
+            background: white;
+            color: #111827;
+        }
+
+        .logout {
+            background: #EF4444;
+            color: white;
+        }
+
+        .back {
+            display: block;
+            text-align: center;
+            color: #94A3B8;
+            margin-top: 20px;
+            text-decoration: none;
+        }
+
+        .back:hover {
+            color: white;
+        }
+
+        #message {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+            overflow-wrap: anywhere;
+        }
+
+        #account {
+            display: none;
+            text-align: center;
+        }
+
+        #accountEmail {
+            color: #22C55E;
+            overflow-wrap: anywhere;
+        }
+
+        .separator {
+            text-align: center;
+            color: #94A3B8;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>Mon Bot PC</h1>
+
+        <p class="description">
+            Connectez-vous à votre compte.
+        </p>
+
+        <div id="loginForm">
+
+            <input
+                type="email"
+                id="email"
+                placeholder="Adresse e-mail"
+                autocomplete="email"
+            >
+
+            <input
+                type="password"
+                id="password"
+                placeholder="Mot de passe (6 caractères minimum)"
+                autocomplete="current-password"
+            >
+
+            <button class="login" id="loginBtn">
+                Se connecter
+            </button>
+
+            <button class="register" id="registerBtn">
+                Créer un compte
+            </button>
+
+            <div class="separator">
+                OU
+            </div>
+
+            <button class="google" id="googleBtn">
+                Continuer avec Google
+            </button>
+
+        </div>
+
+        <div id="account">
+
+            <h2>Bienvenue !</h2>
+
+            <p>Vous êtes connecté avec :</p>
+
+            <p id="accountEmail"></p>
+
+            <button class="logout" id="logoutBtn">
+                Se déconnecter
+            </button>
+
+        </div>
+
+        <p id="message" role="status" aria-live="polite"></p>
+
+        <a class="back" href="index.html">
+            ← Retour à l'accueil
+        </a>
+
+    </div>
+
+    <script type="module">
+
+        import { initializeApp }
+        from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+
+        import {
+            getAuth,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signInWithPopup,
+            GoogleAuthProvider,
+            signOut,
+            onAuthStateChanged,
+            sendEmailVerification
+        }
+        from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
+            authDomain: "monbotpc.firebaseapp.com",
+            projectId: "monbotpc",
+            storageBucket: "monbotpc.firebasestorage.app",
+            messagingSenderId: "691729637594",
+            appId: "1:691729637594:web:9564d52349c04809fe85e3",
+            measurementId: "G-J2CSX1E919"
+        };
+
+
+        const app = initializeApp(firebaseConfig);
+
+        const auth = getAuth(app);
+
+        const googleProvider = new GoogleAuthProvider();
+
+
+        const emailInput = document.getElementById("email");
+        const passwordInput = document.getElementById("password");
+
+        const loginForm = document.getElementById("loginForm");
+        const account = document.getElementById("account");
+
+        const accountEmail = document.getElementById("accountEmail");
+
+        const message = document.getElementById("message");
+
+        const buttons = [
+            document.getElementById("loginBtn"),
+            document.getElementById("registerBtn"),
+            document.getElementById("googleBtn"),
+            document.getElementById("logoutBtn")
+        ];
+
+
+        function showMessage(text, error = false) {
+            message.textContent = text;
+            message.style.color = error ? "#EF4444" : "#22C55E";
+        }
+
+
+        function setBusy(busy) {
+            buttons.forEach(button => {
+                button.disabled = busy;
+            });
+        }
+
+
+        function showError(error) {
+
+            const errors = {
+                "auth/email-already-in-use":
+                    "Cette adresse e-mail possède déjà un compte.",
+
+                "auth/invalid-email":
+                    "Adresse e-mail invalide.",
+
+                "auth/weak-password":
+                    "Le mot de passe est trop faible.",
+
+                "auth/invalid-credential":
+                    "Adresse e-mail ou mot de passe incorrect.",
+
+                "auth/popup-closed-by-user":
+                    "La fenêtre de connexion Google a été fermée.",
+
+                "auth/unauthorized-domain":
+                    "Ce domaine n'est pas autorisé dans Firebase.",
+
+                "auth/operation-not-allowed":
+                    "Cette méthode de connexion n'est pas activée dans Firebase.",
+
+                "auth/network-request-failed":
+                    "Erreur réseau. Vérifiez votre connexion Internet."
+            };
+
+            showMessage(
+                errors[error.code] ||
+                "Une erreur est survenue. Réessayez.",
+                true
+            );
+        }
+
+
+        document.getElementById("registerBtn")
+            .addEventListener("click", async () => {
+
+                const email = emailInput.value.trim();
+                const password = passwordInput.value;
+
+                if (!email || password.length < 6) {
+                    showMessage(
+                        "Saisissez une adresse e-mail et un mot de passe d'au moins 6 caractères.",
+                        true
+                    );
+                    return;
+                }
+
+                setBusy(true);
+
+                try {
+
+                    const result = await createUserWithEmailAndPassword(
+                        auth,
+                        email,
+                        password
+                    );
+
+                    await sendEmailVerification(result.user);
+
+                    showMessage(
+                        "Compte créé ! Un e-mail de vérification a été envoyé."
+                    );
+
+                } catch (error) {
+                    showError(error);
+                } finally {
+                    setBusy(false);
+                }
+
+            });
+
+
+        document.getElementById("loginBtn")
+            .addEventListener("click", async () => {
+
+                const email = emailInput.value.trim();
+                const password = passwordInput.value;
+
+                if (!email || !password) {
+                    showMessage(
+                        "Remplissez les deux champs.",
+                        true
+                    );
+                    return;
+                }
+
+                setBusy(true);
+
+                try {
+
+                    await signInWithEmailAndPassword(
+                        auth,
+                        email,
+                        password
+                    );
+
+                    showMessage("Connexion réussie !");
+
+                } catch (error) {
+                    showError(error);
+                } finally {
+                    setBusy(false);
+                }
+
+            });
+
+
+        document.getElementById("googleBtn")
+            .addEventListener("click", async () => {
+
+                setBusy(true);
+
+                try {
+
+                    await signInWithPopup(
+                        auth,
+                        googleProvider
+                    );
+
+                    showMessage("Connexion Google réussie !");
+
+                } catch (error) {
+                    showError(error);
+                } finally {
+                    setBusy(false);
+                }
+
+            });
+
+
+        document.getElementById("logoutBtn")
+            .addEventListener("click", async () => {
+
+                setBusy(true);
+
+                try {
+
+                    await signOut(auth);
+
+                    showMessage("Vous êtes déconnecté.");
+
+                } catch (error) {
+                    showError(error);
+                } finally {
+                    setBusy(false);
+                }
+
+            });
+
+
+        onAuthStateChanged(auth, user => {
+
+            if (user) {
+
+                loginForm.style.display = "none";
+
+                account.style.display = "block";
+
+                accountEmail.textContent =
+                    user.email || "Compte Google";
+
+            } else {
+
+                loginForm.style.display = "block";
+
+                account.style.display = "none";
+
+                accountEmail.textContent = "";
+
+            }
+
+        });
+
+    </script>
+
+</body>
+</html>
