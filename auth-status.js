@@ -24,8 +24,8 @@ const style = document.createElement("style");
 style.textContent = `
     #monbot-auth-status {
         position: fixed;
-        top: 15px;
-        right: 15px;
+        top: 1x;
+        right: 1px;
         z-index: 9999;
         padding: 11px 16px;
         background: #172033;
