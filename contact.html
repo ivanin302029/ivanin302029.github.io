@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nous contacter — Mon Bot PC</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #0B1120;
+            color: #F8FAFC;
+            font-family: "Segoe UI", Arial, sans-serif;
+            padding: 35px 20px;
+        }
+
+        .container {
+            max-width: 750px;
+            margin: auto;
+        }
+
+        .back {
+            color: #94A3B8;
+            text-decoration: none;
+        }
+
+        h1 {
+            color: #3B82F6;
+            margin-top: 30px;
+        }
+
+        .description {
+            color: #94A3B8;
+            line-height: 1.7;
+        }
+
+        .card {
+            background: #172033;
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid #334155;
+            margin-top: 25px;
+        }
+
+        label {
+            display: block;
+            margin: 18px 0 8px;
+            font-weight: 600;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            background: #0B1120;
+            border: 1px solid #334155;
+            border-radius: 9px;
+            color: white;
+            padding: 13px;
+            font-family: inherit;
+            font-size: 15px;
+        }
+
+        textarea {
+            min-height: 170px;
+            resize: vertical;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #3B82F6;
+        }
+
+        button, .button {
+            display: inline-block;
+            background: #3B82F6;
+            color: white;
+            padding: 13px 24px;
+            border: none;
+            border-radius: 9px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+            text-decoration: none;
+            margin-top: 20px;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: wait;
+        }
+
+        .hidden { display: none; }
+
+        #message {
+            margin-top: 20px;
+            line-height: 1.6;
+            overflow-wrap: anywhere;
+        }
+
+        .ticket {
+            background: #0B1120;
+            padding: 18px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 1px solid #334155;
+            overflow-wrap: anywhere;
+        }
+
+        .ticket h3 {
+            margin-top: 0;
+            color: #60A5FA;
+        }
+
+        .ticket p {
+            white-space: pre-wrap;
+        }
+
+        .status {
+            color: #22C55E;
+            font-size: 13px;
+        }
+
+        .small {
+            color: #94A3B8;
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <a href="index.html" class="back">← Retour à l'accueil</a>
+
+    <h1>📩 Nous contacter</h1>
+
+    <p class="description">
+        Besoin d'aide avec Mon Bot PC ?
+        Envoyez un message à notre assistance.
+    </p>
+
+    <div id="loading" class="card">
+        Vérification de votre connexion...
+    </div>
+
+    <div id="notConnected" class="card hidden">
+
+        <h2>🔒 Connexion nécessaire</h2>
+
+        <p>
+            Vous devez être connecté pour contacter
+            l'assistance de Mon Bot PC.
+        </p>
+
+        <a href="connexion.html" class="button">
+            Se connecter
+        </a>
+
+    </div>
+
+    <div id="support" class="hidden">
+
+        <div class="card">
+
+            <h2>Envoyer une demande</h2>
+
+            <p class="small">
+                Connecté avec :
+                <strong id="userEmail"></strong>
+            </p>
+
+            <form id="contactForm">
+
+                <label for="subject">Sujet</label>
+
+                <select id="subject" required>
+                    <option value="">Choisissez un sujet</option>
+                    <option value="Problème technique">
+                        Problème technique
+                    </option>
+                    <option value="Problème de connexion">
+                        Problème de connexion
+                    </option>
+                    <option value="Problème d'analyse">
+                        Problème d'analyse
+                    </option>
+                    <option value="Suggestion">
+                        Suggestion
+                    </option>
+                    <option value="Autre">
+                        Autre
+                    </option>
+                </select>
+
+                <label for="title">Titre</label>
+
+                <input
+                    type="text"
+                    id="title"
+                    maxlength="120"
+                    placeholder="Décrivez brièvement votre problème"
+                    required
+                >
+
+                <label for="content">Votre message</label>
+
+                <textarea
+                    id="content"
+                    minlength="10"
+                    maxlength="3000"
+                    placeholder="Expliquez votre problème en détail..."
+                    required
+                ></textarea>
+
+                <button id="sendButton" type="submit">
+                    Envoyer à l'assistance
+                </button>
+
+            </form>
+
+            <p id="message" role="status" aria-live="polite"></p>
+
+        </div>
+
+        <div class="card">
+
+            <h2>📬 Mes demandes</h2>
+
+            <p class="description">
+                Retrouvez ici les messages que vous avez envoyés.
+            </p>
+
+            <button id="refreshButton" type="button">
+                Actualiser
+            </button>
+
+            <div id="tickets"></div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script type="module">
+
+    import { initializeApp }
+    from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+
+    import {
+        getAuth,
+        onAuthStateChanged
+    }
+    from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+    import {
+        getFirestore,
+        collection,
+        addDoc,
+        getDocs,
+        query,
+        where,
+        serverTimestamp
+    }
+    from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
+        authDomain: "monbotpc.firebaseapp.com",
+        projectId: "monbotpc",
+        storageBucket: "monbotpc.firebasestorage.app",
+        messagingSenderId: "691729637594",
+        appId: "1:691729637594:web:9564d52349c04809fe85e3",
+        measurementId: "G-J2CSX1E919"
+    };
+
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+
+    const loading = document.getElementById("loading");
+    const notConnected = document.getElementById("notConnected");
+    const support = document.getElementById("support");
+    const message = document.getElementById("message");
+    const tickets = document.getElementById("tickets");
+    const sendButton = document.getElementById("sendButton");
+
+
+    function showMessage(text, error = false) {
+        message.textContent = text;
+        message.style.color = error ? "#EF4444" : "#22C55E";
+    }
+
+
+    onAuthStateChanged(auth, async (user) => {
+
+        loading.classList.add("hidden");
+
+        currentUser = user;
+
+        if (!user) {
+
+            notConnected.classList.remove("hidden");
+            support.classList.add("hidden");
+
+            return;
+        }
+
+        notConnected.classList.add("hidden");
+        support.classList.remove("hidden");
+
+        document.getElementById("userEmail").textContent =
+            user.email || "Compte connecté";
+
+        await loadTickets();
+
+    });
+
+
+    document.getElementById("contactForm")
+        .addEventListener("submit", async (event) => {
+
+            event.preventDefault();
+
+            if (!currentUser) {
+                showMessage("Connexion nécessaire.", true);
+                return;
+            }
+
+            const subject =
+                document.getElementById("subject").value;
+
+            const title =
+                document.getElementById("title").value.trim();
+
+            const content =
+                document.getElementById("content").value.trim();
+
+            if (!subject || !title || content.length < 10) {
+
+                showMessage(
+                    "Remplissez correctement tous les champs.",
+                    true
+                );
+
+                return;
+            }
+
+            sendButton.disabled = true;
+
+            showMessage("Envoi en cours...");
+
+            try {
+
+                await addDoc(
+                    collection(db, "support_messages"),
+                    {
+                        uid: currentUser.uid,
+                        email: currentUser.email || "",
+                        subject: subject,
+                        title: title,
+                        content: content,
+                        status: "En attente",
+                        createdAt: serverTimestamp()
+                    }
+                );
+
+                document.getElementById("contactForm").reset();
+
+                showMessage(
+                    "Votre message a été envoyé à l'assistance !"
+                );
+
+                await loadTickets();
+
+            } catch (error) {
+
+                console.error(error);
+
+                showMessage(
+                    "Impossible d'envoyer le message. Vérifiez la configuration de Firestore.",
+                    true
+                );
+
+            } finally {
+
+                sendButton.disabled = false;
+
+            }
+
+        });
+
+
+    async function loadTickets() {
+
+        if (!currentUser) return;
+
+        tickets.textContent = "Chargement des demandes...";
+
+        try {
+
+            const userQuery = query(
+                collection(db, "support_messages"),
+                where("uid", "==", currentUser.uid)
+            );
+
+            const snapshot = await getDocs(userQuery);
+
+            const messages = [];
+
+            snapshot.forEach((doc) => {
+                messages.push({
+                    id: doc.id,
+                    ...doc.data()
+                });
+            });
+
+            messages.sort((a, b) => {
+
+                const dateA = a.createdAt?.seconds || 0;
+                const dateB = b.createdAt?.seconds || 0;
+
+                return dateB - dateA;
+
+            });
+
+            tickets.replaceChildren();
+
+            if (messages.length === 0) {
+
+                tickets.textContent =
+                    "Vous n'avez encore envoyé aucune demande.";
+
+                return;
+            }
+
+            messages.forEach((ticket) => {
+
+                const card = document.createElement("div");
+                card.className = "ticket";
+
+                const title = document.createElement("h3");
+                title.textContent = ticket.title || "Sans titre";
+
+                const subject = document.createElement("div");
+                subject.className = "small";
+                subject.textContent = ticket.subject || "";
+
+                const content = document.createElement("p");
+                content.textContent = ticket.content || "";
+
+                const status = document.createElement("div");
+                status.className = "status";
+                status.textContent =
+                    "Statut : " + (ticket.status || "En attente");
+
+                card.append(
+                    title,
+                    subject,
+                    content,
+                    status
+                );
+
+                tickets.appendChild(card);
+
+            });
+
+        } catch (error) {
+
+            console.error(error);
+
+            tickets.textContent =
+                "Impossible de charger vos demandes.";
+
+        }
+
+    }
+
+
+    document.getElementById("refreshButton")
+        .addEventListener("click", loadTickets);
+
+</script>
+
+</body>
+</html>
