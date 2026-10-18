@@ -9,99 +9,91 @@ import {
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
-const firebaseConfig = {
+const config = {
     apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
     authDomain: "monbotpc.firebaseapp.com",
     projectId: "monbotpc",
-    storageBucket: "monbotpc.firebasestorage.app",
-    messagingSenderId: "691729637594",
-    appId: "1:691729637594:web:9564d52349c04809fe85e3",
-    measurementId: "G-J2CSX1E919"
+    appId: "1:691729637594:web:9564d52349c04809fe85e3"
 };
+
+const ADMIN_UID = "rWEk3vGHK1W2EDvemVfw6xNtKxU2";
 
 const app = getApps().length
     ? getApp()
-    : initializeApp(firebaseConfig);
+    : initializeApp(config);
 
 const auth = getAuth(app);
 
-const menuButton = document.getElementById(
-    "monbot-menu-button"
-);
+const more = document.getElementById("mbpc-more");
+const dropdown = document.getElementById("mbpc-dropdown");
+const status = document.getElementById("mbpc-status");
+const account = document.getElementById("mbpc-account");
 
-const menu = document.getElementById(
-    "monbot-menu"
-);
+const adminLink = document.createElement("a");
 
-const accountStatus = document.getElementById(
-    "monbot-account-status"
-);
+adminLink.href = "admin.html";
+adminLink.textContent = "⚙️ Administration";
+adminLink.hidden = true;
 
-const accountLink = document.getElementById(
-    "monbot-account-link"
-);
+adminLink.style.cssText = `
+    display:none;
+    color:#FACC15;
+    font-weight:bold;
+`;
 
-function fermerMenu() {
-    menu.hidden = true;
-    menuButton.setAttribute("aria-expanded", "false");
+dropdown.appendChild(adminLink);
+
+function closeMenu() {
+
+    dropdown.hidden = true;
+
+    more.setAttribute("aria-expanded", "false");
 }
 
-function ouvrirMenu() {
-    menu.hidden = false;
-    menuButton.setAttribute("aria-expanded", "true");
-}
+more.addEventListener("click", () => {
 
-menuButton.addEventListener("click", event => {
+    dropdown.hidden = !dropdown.hidden;
 
-    event.stopPropagation();
-
-    if (menu.hidden) {
-        ouvrirMenu();
-    } else {
-        fermerMenu();
-    }
-
+    more.setAttribute(
+        "aria-expanded",
+        String(!dropdown.hidden)
+    );
 });
 
 document.addEventListener("click", event => {
 
-    if (
-        !menu.contains(event.target) &&
-        !menuButton.contains(event.target)
-    ) {
-        fermerMenu();
+    if (!event.target.closest(".mbpc-menu-wrap")) {
+        closeMenu();
     }
-
 });
 
 document.addEventListener("keydown", event => {
 
     if (event.key === "Escape") {
-        fermerMenu();
+        closeMenu();
     }
-
 });
 
 onAuthStateChanged(auth, user => {
 
     if (user) {
 
-        accountStatus.textContent =
+        status.textContent =
             "🟢 Connecté : " +
             (user.email || "Compte Google");
 
-        accountStatus.style.color = "#22C55E";
-
-        accountLink.textContent = "👤 Mon compte";
+        account.textContent = "👤 Mon compte";
 
     } else {
 
-        accountStatus.textContent = "🔴 Non connecté";
+        status.textContent = "🔴 Non connecté";
 
-        accountStatus.style.color = "#EF4444";
-
-        accountLink.textContent = "👤 Se connecter";
-
+        account.textContent = "👤 Se connecter";
     }
 
+    const isAdmin = user?.uid === ADMIN_UID;
+
+    adminLink.hidden = !isAdmin;
+
+    adminLink.style.display = isAdmin ? "block" : "none";
 });
