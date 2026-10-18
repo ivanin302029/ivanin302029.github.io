@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Administration — Mon Bot PC</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+    margin:0;
+    background:#0B1120;
+    color:#F8FAFC;
+    font-family:"Segoe UI",Arial,sans-serif;
+}
+
+header{
+    background:#111827;
+    padding:20px 30px;
+    border-bottom:1px solid #334155;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+}
+
+header h1{
+    color:#3B82F6;
+    font-size:23px;
+    margin:0;
+}
+
+a{
+    color:#60A5FA;
+    text-decoration:none;
+}
+
+main{
+    max-width:1100px;
+    margin:35px auto;
+    padding:0 20px;
+}
+
+.card{
+    background:#172033;
+    border:1px solid #334155;
+    border-radius:15px;
+    padding:25px;
+    margin-bottom:25px;
+}
+
+h2{
+    color:#60A5FA;
+}
+
+input,textarea,select{
+    width:100%;
+    padding:13px;
+    margin:10px 0;
+    border-radius:9px;
+    border:1px solid #334155;
+    background:#0B1120;
+    color:white;
+    font-family:inherit;
+    font-size:14px;
+}
+
+textarea{
+    min-height:130px;
+    resize:vertical;
+}
+
+button{
+    background:#3B82F6;
+    color:white;
+    border:none;
+    border-radius:9px;
+    padding:12px 20px;
+    cursor:pointer;
+    font-weight:bold;
+    margin:5px 5px 5px 0;
+}
+
+button:hover{
+    background:#2563EB;
+}
+
+button:disabled{
+    opacity:.5;
+    cursor:wait;
+}
+
+.danger{
+    background:#EF4444;
+}
+
+.danger:hover{
+    background:#DC2626;
+}
+
+.success{
+    background:#16A34A;
+}
+
+.item{
+    background:#0B1120;
+    padding:20px;
+    margin-top:15px;
+    border-radius:12px;
+    border:1px solid #334155;
+    overflow-wrap:anywhere;
+}
+
+.item p{
+    white-space:pre-wrap;
+    line-height:1.6;
+}
+
+.small{
+    color:#94A3B8;
+    font-size:13px;
+}
+
+#dashboard{
+    display:none;
+}
+
+#countdown{
+    font-size:35px;
+    font-weight:bold;
+    color:#22C55E;
+    margin:20px 0;
+}
+
+#notice{
+    color:#22C55E;
+    margin:15px 0;
+    overflow-wrap:anywhere;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>⚙️ Mon Bot PC — Administration</h1>
+    <a href="index.html">← Retour au site</a>
+</header>
+
+<main>
+
+<div id="access" class="card">
+    Vérification des droits administrateur...
+</div>
+
+<div id="dashboard">
+
+    <div class="card">
+        <h2>📩 Assistance — Messages reçus</h2>
+
+        <button id="refreshMessages">
+            Actualiser les messages
+        </button>
+
+        <div id="messages"></div>
+    </div>
+
+    <div class="card">
+
+        <h2>📰 Publier une actualité</h2>
+
+        <form id="newsForm">
+
+            <input
+                id="newsTitle"
+                placeholder="Titre de l'actualité"
+                maxlength="150"
+                required
+            >
+
+            <select id="newsCategory">
+                <option>Mise à jour</option>
+                <option>Annonce</option>
+                <option>Maintenance</option>
+                <option>Information</option>
+            </select>
+
+            <textarea
+                id="newsContent"
+                placeholder="Écris ton actualité..."
+                maxlength="10000"
+                required
+            ></textarea>
+
+            <button type="submit">
+                Publier l'actualité
+            </button>
+
+        </form>
+
+        <h2>Actualités publiées</h2>
+
+        <button id="refreshNews">
+            Actualiser
+        </button>
+
+        <div id="newsList"></div>
+
+    </div>
+
+    <div class="card">
+
+        <h2>🔧 Maintenance du site</h2>
+
+        <p class="small">
+            Active un écran de maintenance pour les visiteurs.
+            Ton compte administrateur pourra continuer à utiliser le site.
+        </p>
+
+        <label for="maintenanceDuration">
+            Durée de la maintenance
+        </label>
+
+        <select id="maintenanceDuration">
+            <option value="30">30 minutes</option>
+            <option value="60">1 heure</option>
+            <option value="120">2 heures</option>
+            <option value="360">6 heures</option>
+            <option value="720">12 heures</option>
+            <option value="1440">24 heures</option>
+        </select>
+
+        <button id="startMaintenance" class="danger">
+            Activer la maintenance
+        </button>
+
+        <button id="stopMaintenance" class="success">
+            Désactiver la maintenance
+        </button>
+
+        <div id="maintenanceStatus"></div>
+
+        <div id="countdown"></div>
+
+    </div>
+
+</div>
+
+<div id="notice" role="status" aria-live="polite"></div>
+
+</main>
+
+<script type="module">
+
+import {initializeApp}
+from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+
+import {
+    getAuth,
+    onAuthStateChanged
+}
+from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+import {
+    getFirestore,
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    setDoc,
+    query,
+    orderBy,
+    serverTimestamp,
+    Timestamp
+}
+from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+
+const firebaseConfig = {
+    apiKey:"AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
+    authDomain:"monbotpc.firebaseapp.com",
+    projectId:"monbotpc",
+    storageBucket:"monbotpc.firebasestorage.app",
+    messagingSenderId:"691729637594",
+    appId:"1:691729637594:web:9564d52349c04809fe85e3",
+    measurementId:"G-J2CSX1E919"
+};
+
+const ADMIN_UID = "rWEk3vGHK1W2EDvemVfw6xNtKxU2";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const access = document.getElementById("access");
+const dashboard = document.getElementById("dashboard");
+const notice = document.getElementById("notice");
+
+let timer = null;
+
+function notify(text,error=false){
+    notice.textContent=text;
+    notice.style.color=error?"#EF4444":"#22C55E";
+}
+
+function element(tag,text,className=""){
+    const node=document.createElement(tag);
+    node.textContent=text;
+    if(className)node.className=className;
+    return node;
+}
+
+onAuthStateChanged(auth,async user=>{
+
+    if(!user){
+        access.replaceChildren();
+        access.append(
+            element("p","Tu dois te connecter pour accéder à l'administration.")
+        );
+        const link=element("a","Se connecter");
+        link.href="connexion.html";
+        access.append(link);
+        dashboard.style.display="none";
+        return;
+    }
+
+    if(user.uid!==ADMIN_UID){
+        access.textContent="⛔ Accès refusé : compte non administrateur.";
+        dashboard.style.display="none";
+        return;
+    }
+
+    access.style.display="none";
+    dashboard.style.display="block";
+
+    await Promise.all([
+        loadMessages(),
+        loadNews(),
+        loadMaintenance()
+    ]);
+});
+
+
+async function loadMessages(){
+
+    const container=document.getElementById("messages");
+    container.textContent="Chargement...";
+
+    try{
+
+        const snapshot=await getDocs(
+            collection(db,"support_messages")
+        );
+
+        const data=[];
+
+        snapshot.forEach(item=>{
+            data.push({id:item.id,...item.data()});
+        });
+
+        data.sort((a,b)=>
+            (b.createdAt?.seconds||0)-
+            (a.createdAt?.seconds||0)
+        );
+
+        container.replaceChildren();
+
+        if(!data.length){
+            container.textContent="Aucun message.";
+            return;
+        }
+
+        data.forEach(message=>{
+
+            const card=element("div","","item");
+
+            card.append(
+                element("h3",message.title||"Sans titre"),
+                element("div",message.email||"","small"),
+                element("div","Sujet : "+(message.subject||"")),
+                element("p",message.content||""),
+                element("div","Statut : "+(message.status||"En attente"))
+            );
+
+            if(message.reply){
+                card.append(
+                    element("p","Réponse actuelle : "+message.reply)
+                );
+            }
+
+            const textarea=document.createElement("textarea");
+            textarea.placeholder="Écrire une réponse...";
+            textarea.maxLength=3000;
+            textarea.value=message.reply||"";
+
+            const button=element("button","Envoyer la réponse");
+
+            button.addEventListener("click",async()=>{
+
+                const reply=textarea.value.trim();
+
+                if(!reply){
+                    notify("Écris une réponse.",true);
+                    return;
+                }
+
+                button.disabled=true;
+
+                try{
+
+                    await updateDoc(
+                        doc(db,"support_messages",message.id),
+                        {
+                            reply,
+                            status:"Répondu",
+                            repliedAt:serverTimestamp()
+                        }
+                    );
+
+                    notify("Réponse enregistrée !");
+                    await loadMessages();
+
+                }catch(error){
+                    console.error(error);
+                    notify("Erreur lors de la réponse.",true);
+                }finally{
+                    button.disabled=false;
+                }
+
+            });
+
+            card.append(textarea,button);
+            container.append(card);
+
+        });
+
+    }catch(error){
+        console.error(error);
+        container.textContent="Impossible de charger les messages.";
+    }
+}
+
+document.getElementById("refreshMessages")
+.addEventListener("click",loadMessages);
+
+
+document.getElementById("newsForm")
+.addEventListener("submit",async event=>{
+
+    event.preventDefault();
+
+    const title=document.getElementById("newsTitle").value.trim();
+    const category=document.getElementById("newsCategory").value;
+    const content=document.getElementById("newsContent").value.trim();
+
+    if(!title||!content){
+        notify("Remplis les champs de l'actualité.",true);
+        return;
+    }
+
+    try{
+
+        await addDoc(collection(db,"news"),{
+            title,
+            category,
+            content,
+            createdAt:serverTimestamp()
+        });
+
+        document.getElementById("newsForm").reset();
+
+        notify("Actualité publiée !");
+
+        await loadNews();
+
+    }catch(error){
+        console.error(error);
+        notify("Impossible de publier l'actualité.",true);
+    }
+
+});
+
+
+async function loadNews(){
+
+    const container=document.getElementById("newsList");
+    container.textContent="Chargement...";
+
+    try{
+
+        const snapshot=await getDocs(
+            query(
+                collection(db,"news"),
+                orderBy("createdAt","desc")
+            )
+        );
+
+        container.replaceChildren();
+
+        if(snapshot.empty){
+            container.textContent="Aucune actualité.";
+            return;
+        }
+
+        snapshot.forEach(item=>{
+
+            const news=item.data();
+
+            const card=element("div","","item");
+
+            card.append(
+                element("h3",news.title||"Sans titre"),
+                element("div",news.category||"Annonce","small"),
+                element("p",news.content||"")
+            );
+
+            const button=element("button","Supprimer","danger");
+
+            button.addEventListener("click",async()=>{
+
+                if(!confirm("Supprimer cette actualité ?"))return;
+
+                try{
+                    await deleteDoc(doc(db,"news",item.id));
+                    notify("Actualité supprimée.");
+                    await loadNews();
+                }catch(error){
+                    console.error(error);
+                    notify("Suppression impossible.",true);
+                }
+
+            });
+
+            card.append(button);
+            container.append(card);
+
+        });
+
+    }catch(error){
+        console.error(error);
+        container.textContent="Impossible de charger les actualités.";
+    }
+}
+
+document.getElementById("refreshNews")
+.addEventListener("click",loadNews);
+
+
+const maintenanceRef=doc(db,"site_settings","maintenance");
+
+async function loadMaintenance(){
+
+    try{
+
+        const snapshot=await getDoc(maintenanceRef);
+
+        if(!snapshot.exists()){
+            showMaintenance(false,null);
+            return;
+        }
+
+        const data=snapshot.data();
+
+        showMaintenance(
+            data.active===true,
+            data.endsAt?.toDate?.()||null
+        );
+
+    }catch(error){
+        console.error(error);
+        notify("Impossible de lire la maintenance.",true);
+    }
+}
+
+function showMaintenance(active,endDate){
+
+    const status=document.getElementById("maintenanceStatus");
+    const countdown=document.getElementById("countdown");
+
+    if(timer){
+        clearInterval(timer);
+        timer=null;
+    }
+
+    if(!active){
+        status.textContent="🟢 Site disponible.";
+        countdown.textContent="";
+        return;
+    }
+
+    status.textContent="🔴 Maintenance activée.";
+
+    function update(){
+
+        if(!endDate){
+            countdown.textContent="Durée non définie.";
+            return;
+        }
+
+        const remaining=Math.max(
+            0,
+            Math.floor((endDate.getTime()-Date.now())/1000)
+        );
+
+        const h=Math.floor(remaining/3600);
+        const m=Math.floor((remaining%3600)/60);
+        const s=remaining%60;
+
+        countdown.textContent=
+            String(h).padStart(2,"0")+":"+
+            String(m).padStart(2,"0")+":"+
+            String(s).padStart(2,"0");
+
+        if(remaining===0){
+            clearInterval(timer);
+            timer=null;
+            status.textContent="🟢 Durée de maintenance terminée.";
+        }
+    }
+
+    update();
+    timer=setInterval(update,1000);
+}
+
+document.getElementById("startMaintenance")
+.addEventListener("click",async()=>{
+
+    const minutes=Number(
+        document.getElementById("maintenanceDuration").value
+    );
+
+    const endDate=new Date(Date.now()+minutes*60000);
+
+    try{
+
+        await setDoc(maintenanceRef,{
+            active:true,
+            endsAt:Timestamp.fromDate(endDate),
+            updatedAt:serverTimestamp()
+        });
+
+        showMaintenance(true,endDate);
+        notify("Maintenance activée !");
+
+    }catch(error){
+        console.error(error);
+        notify("Impossible d'activer la maintenance.",true);
+    }
+
+});
+
+document.getElementById("stopMaintenance")
+.addEventListener("click",async()=>{
+
+    try{
+
+        await setDoc(maintenanceRef,{
+            active:false,
+            endsAt:null,
+            updatedAt:serverTimestamp()
+        });
+
+        showMaintenance(false,null);
+        notify("Maintenance désactivée !");
+
+    }catch(error){
+        console.error(error);
+        notify("Impossible de désactiver la maintenance.",true);
+    }
+
+});
+
+</script>
+
+</body>
+</html>
