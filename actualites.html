@@ -1,301 +1,187 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Actualités — Mon Bot PC</title>
 
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             margin: 0;
-            min-height: 100vh;
             background: #0B1120;
-            color: #F8FAFC;
+            color: white;
             font-family: "Segoe UI", Arial, sans-serif;
-            padding: 40px 20px;
+            padding: 30px 20px;
         }
 
-        .container {
-            max-width: 950px;
+        main {
+            max-width: 900px;
             margin: auto;
         }
 
-        .back {
-            color: #94A3B8;
+        h1 { color: #60A5FA; }
+
+        a {
+            color: #60A5FA;
             text-decoration: none;
         }
 
-        h1 {
-            color: #3B82F6;
-            font-size: 36px;
-            margin-top: 35px;
-        }
-
-        .subtitle {
-            color: #94A3B8;
-            margin-bottom: 35px;
-        }
-
-        .news-card {
+        .card {
             background: #172033;
             border: 1px solid #334155;
-            border-radius: 16px;
+            border-radius: 15px;
             padding: 25px;
-            margin-bottom: 22px;
-            transition: transform 0.2s, border-color 0.2s;
+            margin: 20px 0;
         }
 
-        .news-card:hover {
-            transform: translateY(-3px);
-            border-color: #3B82F6;
-        }
-
-        .news-title {
+        .card h2 {
             color: #60A5FA;
-            font-size: 23px;
-            margin: 0 0 12px;
+            margin-top: 0;
         }
 
-        .news-date {
+        .date {
             color: #94A3B8;
             font-size: 13px;
-            margin-bottom: 18px;
         }
 
-        .news-content {
-            color: #E2E8F0;
-            line-height: 1.8;
+        .content {
             white-space: pre-wrap;
             overflow-wrap: anywhere;
+            line-height: 1.7;
         }
 
-        .badge {
-            display: inline-block;
-            background: #1E3A5F;
-            color: #93C5FD;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            margin-bottom: 15px;
-        }
-
-        .empty {
-            background: #172033;
-            padding: 30px;
-            border-radius: 14px;
-            text-align: center;
-            color: #94A3B8;
-        }
-
-        .refresh {
+        button {
             background: #3B82F6;
-            color: white;
-            border: none;
-            padding: 12px 20px;
+            border: 0;
             border-radius: 9px;
+            padding: 12px 20px;
+            color: white;
             cursor: pointer;
-            font-weight: bold;
-            margin-bottom: 25px;
-        }
-
-        .refresh:hover {
-            background: #2563EB;
         }
     </style>
-
 </head>
 
 <body>
 
-<div class="container">
-
-    <a href="index.html" class="back">
-        ← Retour à l'accueil
-    </a>
+<main>
+    <a href="index.html">← Retour à l'accueil</a>
 
     <h1>📰 Actualités Mon Bot PC</h1>
 
-    <p class="subtitle">
-        Découvrez les nouveautés, les mises à jour
-        et les annonces officielles de Mon Bot PC.
-    </p>
+    <p>Découvrez les dernières annonces officielles.</p>
 
-    <button class="refresh" id="refreshButton">
-        ↻ Actualiser les actualités
-    </button>
+    <button id="refresh">↻ Actualiser</button>
 
-    <div id="newsContainer">
-
-        <div class="empty">
-            Chargement des actualités...
-        </div>
-
-    </div>
-
-</div>
+    <div id="news">Chargement...</div>
+</main>
 
 <script type="module">
 
-    import { initializeApp }
-    from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 
-    import {
-        getFirestore,
-        collection,
-        getDocs,
-        query,
-        orderBy,
-        limit
-    }
-    from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import {
+    getFirestore,
+    collection,
+    getDocs
+}
+from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
+const config = {
+    apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
+    authDomain: "monbotpc.firebaseapp.com",
+    projectId: "monbotpc",
+    appId: "1:691729637594:web:9564d52349c04809fe85e3"
+};
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
-        authDomain: "monbotpc.firebaseapp.com",
-        projectId: "monbotpc",
-        storageBucket: "monbotpc.firebasestorage.app",
-        messagingSenderId: "691729637594",
-        appId: "1:691729637594:web:9564d52349c04809fe85e3",
-        measurementId: "G-J2CSX1E919"
-    };
+const app = initializeApp(config);
+const db = getFirestore(app);
 
+const container = document.getElementById("news");
 
-    const app = initializeApp(firebaseConfig);
+async function loadNews() {
 
-    const db = getFirestore(app);
+    container.textContent = "Chargement des actualités...";
 
-    const container =
-        document.getElementById("newsContainer");
+    try {
 
+        const snapshot = await getDocs(
+            collection(db, "news")
+        );
 
-    function showEmpty(text) {
+        const articles = [];
+
+        snapshot.forEach(document => {
+            articles.push({
+                id: document.id,
+                ...document.data()
+            });
+        });
+
+        articles.sort((a, b) => {
+            const dateA = a.createdAt?.seconds || 0;
+            const dateB = b.createdAt?.seconds || 0;
+            return dateB - dateA;
+        });
 
         container.replaceChildren();
 
-        const element = document.createElement("div");
-
-        element.className = "empty";
-        element.textContent = text;
-
-        container.appendChild(element);
-
-    }
-
-
-    async function loadNews() {
-
-        showEmpty("Chargement des actualités...");
-
-        try {
-
-            const newsQuery = query(
-                collection(db, "news"),
-                orderBy("createdAt", "desc"),
-                limit(30)
-            );
-
-            const snapshot = await getDocs(newsQuery);
-
-            container.replaceChildren();
-
-            if (snapshot.empty) {
-
-                showEmpty(
-                    "Aucune actualité publiée pour le moment."
-                );
-
-                return;
-
-            }
-
-            snapshot.forEach(document => {
-
-                const news = document.data();
-
-                const card = document.createElement("article");
-
-                card.className = "news-card";
-
-                const badge = document.createElement("span");
-
-                badge.className = "badge";
-
-                badge.textContent =
-                    news.category || "Annonce officielle";
-
-                const title = document.createElement("h2");
-
-                title.className = "news-title";
-
-                title.textContent =
-                    news.title || "Actualité Mon Bot PC";
-
-                const date = document.createElement("div");
-
-                date.className = "news-date";
-
-                if (news.createdAt?.toDate) {
-
-                    date.textContent =
-                        news.createdAt.toDate().toLocaleString(
-                            "fr-CA",
-                            {
-                                dateStyle: "long",
-                                timeStyle: "short"
-                            }
-                        );
-
-                } else {
-
-                    date.textContent = "Date inconnue";
-
-                }
-
-                const content = document.createElement("div");
-
-                content.className = "news-content";
-
-                content.textContent = news.content || "";
-
-                card.append(
-                    badge,
-                    title,
-                    date,
-                    content
-                );
-
-                container.appendChild(card);
-
-            });
-
-        } catch (error) {
-
-            console.error(error);
-
-            showEmpty(
-                "Impossible de charger les actualités."
-            );
-
+        if (articles.length === 0) {
+            container.textContent =
+                "Aucune actualité publiée.";
+            return;
         }
 
+        articles.forEach(article => {
+
+            const card = document.createElement("article");
+            card.className = "card";
+
+            const title = document.createElement("h2");
+            title.textContent =
+                article.title || "Actualité Mon Bot PC";
+
+            const category = document.createElement("p");
+            category.textContent =
+                article.category || "Annonce officielle";
+
+            const date = document.createElement("p");
+            date.className = "date";
+
+            if (article.createdAt?.toDate) {
+                date.textContent =
+                    article.createdAt.toDate().toLocaleString("fr-CA");
+            }
+
+            const content = document.createElement("p");
+            content.className = "content";
+            content.textContent = article.content || "";
+
+            card.append(title, category, date, content);
+
+            container.appendChild(card);
+
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        container.textContent =
+            "Erreur de chargement : " + error.message;
     }
+}
 
+document.getElementById("refresh")
+    .addEventListener("click", loadNews);
 
-    document.getElementById("refreshButton")
-        .addEventListener("click", loadNews);
-
-    loadNews();
+loadNews();
 
 </script>
 
-<script type="module" src="sidebar.js"></script>
 <script type="module" src="maintenance.js"></script>
+
 </body>
 </html>
