@@ -15,141 +15,172 @@ import {
     onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-
-const firebaseConfig = {
-    apiKey:"AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
-    authDomain:"monbotpc.firebaseapp.com",
-    projectId:"monbotpc",
-    storageBucket:"monbotpc.firebasestorage.app",
-    messagingSenderId:"691729637594",
-    appId:"1:691729637594:web:9564d52349c04809fe85e3"
+const config = {
+    apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
+    authDomain: "monbotpc.firebaseapp.com",
+    projectId: "monbotpc",
+    appId: "1:691729637594:web:9564d52349c04809fe85e3"
 };
 
-const ADMIN_UID="rWEk3vGHK1W2EDvemVfw6xNtKxU2";
+const ADMIN_UID = "rWEk3vGHK1W2EDvemVfw6xNtKxU2";
 
-const app=getApps().length?getApp():initializeApp(firebaseConfig);
+const app = getApps().length
+    ? getApp()
+    : initializeApp(config);
 
-const auth=getAuth(app);
-const db=getFirestore(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-let user=null;
-let maintenance=null;
-let timer=null;
+let currentUser = null;
+let maintenance = null;
+let interval = null;
 
-const overlay=document.createElement("div");
+const overlay = document.createElement("div");
 
-overlay.id="maintenance-overlay";
-
-overlay.style.cssText=`
+overlay.style.cssText = `
     position:fixed;
     inset:0;
-    z-index:999999;
     background:#0B1120;
-    color:white;
+    z-index:999999;
     display:none;
-    align-items:center;
     justify-content:center;
-    text-align:center;
-    padding:25px;
-    font-family:"Segoe UI",Arial,sans-serif;
+    align-items:center;
+    padding:20px;
+    color:white;
+    font-family:Segoe UI,Arial,sans-serif;
 `;
 
-const content=document.createElement("div");
+const card = document.createElement("div");
 
-content.style.cssText=`
-    max-width:650px;
-    width:100%;
+card.style.cssText = `
     background:#172033;
     border:1px solid #334155;
+    padding:40px;
     border-radius:20px;
-    padding:40px 25px;
+    text-align:center;
+    width:100%;
+    max-width:600px;
 `;
 
-const title=document.createElement("h1");
-title.textContent="🔧 Mon Bot PC";
+const title = document.createElement("h1");
+title.textContent = "🔧 Mon Bot PC";
 
-const subtitle=document.createElement("h2");
-subtitle.textContent="Maintenance en cours";
+const subtitle = document.createElement("h2");
+subtitle.textContent = "Maintenance en cours";
 
-const description=document.createElement("p");
-description.textContent=
+const description = document.createElement("p");
+
+description.textContent =
     "Nous préparons une mise à jour. Le site sera bientôt disponible.";
 
-const countdown=document.createElement("div");
+const timer = document.createElement("div");
 
-countdown.style.cssText=`
-    font-size:42px;
+timer.style.cssText = `
+    font-size:clamp(32px,8vw,60px);
     font-weight:bold;
-    color:#3B82F6;
-    margin:25px 0;
+    color:#60A5FA;
+    margin:30px 0;
+    font-variant-numeric:tabular-nums;
 `;
 
-content.append(title,subtitle,description,countdown);
-overlay.append(content);
-document.body.append(overlay);
+const labels = document.createElement("p");
 
-function update(){
+labels.textContent = "Heures : Minutes : Secondes";
 
-    if(timer){
-        clearInterval(timer);
-        timer=null;
+labels.style.color = "#94A3B8";
+
+card.append(title, subtitle, description, timer, labels);
+
+overlay.appendChild(card);
+
+document.body.appendChild(overlay);
+
+function updateMaintenance() {
+
+    if (interval) {
+        clearInterval(interval);
+        interval = null;
     }
 
-    if(!maintenance?.active || user?.uid===ADMIN_UID){
-        overlay.style.display="none";
-        document.body.style.overflow="";
+    if (
+        !maintenance ||
+        maintenance.active !== true ||
+        currentUser?.uid === ADMIN_UID
+    ) {
+        overlay.style.display = "none";
+        document.body.style.overflow = "";
         return;
     }
 
-    overlay.style.display="flex";
-    document.body.style.overflow="hidden";
+    const endDate = maintenance.endsAt?.toDate?.();
 
-    function tick(){
+    if (!endDate || endDate.getTime() <= Date.now()) {
+        overlay.style.display = "none";
+        document.body.style.overflow = "";
+        return;
+    }
 
-        const end=maintenance.endsAt?.toDate?.();
+    overlay.style.display = "flex";
+    document.body.style.overflow = "hidden";
 
-        if(!end){
-            countdown.textContent="Retour prochainement";
-            return;
-        }
+    function tick() {
 
-        const seconds=Math.max(
+        const remaining = Math.max(
             0,
-            Math.floor((end.getTime()-Date.now())/1000)
+            Math.ceil((endDate.getTime() - Date.now()) / 1000)
         );
 
-        if(seconds===0){
-            overlay.style.display="none";
-            document.body.style.overflow="";
-            clearInterval(timer);
-            timer=null;
+        if (remaining === 0) {
+
+            overlay.style.display = "none";
+            document.body.style.overflow = "";
+
+            clearInterval(interval);
+            interval = null;
+
             return;
         }
 
-        const h=Math.floor(seconds/3600);
-        const m=Math.floor((seconds%3600)/60);
-        const s=seconds%60;
+        const hours = Math.floor(remaining / 3600);
 
-        countdown.textContent=
-            String(h).padStart(2,"0")+":"+
-            String(m).padStart(2,"0")+":"+
-            String(s).padStart(2,"0");
+        const minutes = Math.floor(
+            (remaining % 3600) / 60
+        );
+
+        const seconds = remaining % 60;
+
+        timer.textContent =
+            String(hours).padStart(2, "0") + ":" +
+            String(minutes).padStart(2, "0") + ":" +
+            String(seconds).padStart(2, "0");
     }
 
     tick();
-    timer=setInterval(tick,1000);
+
+    interval = setInterval(tick, 1000);
 }
 
-onAuthStateChanged(auth,current=>{
-    user=current;
-    update();
+onAuthStateChanged(auth, user => {
+
+    currentUser = user;
+
+    updateMaintenance();
+
 });
 
 onSnapshot(
-    doc(db,"site_settings","maintenance"),
-    snapshot=>{
-        maintenance=snapshot.exists()?snapshot.data():null;
-        update();
+    doc(db, "site_settings", "maintenance"),
+
+    snapshot => {
+
+        maintenance = snapshot.exists()
+            ? snapshot.data()
+            : null;
+
+        updateMaintenance();
     },
-    error=>console.error("Maintenance :",error)
+
+    error => {
+        console.error("Erreur maintenance :", error);
+    }
 );
