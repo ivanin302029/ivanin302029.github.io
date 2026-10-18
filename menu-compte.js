@@ -6,7 +6,8 @@ import {
 
 import {
     getAuth,
-    onAuthStateChanged
+    onAuthStateChanged,
+    signOut
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
 import {
@@ -14,6 +15,8 @@ import {
     collection,
     getDocs
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+/* FIREBASE */
 
 const firebaseConfig = {
     apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
@@ -24,7 +27,9 @@ const firebaseConfig = {
     appId: "1:691729637594:web:9564d52349c04809fe85e3"
 };
 
-const ADMINS = [
+/* ADMINISTRATEURS */
+
+const ADMIN_UIDS = [
     "rWEk3vGHK1W2EDvemVfw6xNtKxU2",
     "8lq3zxa8nkdZ6hXpa8FeZTpI55Q2"
 ];
@@ -36,119 +41,189 @@ const app = getApps().length
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const more = document.getElementById("mbpc-more");
-const dropdown = document.getElementById("mbpc-dropdown");
-const status = document.getElementById("mbpc-status");
-const account = document.getElementById("mbpc-account");
+/* INITIALISATION */
 
-function fermerMenu() {
-    if (!dropdown || !more) return;
+function initialiserMenu() {
 
-    dropdown.hidden = true;
-    dropdown.style.display = "none";
+    const bouton = document.getElementById("mbpc-more");
+    const menu = document.getElementById("mbpc-dropdown");
+    const statut = document.getElementById("mbpc-status");
+    const compte = document.getElementById("mbpc-account");
 
-    more.setAttribute("aria-expanded", "false");
-}
+    if (!bouton || !menu) {
+        console.warn("Menu Mon Bot PC introuvable.");
+        return;
+    }
 
-function ouvrirMenu() {
-    if (!dropdown || !more) return;
+    /* MENU */
 
-    dropdown.hidden = false;
-    dropdown.style.display = "block";
+    function fermerMenu() {
+        menu.hidden = true;
+        menu.style.setProperty(
+            "display",
+            "none",
+            "important"
+        );
 
-    more.setAttribute("aria-expanded", "true");
-}
+        bouton.setAttribute("aria-expanded", "false");
+    }
 
-if (more && dropdown) {
+    function ouvrirMenu() {
+        menu.hidden = false;
+
+        menu.style.setProperty(
+            "display",
+            "block",
+            "important"
+        );
+
+        menu.style.position = "absolute";
+        menu.style.zIndex = "99999";
+
+        bouton.setAttribute("aria-expanded", "true");
+    }
+
     fermerMenu();
 
-    more.addEventListener("click", event => {
+    bouton.addEventListener("click", function(event) {
+
+        event.preventDefault();
         event.stopPropagation();
 
-        if (dropdown.hidden) {
+        if (menu.hidden) {
             ouvrirMenu();
         } else {
             fermerMenu();
         }
+
     });
 
-    document.addEventListener("click", event => {
+    document.addEventListener("click", function(event) {
+
         if (
-            !more.contains(event.target) &&
-            !dropdown.contains(event.target)
+            !bouton.contains(event.target) &&
+            !menu.contains(event.target)
         ) {
             fermerMenu();
         }
+
     });
 
-    document.addEventListener("keydown", event => {
+    document.addEventListener("keydown", function(event) {
+
         if (event.key === "Escape") {
             fermerMenu();
         }
+
     });
-}
 
-let adminLink = document.getElementById("mbpc-admin-link");
+    /* LIENS */
 
-if (!adminLink && dropdown) {
-    adminLink = document.createElement("a");
+    function ajouterLien(id, texte, adresse) {
 
-    adminLink.id = "mbpc-admin-link";
-    adminLink.href = "admin.html";
-    adminLink.textContent = "⚙️ Administration";
-    adminLink.style.display = "none";
+        let lien = document.getElementById(id);
 
-    dropdown.appendChild(adminLink);
-}
+        if (!lien) {
+            lien = document.createElement("a");
+            lien.id = id;
+            menu.appendChild(lien);
+        }
 
-onAuthStateChanged(auth, user => {
-    const administrateur = user && ADMINS.includes(user.uid);
+        lien.textContent = texte;
+        lien.href = adresse;
 
-    if (adminLink) {
-        adminLink.style.display = administrateur
+        return lien;
+    }
+
+    const lienActualites = ajouterLien(
+        "mbpc-news-link",
+        "📰 Actualités",
+        "actualites.html"
+    );
+
+    const lienContact = ajouterLien(
+        "mbpc-contact-link",
+        "📩 Assistance",
+        "contact.html"
+    );
+
+    const lienAdmin = ajouterLien(
+        "mbpc-admin-link",
+        "⚙️ Administration",
+        "admin.html"
+    );
+
+    lienAdmin.style.display = "none";
+
+    /* CONNEXION */
+
+    onAuthStateChanged(auth, function(user) {
+
+        const estAdmin = user &&
+            ADMIN_UIDS.includes(user.uid);
+
+        lienAdmin.style.display = estAdmin
             ? "block"
             : "none";
-    }
 
-    if (status) {
-        status.textContent = user
-            ? "🟢 Connecté : " + (user.email || "Compte Google")
-            : "🔴 Non connecté";
-    }
+        if (statut) {
+            statut.textContent = user
+                ? "🟢 Connecté"
+                : "🔴 Non connecté";
+        }
 
-    if (account) {
-        account.textContent = user
-            ? "👤 Mon compte"
-            : "👤 Se connecter";
+        if (compte) {
+            compte.textContent = user
+                ? "👤 Mon compte"
+                : "👤 Se connecter";
 
-        account.href = "connexion.html";
-    }
-});
+            compte.href = "connexion.html";
+        }
 
-async function actualiserNotifications() {
-    try {
-        const snapshot = await getDocs(
-            collection(db, "news")
-        );
+    });
 
-        const lus = JSON.parse(
-            localStorage.getItem("monbotpc_news_lues") || "[]"
-        );
+    /* NOTIFICATIONS ACTUALITÉS */
 
-        const nonLus = snapshot.docs.filter(
-            document => !lus.includes(document.id)
-        );
+    async function chargerNotifications() {
 
-        document.querySelectorAll(
-            'a[href="actualites.html"]'
-        ).forEach(lien => {
-            let badge = lien.querySelector(".news-badge");
+        try {
+
+            const snapshot = await getDocs(
+                collection(db, "news")
+            );
+
+            let actualitesLues = [];
+
+            try {
+                const sauvegarde = JSON.parse(
+                    localStorage.getItem(
+                        "monbotpc_news_lues"
+                    ) || "[]"
+                );
+
+                if (Array.isArray(sauvegarde)) {
+                    actualitesLues = sauvegarde;
+                }
+
+            } catch (erreur) {
+                actualitesLues = [];
+            }
+
+            const nouvelles = snapshot.docs.filter(
+                document => !actualitesLues.includes(
+                    document.id
+                )
+            );
+
+            let badge = document.getElementById(
+                "mbpc-news-badge"
+            );
 
             if (!badge) {
                 badge = document.createElement("span");
-                badge.className = "news-badge";
+                badge.id = "mbpc-news-badge";
+
                 badge.style.cssText = `
-                    display:inline-block;
                     background:#EF4444;
                     color:white;
                     border-radius:20px;
@@ -158,21 +233,41 @@ async function actualiserNotifications() {
                     font-weight:bold;
                 `;
 
-                lien.appendChild(badge);
+                lienActualites.appendChild(badge);
             }
 
-            badge.textContent = nonLus.length;
-            badge.style.display = nonLus.length
+            badge.textContent = nouvelles.length;
+
+            badge.style.display = nouvelles.length > 0
                 ? "inline-block"
                 : "none";
-        });
 
-    } catch (error) {
-        console.error(
-            "Impossible de charger les notifications :",
-            error
-        );
+        } catch (erreur) {
+
+            console.error(
+                "Notifications indisponibles :",
+                erreur
+            );
+
+        }
+
     }
+
+    chargerNotifications();
+
 }
 
-actualiserNotifications();
+/* ATTENDRE LE CHARGEMENT DU HTML */
+
+if (document.readyState === "loading") {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        initialiserMenu
+    );
+
+} else {
+
+    initialiserMenu();
+
+}
