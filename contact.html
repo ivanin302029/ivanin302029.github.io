@@ -462,11 +462,24 @@
                     "Statut : " + (ticket.status || "En attente");
 
                 card.append(
-                    title,
-                    subject,
-                    content,
-                    status
-                );
+    title,
+    subject,
+    content,
+    status
+);
+
+if (ticket.reply) {
+
+    const replyTitle = document.createElement("h4");
+    replyTitle.textContent = "💬 Réponse de l'assistance";
+
+    const replyContent = document.createElement("p");
+    replyContent.textContent = ticket.reply;
+
+    replyContent.style.color = "#22C55E";
+
+    card.append(replyTitle, replyContent);
+}
 
                 tickets.appendChild(card);
 
