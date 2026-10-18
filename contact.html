@@ -1,507 +1,799 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nous contacter — Mon Bot PC</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <style>
-        * { box-sizing: border-box; }
+<title>Assistance — Mon Bot PC</title>
 
-        body {
-            margin: 0;
-            min-height: 100vh;
-            background: #0B1120;
-            color: #F8FAFC;
-            font-family: "Segoe UI", Arial, sans-serif;
-            padding: 35px 20px;
-        }
+<style>
+* {
+    box-sizing: border-box;
+}
 
-        .container {
-            max-width: 750px;
-            margin: auto;
-        }
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: #0B1120;
+    color: #F8FAFC;
+    font-family: "Segoe UI", Arial, sans-serif;
+    padding: 30px 15px;
+}
 
-        .back {
-            color: #94A3B8;
-            text-decoration: none;
-        }
+.container {
+    max-width: 900px;
+    margin: auto;
+}
 
-        h1 {
-            color: #3B82F6;
-            margin-top: 30px;
-        }
+a {
+    color: #60A5FA;
+    text-decoration: none;
+}
 
-        .description {
-            color: #94A3B8;
-            line-height: 1.7;
-        }
+h1, h2 {
+    color: #60A5FA;
+}
 
-        .card {
-            background: #172033;
-            padding: 30px;
-            border-radius: 16px;
-            border: 1px solid #334155;
-            margin-top: 25px;
-        }
+.card {
+    background: #172033;
+    padding: 25px;
+    border-radius: 15px;
+    border: 1px solid #334155;
+    margin-top: 20px;
+}
 
-        label {
-            display: block;
-            margin: 18px 0 8px;
-            font-weight: 600;
-        }
+input, textarea, select {
+    width: 100%;
+    background: #0B1120;
+    color: white;
+    border: 1px solid #334155;
+    border-radius: 9px;
+    padding: 12px;
+    margin: 8px 0 15px;
+    font-family: inherit;
+}
 
-        input, textarea, select {
-            width: 100%;
-            background: #0B1120;
-            border: 1px solid #334155;
-            border-radius: 9px;
-            color: white;
-            padding: 13px;
-            font-family: inherit;
-            font-size: 15px;
-        }
+textarea {
+    min-height: 110px;
+    resize: vertical;
+}
 
-        textarea {
-            min-height: 170px;
-            resize: vertical;
-        }
+button, .button {
+    display: inline-block;
+    background: #3B82F6;
+    color: white;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 9px;
+    cursor: pointer;
+    font-weight: bold;
+    text-decoration: none;
+}
 
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: #3B82F6;
-        }
+button:disabled {
+    opacity: .5;
+    cursor: wait;
+}
 
-        button, .button {
-            display: inline-block;
-            background: #3B82F6;
-            color: white;
-            padding: 13px 24px;
-            border: none;
-            border-radius: 9px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: bold;
-            text-decoration: none;
-            margin-top: 20px;
-        }
+.hidden {
+    display: none !important;
+}
 
-        button:disabled {
-            opacity: 0.5;
-            cursor: wait;
-        }
+.ticket {
+    background: #0B1120;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 18px;
+}
 
-        .hidden { display: none; }
+.ticket h3 {
+    color: #60A5FA;
+}
 
-        #message {
-            margin-top: 20px;
-            line-height: 1.6;
-            overflow-wrap: anywhere;
-        }
+.small {
+    color: #94A3B8;
+    font-size: 13px;
+}
 
-        .ticket {
-            background: #0B1120;
-            padding: 18px;
-            border-radius: 10px;
-            margin-top: 15px;
-            border: 1px solid #334155;
-            overflow-wrap: anywhere;
-        }
+.status {
+    color: #22C55E;
+    font-weight: bold;
+}
 
-        .ticket h3 {
-            margin-top: 0;
-            color: #60A5FA;
-        }
+.conversation {
+    background: #111827;
+    border-radius: 12px;
+    padding: 15px;
+    margin: 15px 0;
+    max-height: 450px;
+    overflow-y: auto;
+}
 
-        .ticket p {
-            white-space: pre-wrap;
-        }
+.bubble {
+    padding: 13px;
+    margin: 12px 0;
+    border-radius: 12px;
+    max-width: 90%;
+    overflow-wrap: anywhere;
+}
 
-        .status {
-            color: #22C55E;
-            font-size: 13px;
-        }
+.bubble p {
+    white-space: pre-wrap;
+    line-height: 1.6;
+}
 
-        .small {
-            color: #94A3B8;
-            font-size: 13px;
-        }
-    </style>
+.user-message {
+    background: #1D4ED8;
+    margin-left: auto;
+}
+
+.admin-message {
+    background: #334155;
+    margin-right: auto;
+}
+
+.old-message {
+    background: #263445;
+}
+
+.file-link {
+    display: block;
+    margin-top: 10px;
+    color: #93C5FD;
+}
+
+.notice {
+    color: #22C55E;
+    margin: 15px 0;
+    overflow-wrap: anywhere;
+}
+</style>
+
 </head>
 
 <body>
 
 <div class="container">
 
-    <a href="index.html" class="back">← Retour à l'accueil</a>
+<a href="index.html">← Retour à l'accueil</a>
 
-    <h1>📩 Nous contacter</h1>
+<h1>📩 Assistance Mon Bot PC</h1>
 
-    <p class="description">
-        Besoin d'aide avec Mon Bot PC ?
-        Envoyez un message à notre assistance.
-    </p>
+<p>
+    Contactez notre assistance et retrouvez
+    toutes vos conversations.
+</p>
 
-    <div id="loading" class="card">
-        Vérification de votre connexion...
-    </div>
+<div id="loading" class="card">
+    Vérification de votre connexion...
+</div>
 
-    <div id="notConnected" class="card hidden">
+<div id="notConnected" class="card hidden">
 
-        <h2>🔒 Connexion nécessaire</h2>
+    <h2>Connexion nécessaire</h2>
 
-        <p>
-            Vous devez être connecté pour contacter
-            l'assistance de Mon Bot PC.
+    <p>Connectez-vous pour contacter l'assistance.</p>
+
+    <a class="button" href="connexion.html">
+        Se connecter
+    </a>
+
+</div>
+
+<div id="support" class="hidden">
+
+    <section class="card">
+
+        <h2>➕ Nouveau ticket</h2>
+
+        <p class="small">
+            Connecté : <span id="userEmail"></span>
         </p>
 
-        <a href="connexion.html" class="button">
-            Se connecter
-        </a>
+        <form id="contactForm">
 
-    </div>
+            <label>Sujet</label>
 
-    <div id="support" class="hidden">
+            <select id="subject" required>
+                <option value="">Choisir un sujet</option>
+                <option>Problème technique</option>
+                <option>Problème de connexion</option>
+                <option>Problème d'analyse</option>
+                <option>Suggestion</option>
+                <option>Autre</option>
+            </select>
 
-        <div class="card">
+            <label>Titre</label>
 
-            <h2>Envoyer une demande</h2>
+            <input
+                id="title"
+                maxlength="120"
+                required
+                placeholder="Titre du problème"
+            >
 
-            <p class="small">
-                Connecté avec :
-                <strong id="userEmail"></strong>
-            </p>
+            <label>Message</label>
 
-            <form id="contactForm">
+            <textarea
+                id="content"
+                minlength="10"
+                maxlength="3000"
+                required
+                placeholder="Expliquez votre problème..."
+            ></textarea>
 
-                <label for="subject">Sujet</label>
-
-                <select id="subject" required>
-                    <option value="">Choisissez un sujet</option>
-                    <option value="Problème technique">
-                        Problème technique
-                    </option>
-                    <option value="Problème de connexion">
-                        Problème de connexion
-                    </option>
-                    <option value="Problème d'analyse">
-                        Problème d'analyse
-                    </option>
-                    <option value="Suggestion">
-                        Suggestion
-                    </option>
-                    <option value="Autre">
-                        Autre
-                    </option>
-                </select>
-
-                <label for="title">Titre</label>
-
-                <input
-                    type="text"
-                    id="title"
-                    maxlength="120"
-                    placeholder="Décrivez brièvement votre problème"
-                    required
-                >
-
-                <label for="content">Votre message</label>
-
-                <textarea
-                    id="content"
-                    minlength="10"
-                    maxlength="3000"
-                    placeholder="Expliquez votre problème en détail..."
-                    required
-                ></textarea>
-
-                <button id="sendButton" type="submit">
-                    Envoyer à l'assistance
-                </button>
-
-            </form>
-
-            <p id="message" role="status" aria-live="polite"></p>
-
-        </div>
-
-        <div class="card">
-
-            <h2>📬 Mes demandes</h2>
-
-            <p class="description">
-                Retrouvez ici les messages que vous avez envoyés.
-            </p>
-
-            <button id="refreshButton" type="button">
-                Actualiser
+            <button id="sendButton" type="submit">
+                Envoyer le ticket
             </button>
 
-            <div id="tickets"></div>
+        </form>
 
-        </div>
+        <p id="notice" class="notice"></p>
 
-    </div>
+    </section>
+
+    <section class="card">
+
+        <h2>💬 Mes conversations</h2>
+
+        <button id="refresh">
+            ↻ Actualiser
+        </button>
+
+        <div id="tickets"></div>
+
+    </section>
+
+</div>
 
 </div>
 
 <script type="module">
 
-    import { initializeApp }
-    from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 
-    import {
-        getAuth,
-        onAuthStateChanged
+import {
+    getAuth,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+import {
+    getFirestore,
+    collection,
+    doc,
+    addDoc,
+    getDocs,
+    query,
+    where,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+import {
+    getStorage,
+    ref,
+    uploadBytes,
+    getDownloadURL
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
+    authDomain: "monbotpc.firebaseapp.com",
+    projectId: "monbotpc",
+    storageBucket: "monbotpc.firebasestorage.app",
+    messagingSenderId: "691729637594",
+    appId: "1:691729637594:web:9564d52349c04809fe85e3"
+};
+
+const app = initializeApp(firebaseConfig);
+
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+let currentUser = null;
+
+const ticketsContainer = document.getElementById("tickets");
+const notice = document.getElementById("notice");
+
+const allowedTypes = [
+    "image/png",
+    "image/jpeg",
+    "image/webp",
+    "application/pdf",
+    "text/plain"
+];
+
+function showNotice(text, error = false) {
+    notice.textContent = text;
+    notice.style.color = error ? "#EF4444" : "#22C55E";
+}
+
+function make(tag, text = "", className = "") {
+    const element = document.createElement(tag);
+    element.textContent = text;
+    element.className = className;
+    return element;
+}
+
+function formatDate(timestamp) {
+    return timestamp?.toDate
+        ? timestamp.toDate().toLocaleString("fr-CA")
+        : "";
+}
+
+function validateFile(file) {
+
+    if (!file) return true;
+
+    if (!allowedTypes.includes(file.type)) {
+        throw new Error("Type de fichier non autorisé.");
     }
-    from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
-    import {
-        getFirestore,
-        collection,
-        addDoc,
-        getDocs,
-        query,
-        where,
-        serverTimestamp
-    }
-    from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
-        authDomain: "monbotpc.firebaseapp.com",
-        projectId: "monbotpc",
-        storageBucket: "monbotpc.firebasestorage.app",
-        messagingSenderId: "691729637594",
-        appId: "1:691729637594:web:9564d52349c04809fe85e3",
-        measurementId: "G-J2CSX1E919"
-    };
-
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    let currentUser = null;
-
-    const loading = document.getElementById("loading");
-    const notConnected = document.getElementById("notConnected");
-    const support = document.getElementById("support");
-    const message = document.getElementById("message");
-    const tickets = document.getElementById("tickets");
-    const sendButton = document.getElementById("sendButton");
-
-
-    function showMessage(text, error = false) {
-        message.textContent = text;
-        message.style.color = error ? "#EF4444" : "#22C55E";
+    if (file.size > 5 * 1024 * 1024) {
+        throw new Error("Fichier trop volumineux : maximum 5 Mo.");
     }
 
+    return true;
+}
 
-    onAuthStateChanged(auth, async (user) => {
+async function uploadAttachment(ticketId, messageId, file) {
 
-        loading.classList.add("hidden");
+    validateFile(file);
 
-        currentUser = user;
+    const extension = {
+        "image/png": "png",
+        "image/jpeg": "jpg",
+        "image/webp": "webp",
+        "application/pdf": "pdf",
+        "text/plain": "txt"
+    }[file.type];
 
-        if (!user) {
+    const path =
+        `tickets/${ticketId}/${messageId}/piece-jointe.${extension}`;
 
-            notConnected.classList.remove("hidden");
-            support.classList.add("hidden");
+    const fileRef = ref(storage, path);
 
-            return;
-        }
-
-        notConnected.classList.add("hidden");
-        support.classList.remove("hidden");
-
-        document.getElementById("userEmail").textContent =
-            user.email || "Compte connecté";
-
-        await loadTickets();
-
+    await uploadBytes(fileRef, file, {
+        contentType: file.type
     });
 
+    return {
+        path,
+        name: file.name
+    };
+}
 
-    document.getElementById("contactForm")
-        .addEventListener("submit", async (event) => {
+function addFileLink(container, ticketId, messageId, data) {
 
-            event.preventDefault();
+    if (!data.attachmentPath) return;
 
-            if (!currentUser) {
-                showMessage("Connexion nécessaire.", true);
-                return;
-            }
+    const link = make(
+        "a",
+        "📎 " + (data.attachmentName || "Pièce jointe"),
+        "file-link"
+    );
 
-            const subject =
-                document.getElementById("subject").value;
+    link.href = "#";
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
 
-            const title =
-                document.getElementById("title").value.trim();
+    link.addEventListener("click", async event => {
 
-            const content =
-                document.getElementById("content").value.trim();
+        event.preventDefault();
 
-            if (!subject || !title || content.length < 10) {
+        try {
+            const fileRef = ref(storage, data.attachmentPath);
+            const url = await getDownloadURL(fileRef);
 
-                showMessage(
-                    "Remplissez correctement tous les champs.",
-                    true
-                );
+            window.open(url, "_blank", "noopener,noreferrer");
 
-                return;
-            }
+        } catch (error) {
+            console.error(error);
+            alert("Impossible d'ouvrir la pièce jointe.");
+        }
+    });
 
-            sendButton.disabled = true;
+    container.append(link);
+}
 
-            showMessage("Envoi en cours...");
+async function loadConversation(ticket, container) {
 
-            try {
+    container.textContent = "Chargement de la conversation...";
 
-                await addDoc(
-                    collection(db, "support_messages"),
-                    {
-                        uid: currentUser.uid,
-                        email: currentUser.email || "",
-                        subject: subject,
-                        title: title,
-                        content: content,
-                        status: "En attente",
-                        createdAt: serverTimestamp()
-                    }
-                );
+    try {
 
-                document.getElementById("contactForm").reset();
+        const snapshot = await getDocs(
+            collection(
+                db,
+                "support_messages",
+                ticket.id,
+                "messages"
+            )
+        );
 
-                showMessage(
-                    "Votre message a été envoyé à l'assistance !"
-                );
+        const messages = snapshot.docs.map(item => ({
+            id: item.id,
+            ...item.data()
+        }));
 
-                await loadTickets();
+        messages.sort((a, b) =>
+            (a.createdAt?.seconds || 0) -
+            (b.createdAt?.seconds || 0)
+        );
 
-            } catch (error) {
+        container.replaceChildren();
 
-                console.error(error);
+        // Conservation du premier message des anciens tickets
+        const original = make(
+            "div",
+            "",
+            "bubble old-message"
+        );
 
-                showMessage(
-                    "Impossible d'envoyer le message. Vérifiez la configuration de Firestore.",
-                    true
-                );
+        original.append(
+            make("strong", "👤 Message initial"),
+            make("p", ticket.content || "")
+        );
 
-            } finally {
+        container.append(original);
 
-                sendButton.disabled = false;
+        // Conservation des anciennes réponses administrateur
+        if (ticket.reply) {
 
-            }
+            const oldReply = make(
+                "div",
+                "",
+                "bubble admin-message"
+            );
+
+            oldReply.append(
+                make("strong", "🛠️ Ancienne réponse de l'assistance"),
+                make("p", ticket.reply)
+            );
+
+            container.append(oldReply);
+        }
+
+        messages.forEach(message => {
+
+            const isAdminMessage =
+                message.uid !== ticket.uid;
+
+            const bubble = make(
+                "div",
+                "",
+                "bubble " + (
+                    isAdminMessage
+                        ? "admin-message"
+                        : "user-message"
+                )
+            );
+
+            bubble.append(
+                make(
+                    "strong",
+                    isAdminMessage
+                        ? "🛠️ Assistance Mon Bot PC"
+                        : "👤 Vous"
+                ),
+                make("p", message.text || ""),
+                make(
+                    "div",
+                    formatDate(message.createdAt),
+                    "small"
+                )
+            );
+
+            addFileLink(
+                bubble,
+                ticket.id,
+                message.id,
+                message
+            );
+
+            container.append(bubble);
 
         });
 
+        container.scrollTop = container.scrollHeight;
 
-    async function loadTickets() {
+    } catch (error) {
 
-        if (!currentUser) return;
+        console.error(error);
 
-        tickets.textContent = "Chargement des demandes...";
-
-        try {
-
-            const userQuery = query(
-                collection(db, "support_messages"),
-                where("uid", "==", currentUser.uid)
-            );
-
-            const snapshot = await getDocs(userQuery);
-
-            const messages = [];
-
-            snapshot.forEach((doc) => {
-                messages.push({
-                    id: doc.id,
-                    ...doc.data()
-                });
-            });
-
-            messages.sort((a, b) => {
-
-                const dateA = a.createdAt?.seconds || 0;
-                const dateB = b.createdAt?.seconds || 0;
-
-                return dateB - dateA;
-
-            });
-
-            tickets.replaceChildren();
-
-            if (messages.length === 0) {
-
-                tickets.textContent =
-                    "Vous n'avez encore envoyé aucune demande.";
-
-                return;
-            }
-
-            messages.forEach((ticket) => {
-
-                const card = document.createElement("div");
-                card.className = "ticket";
-
-                const title = document.createElement("h3");
-                title.textContent = ticket.title || "Sans titre";
-
-                const subject = document.createElement("div");
-                subject.className = "small";
-                subject.textContent = ticket.subject || "";
-
-                const content = document.createElement("p");
-                content.textContent = ticket.content || "";
-
-                const status = document.createElement("div");
-                status.className = "status";
-                status.textContent =
-                    "Statut : " + (ticket.status || "En attente");
-
-                card.append(
-    title,
-    subject,
-    content,
-    status
-);
-
-if (ticket.reply) {
-
-    const replyTitle = document.createElement("h4");
-    replyTitle.textContent = "💬 Réponse de l'assistance";
-
-    const replyContent = document.createElement("p");
-    replyContent.textContent = ticket.reply;
-
-    replyContent.style.color = "#22C55E";
-
-    card.append(replyTitle, replyContent);
+        container.textContent =
+            "Impossible de charger la conversation.";
+    }
 }
 
-                tickets.appendChild(card);
+async function sendReply(ticket, textarea, fileInput, button, conversation) {
 
-            });
+    const text = textarea.value.trim();
+    const file = fileInput.files[0];
 
-        } catch (error) {
-
-            console.error(error);
-
-            tickets.textContent =
-                "Impossible de charger vos demandes.";
-
-        }
-
+    if (!text && !file) {
+        alert("Écrivez un message ou ajoutez un fichier.");
+        return;
     }
 
+    if (ticket.status === "Fermé") {
+        alert("Ce ticket est fermé.");
+        return;
+    }
 
-    document.getElementById("refreshButton")
-        .addEventListener("click", loadTickets);
+    try {
+        validateFile(file);
+    } catch (error) {
+        alert(error.message);
+        return;
+    }
+
+    button.disabled = true;
+
+    try {
+
+        const messageRef = doc(
+            collection(
+                db,
+                "support_messages",
+                ticket.id,
+                "messages"
+            )
+        );
+
+        let attachment = null;
+
+        if (file) {
+            attachment = await uploadAttachment(
+                ticket.id,
+                messageRef.id,
+                file
+            );
+        }
+
+        const data = {
+            uid: currentUser.uid,
+            text,
+            createdAt: serverTimestamp()
+        };
+
+        if (attachment) {
+            data.attachmentPath = attachment.path;
+            data.attachmentName = attachment.name;
+        }
+
+        await addDoc(
+            collection(
+                db,
+                "support_messages",
+                ticket.id,
+                "messages"
+            ),
+            data
+        );
+
+        textarea.value = "";
+        fileInput.value = "";
+
+        await loadConversation(ticket, conversation);
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("Erreur d'envoi : " + error.message);
+
+    } finally {
+        button.disabled = false;
+    }
+}
+
+async function loadTickets() {
+
+    if (!currentUser) return;
+
+    ticketsContainer.textContent = "Chargement...";
+
+    try {
+
+        const snapshot = await getDocs(
+            query(
+                collection(db, "support_messages"),
+                where("uid", "==", currentUser.uid)
+            )
+        );
+
+        const tickets = snapshot.docs.map(item => ({
+            id: item.id,
+            ...item.data()
+        }));
+
+        tickets.sort((a, b) =>
+            (b.createdAt?.seconds || 0) -
+            (a.createdAt?.seconds || 0)
+        );
+
+        ticketsContainer.replaceChildren();
+
+        if (!tickets.length) {
+            ticketsContainer.textContent = "Aucun ticket.";
+            return;
+        }
+
+        tickets.forEach(ticket => {
+
+            const card = make("article", "", "ticket");
+
+            card.append(
+                make("h3", ticket.title || "Sans titre"),
+                make("p", "Sujet : " + ticket.subject, "small"),
+                make("p", "Statut : " + ticket.status, "status")
+            );
+
+            const conversation = make(
+                "div",
+                "",
+                "conversation"
+            );
+
+            card.append(conversation);
+
+            loadConversation(ticket, conversation);
+
+            if (ticket.status !== "Fermé") {
+
+                const textarea = document.createElement("textarea");
+
+                textarea.placeholder =
+                    "Répondez à l'assistance...";
+
+                textarea.maxLength = 3000;
+
+                const fileInput = document.createElement("input");
+
+                fileInput.type = "file";
+
+                fileInput.accept =
+                    ".png,.jpg,.jpeg,.webp,.pdf,.txt";
+
+                const button = make(
+                    "button",
+                    "📨 Envoyer le message"
+                );
+
+                button.addEventListener("click", () => {
+
+                    sendReply(
+                        ticket,
+                        textarea,
+                        fileInput,
+                        button,
+                        conversation
+                    );
+                });
+
+                card.append(
+                    textarea,
+                    fileInput,
+                    button
+                );
+
+            } else {
+
+                card.append(
+                    make(
+                        "p",
+                        "🔒 Ce ticket est fermé.",
+                        "small"
+                    )
+                );
+            }
+
+            ticketsContainer.append(card);
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        ticketsContainer.textContent =
+            "Impossible de charger les tickets.";
+    }
+}
+
+onAuthStateChanged(auth, async user => {
+
+    currentUser = user;
+
+    document.getElementById("loading")
+        .classList.add("hidden");
+
+    if (!user) {
+
+        document.getElementById("notConnected")
+            .classList.remove("hidden");
+
+        document.getElementById("support")
+            .classList.add("hidden");
+
+        return;
+    }
+
+    document.getElementById("notConnected")
+        .classList.add("hidden");
+
+    document.getElementById("support")
+        .classList.remove("hidden");
+
+    document.getElementById("userEmail").textContent =
+        user.email || "Compte connecté";
+
+    await loadTickets();
+});
+
+document.getElementById("contactForm")
+.addEventListener("submit", async event => {
+
+    event.preventDefault();
+
+    if (!currentUser) return;
+
+    const subject = document.getElementById("subject").value;
+    const title = document.getElementById("title").value.trim();
+    const content = document.getElementById("content").value.trim();
+
+    if (!subject || !title || content.length < 10) {
+        showNotice("Complétez correctement le formulaire.", true);
+        return;
+    }
+
+    const button = document.getElementById("sendButton");
+
+    button.disabled = true;
+
+    try {
+
+        await addDoc(
+            collection(db, "support_messages"),
+            {
+                uid: currentUser.uid,
+                email: currentUser.email || "",
+                subject,
+                title,
+                content,
+                status: "En attente",
+                createdAt: serverTimestamp()
+            }
+        );
+
+        document.getElementById("contactForm").reset();
+
+        showNotice("Ticket créé avec succès !");
+
+        await loadTickets();
+
+    } catch (error) {
+
+        console.error(error);
+
+        showNotice("Erreur : " + error.message, true);
+
+    } finally {
+
+        button.disabled = false;
+    }
+});
+
+document.getElementById("refresh")
+.addEventListener("click", loadTickets);
 
 </script>
-<script type="module" src="sidebar.js"></script>
+
 <script type="module" src="maintenance.js"></script>
+
 </body>
 </html>
