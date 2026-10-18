@@ -2,218 +2,163 @@
 <html lang="fr">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Administration — Mon Bot PC</title>
+<title>Administration — Mon Bot PC</title>
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+<style>
+* { box-sizing: border-box; }
 
-        body {
-            margin: 0;
-            background: #0B1120;
-            color: #F8FAFC;
-            font-family: "Segoe UI", Arial, sans-serif;
-        }
+body {
+    margin: 0;
+    background: #0B1120;
+    color: white;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
 
-        header {
-            background: #111827;
-            padding: 20px 30px;
-            border-bottom: 1px solid #334155;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-        }
+header {
+    background: #111827;
+    border-bottom: 1px solid #334155;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    flex-wrap: wrap;
+}
 
-        header h1 {
-            color: #3B82F6;
-            font-size: 23px;
-            margin: 0;
-        }
+header h1 {
+    margin: 0;
+    font-size: 24px;
+    color: #60A5FA;
+}
 
-        a {
-            color: #60A5FA;
-            text-decoration: none;
-        }
+a {
+    color: #60A5FA;
+    text-decoration: none;
+}
 
-        main {
-            max-width: 1100px;
-            margin: 35px auto;
-            padding: 0 20px;
-        }
+main {
+    max-width: 1100px;
+    margin: 30px auto;
+    padding: 15px;
+}
 
-        .card {
-            background: #172033;
-            border: 1px solid #334155;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 25px;
-        }
+.card {
+    background: #172033;
+    border: 1px solid #334155;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 25px;
+}
 
-        h2 {
-            color: #60A5FA;
-        }
+h2 { color: #60A5FA; }
 
-        h3 {
-            color: #E2E8F0;
-        }
+input, textarea, select {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    background: #0B1120;
+    color: white;
+    border: 1px solid #334155;
+    border-radius: 9px;
+    font-family: inherit;
+}
 
-        input,
-        textarea,
-        select {
-            width: 100%;
-            padding: 13px;
-            margin: 10px 0;
-            border-radius: 9px;
-            border: 1px solid #334155;
-            background: #0B1120;
-            color: white;
-            font-family: inherit;
-            font-size: 14px;
-        }
+textarea {
+    min-height: 100px;
+    resize: vertical;
+}
 
-        textarea {
-            min-height: 130px;
-            resize: vertical;
-        }
+button {
+    background: #3B82F6;
+    color: white;
+    padding: 12px 18px;
+    border: 0;
+    border-radius: 9px;
+    cursor: pointer;
+    margin: 5px;
+    font-weight: bold;
+}
 
-        button {
-            background: #3B82F6;
-            color: white;
-            border: none;
-            border-radius: 9px;
-            padding: 12px 20px;
-            cursor: pointer;
-            font-weight: bold;
-            margin: 5px 5px 5px 0;
-        }
+button:disabled {
+    opacity: .5;
+    cursor: wait;
+}
 
-        button:hover {
-            background: #2563EB;
-        }
+.danger { background: #DC2626; }
+.success { background: #16A34A; }
+.warning { background: #D97706; }
 
-        button:disabled {
-            opacity: 0.5;
-            cursor: wait;
-        }
+.item {
+    background: #0B1120;
+    border: 1px solid #334155;
+    padding: 20px;
+    margin: 15px 0;
+    border-radius: 12px;
+    overflow-wrap: anywhere;
+}
 
-        .danger {
-            background: #EF4444;
-        }
+.small {
+    color: #94A3B8;
+    font-size: 13px;
+}
 
-        .danger:hover {
-            background: #DC2626;
-        }
+.conversation {
+    background: #111827;
+    padding: 15px;
+    border-radius: 12px;
+    margin: 15px 0;
+    max-height: 450px;
+    overflow-y: auto;
+}
 
-        .success {
-            background: #16A34A;
-        }
+.bubble {
+    padding: 12px;
+    border-radius: 12px;
+    margin: 12px 0;
+    max-width: 90%;
+    overflow-wrap: anywhere;
+}
 
-        .success:hover {
-            background: #15803D;
-        }
+.bubble p {
+    white-space: pre-wrap;
+    line-height: 1.6;
+}
 
-        .warning {
-            background: #D97706;
-        }
+.from-user {
+    background: #334155;
+    margin-right: auto;
+}
 
-        .warning:hover {
-            background: #B45309;
-        }
+.from-admin {
+    background: #1D4ED8;
+    margin-left: auto;
+}
 
-        .item {
-            background: #0B1120;
-            padding: 20px;
-            margin-top: 15px;
-            border-radius: 12px;
-            border: 1px solid #334155;
-            overflow-wrap: anywhere;
-        }
+.file-link {
+    display: block;
+    margin-top: 10px;
+    color: #93C5FD;
+}
 
-        .item p {
-            white-space: pre-wrap;
-            line-height: 1.6;
-        }
+#dashboard {
+    display: none;
+}
 
-        .small {
-            color: #94A3B8;
-            font-size: 13px;
-        }
+#countdown {
+    font-size: 42px;
+    font-weight: bold;
+    color: #22C55E;
+    font-variant-numeric: tabular-nums;
+}
 
-        .status {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            margin: 10px 0;
-            background: #1E293B;
-        }
-
-        .status-open {
-            color: #FACC15;
-        }
-
-        .status-replied {
-            color: #22C55E;
-        }
-
-        .status-closed {
-            color: #F87171;
-        }
-
-        .actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        #dashboard {
-            display: none;
-        }
-
-        #countdown {
-            font-size: clamp(30px, 6vw, 45px);
-            font-weight: bold;
-            color: #22C55E;
-            margin: 20px 0;
-            font-variant-numeric: tabular-nums;
-        }
-
-        #notice {
-            margin: 15px 0;
-            overflow-wrap: anywhere;
-            font-weight: 600;
-        }
-
-        .maintenance-active {
-            color: #EF4444;
-        }
-
-        .maintenance-inactive {
-            color: #22C55E;
-        }
-
-        @media (max-width: 600px) {
-            header {
-                padding: 15px;
-                flex-direction: column;
-            }
-
-            .card {
-                padding: 18px;
-            }
-
-            main {
-                padding: 0 12px;
-            }
-        }
-    </style>
+#notice {
+    margin: 15px 0;
+    color: #22C55E;
+    overflow-wrap: anywhere;
+}
+</style>
 </head>
 
 <body>
@@ -225,1213 +170,925 @@
 
 <main>
 
-    <div id="access" class="card">
-        Vérification des droits administrateur...
-    </div>
+<div id="access" class="card">
+    Vérification de l'administrateur...
+</div>
 
-    <div id="dashboard">
+<div id="dashboard">
 
-        <!-- ASSISTANCE -->
+<section class="card">
 
-        <section class="card">
+    <h2>📩 Assistance — Conversations</h2>
 
-            <h2>📩 Assistance — Tickets</h2>
+    <button id="refreshTickets">
+        ↻ Actualiser les tickets
+    </button>
 
-            <p class="small">
-                Consulte les demandes des utilisateurs,
-                réponds aux messages et gère les tickets.
-            </p>
+    <div id="tickets"></div>
 
-            <button id="refreshMessages">
-                ↻ Actualiser les tickets
-            </button>
+</section>
 
-            <div id="messages"></div>
+<section class="card">
 
-        </section>
+    <h2>📰 Publier une actualité</h2>
 
-        <!-- ACTUALITÉS -->
+    <form id="newsForm">
 
-        <section class="card">
+        <input
+            id="newsTitle"
+            placeholder="Titre de l'actualité"
+            maxlength="150"
+            required
+        >
 
-            <h2>📰 Publier une actualité</h2>
+        <select id="newsCategory">
+            <option>Mise à jour</option>
+            <option>Annonce</option>
+            <option>Maintenance</option>
+            <option>Information</option>
+        </select>
 
-            <form id="newsForm">
+        <textarea
+            id="newsContent"
+            placeholder="Contenu de l'actualité"
+            maxlength="10000"
+            required
+        ></textarea>
 
-                <label for="newsTitle">Titre</label>
+        <button type="submit">
+            📢 Publier
+        </button>
 
-                <input
-                    id="newsTitle"
-                    type="text"
-                    placeholder="Titre de l'actualité"
-                    maxlength="150"
-                    required
-                >
+    </form>
 
-                <label for="newsCategory">Catégorie</label>
+    <h2>Actualités publiées</h2>
 
-                <select id="newsCategory">
-                    <option>Mise à jour</option>
-                    <option>Annonce</option>
-                    <option>Maintenance</option>
-                    <option>Information</option>
-                </select>
+    <div id="newsList"></div>
 
-                <label for="newsContent">Contenu</label>
+</section>
 
-                <textarea
-                    id="newsContent"
-                    placeholder="Écris ton actualité..."
-                    maxlength="10000"
-                    required
-                ></textarea>
+<section class="card">
 
-                <button id="publishNews" type="submit">
-                    📢 Publier l'actualité
-                </button>
+    <h2>🔧 Maintenance</h2>
 
-            </form>
+    <select id="duration">
+        <option value="30">30 minutes</option>
+        <option value="60">1 heure</option>
+        <option value="120">2 heures</option>
+        <option value="360">6 heures</option>
+        <option value="720">12 heures</option>
+        <option value="1440">24 heures</option>
+    </select>
 
-            <h2>Actualités publiées</h2>
+    <button id="startMaintenance" class="danger">
+        Activer la maintenance
+    </button>
 
-            <button id="refreshNews">
-                ↻ Actualiser
-            </button>
+    <button id="stopMaintenance" class="success">
+        Désactiver la maintenance
+    </button>
 
-            <div id="newsList"></div>
+    <h3 id="maintenanceStatus"></h3>
 
-        </section>
+    <div id="countdown"></div>
 
-        <!-- MAINTENANCE -->
+</section>
 
-        <section class="card">
+</div>
 
-            <h2>🔧 Maintenance du site</h2>
-
-            <p class="small">
-                Affiche un écran de maintenance aux visiteurs.
-                Ton compte administrateur conserve l'accès au site.
-            </p>
-
-            <label for="maintenanceDuration">
-                Durée de la maintenance
-            </label>
-
-            <select id="maintenanceDuration">
-                <option value="30">30 minutes</option>
-                <option value="60">1 heure</option>
-                <option value="120">2 heures</option>
-                <option value="360">6 heures</option>
-                <option value="720">12 heures</option>
-                <option value="1440">24 heures</option>
-            </select>
-
-            <div class="actions">
-
-                <button id="startMaintenance" class="danger">
-                    🔴 Activer la maintenance
-                </button>
-
-                <button id="stopMaintenance" class="success">
-                    🟢 Désactiver la maintenance
-                </button>
-
-            </div>
-
-            <h3 id="maintenanceStatus"></h3>
-
-            <div id="countdown"></div>
-
-        </section>
-
-    </div>
-
-    <div id="notice" role="status" aria-live="polite"></div>
+<div id="notice" role="status"></div>
 
 </main>
 
 <script type="module">
 
-    import {
-        initializeApp
-    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 
-    import {
-        getAuth,
-        onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {
+    getAuth,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
-    import {
-        getFirestore,
-        collection,
-        doc,
-        getDoc,
-        getDocs,
-        addDoc,
-        updateDoc,
-        deleteDoc,
-        setDoc,
-        serverTimestamp,
-        Timestamp,
-        onSnapshot
-    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import {
+    getFirestore,
+    collection,
+    doc,
+    getDocs,
+    addDoc,
+    setDoc,
+    updateDoc,
+    deleteDoc,
+    serverTimestamp,
+    Timestamp,
+    onSnapshot
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
+import {
+    getStorage,
+    ref,
+    uploadBytes,
+    getDownloadURL,
+    deleteObject
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
 
-    // CONFIGURATION FIREBASE
+const firebaseConfig = {
+    apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
+    authDomain: "monbotpc.firebaseapp.com",
+    projectId: "monbotpc",
+    storageBucket: "monbotpc.firebasestorage.app",
+    messagingSenderId: "691729637594",
+    appId: "1:691729637594:web:9564d52349c04809fe85e3"
+};
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
-        authDomain: "monbotpc.firebaseapp.com",
-        projectId: "monbotpc",
-        storageBucket: "monbotpc.firebasestorage.app",
-        messagingSenderId: "691729637594",
-        appId: "1:691729637594:web:9564d52349c04809fe85e3",
-        measurementId: "G-J2CSX1E919"
+const ADMIN_UID = "rWEk3vGHK1W2EDvemVfw6xNtKxU2";
+
+const app = initializeApp(firebaseConfig);
+
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+const access = document.getElementById("access");
+const dashboard = document.getElementById("dashboard");
+const notice = document.getElementById("notice");
+
+const ticketsContainer = document.getElementById("tickets");
+const newsContainer = document.getElementById("newsList");
+
+const maintenanceRef = doc(
+    db,
+    "site_settings",
+    "maintenance"
+);
+
+let maintenanceTimer = null;
+let unsubscribeMaintenance = null;
+
+const allowedTypes = [
+    "image/png",
+    "image/jpeg",
+    "image/webp",
+    "application/pdf",
+    "text/plain"
+];
+
+function notify(text, error = false) {
+    notice.textContent = text;
+    notice.style.color = error ? "#EF4444" : "#22C55E";
+}
+
+function make(tag, text = "", className = "") {
+    const element = document.createElement(tag);
+    element.textContent = text;
+    element.className = className;
+    return element;
+}
+
+function formatDate(timestamp) {
+    return timestamp?.toDate
+        ? timestamp.toDate().toLocaleString("fr-CA")
+        : "";
+}
+
+function validateFile(file) {
+
+    if (!file) return;
+
+    if (!allowedTypes.includes(file.type)) {
+        throw new Error("Type de fichier non autorisé.");
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+        throw new Error("Maximum 5 Mo.");
+    }
+}
+
+async function uploadAttachment(ticketId, messageId, file) {
+
+    validateFile(file);
+
+    const extension = {
+        "image/png": "png",
+        "image/jpeg": "jpg",
+        "image/webp": "webp",
+        "application/pdf": "pdf",
+        "text/plain": "txt"
+    }[file.type];
+
+    const path =
+        `tickets/${ticketId}/${messageId}/piece-jointe.${extension}`;
+
+    await uploadBytes(
+        ref(storage, path),
+        file,
+        { contentType: file.type }
+    );
+
+    return {
+        path,
+        name: file.name
     };
+}
 
-    const ADMIN_UID = "rWEk3vGHK1W2EDvemVfw6xNtKxU2";
+function addFileLink(container, data) {
 
-    const app = initializeApp(firebaseConfig);
+    if (!data.attachmentPath) return;
 
-    const auth = getAuth(app);
-
-    const db = getFirestore(app);
-
-
-    // ÉLÉMENTS DE L'INTERFACE
-
-    const access = document.getElementById("access");
-
-    const dashboard = document.getElementById("dashboard");
-
-    const notice = document.getElementById("notice");
-
-    const messagesContainer = document.getElementById("messages");
-
-    const newsContainer = document.getElementById("newsList");
-
-    const maintenanceStatus = document.getElementById(
-        "maintenanceStatus"
+    const link = make(
+        "a",
+        "📎 " + (data.attachmentName || "Pièce jointe"),
+        "file-link"
     );
 
-    const countdown = document.getElementById("countdown");
+    link.href = "#";
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
 
-    const maintenanceRef = doc(
-        db,
-        "site_settings",
-        "maintenance"
-    );
+    link.addEventListener("click", async event => {
 
-    let maintenanceInterval = null;
-
-    let unsubscribeMaintenance = null;
-
-
-    // OUTILS
-
-    function notify(text, error = false) {
-
-        notice.textContent = text;
-
-        notice.style.color = error
-            ? "#EF4444"
-            : "#22C55E";
-    }
-
-
-    function element(tag, text = "", className = "") {
-
-        const node = document.createElement(tag);
-
-        node.textContent = text;
-
-        if (className) {
-            node.className = className;
-        }
-
-        return node;
-    }
-
-
-    function formatDate(timestamp) {
-
-        if (!timestamp?.toDate) {
-            return "Date inconnue";
-        }
-
-        return timestamp.toDate().toLocaleString(
-            "fr-CA",
-            {
-                dateStyle: "medium",
-                timeStyle: "short"
-            }
-        );
-    }
-
-
-    function setButtonBusy(button, busy) {
-
-        button.disabled = busy;
-    }
-
-
-    // AUTHENTIFICATION ADMINISTRATEUR
-
-    onAuthStateChanged(auth, async user => {
-
-        if (unsubscribeMaintenance) {
-            unsubscribeMaintenance();
-            unsubscribeMaintenance = null;
-        }
-
-        if (maintenanceInterval) {
-            clearInterval(maintenanceInterval);
-            maintenanceInterval = null;
-        }
-
-        if (!user) {
-
-            access.style.display = "block";
-
-            access.replaceChildren();
-
-            access.append(
-                element(
-                    "p",
-                    "Tu dois te connecter pour accéder à l'administration."
-                )
-            );
-
-            const link = element(
-                "a",
-                "Se connecter"
-            );
-
-            link.href = "connexion.html";
-
-            access.append(link);
-
-            dashboard.style.display = "none";
-
-            return;
-        }
-
-        if (user.uid !== ADMIN_UID) {
-
-            access.style.display = "block";
-
-            access.textContent =
-                "⛔ Accès refusé : compte non administrateur.";
-
-            dashboard.style.display = "none";
-
-            return;
-        }
-
-        access.style.display = "none";
-
-        dashboard.style.display = "block";
-
-        await Promise.all([
-            loadMessages(),
-            loadNews()
-        ]);
-
-        watchMaintenance();
-
-    });
-
-
-    // ASSISTANCE : CHARGEMENT DES TICKETS
-
-    async function loadMessages() {
-
-        messagesContainer.textContent =
-            "Chargement des tickets...";
+        event.preventDefault();
 
         try {
 
-            const snapshot = await getDocs(
-                collection(db, "support_messages")
+            const url = await getDownloadURL(
+                ref(storage, data.attachmentPath)
             );
 
-            const tickets = [];
+            window.open(url, "_blank", "noopener,noreferrer");
 
-            snapshot.forEach(document => {
+        } catch (error) {
 
-                tickets.push({
-                    id: document.id,
-                    ...document.data()
-                });
+            console.error(error);
+            alert("Impossible d'ouvrir le fichier.");
+        }
+    });
 
-            });
+    container.append(link);
+}
 
-            tickets.sort((a, b) => {
+async function loadConversation(ticket, container) {
 
-                const dateA = a.createdAt?.seconds || 0;
+    container.textContent = "Chargement...";
 
-                const dateB = b.createdAt?.seconds || 0;
+    try {
 
-                return dateB - dateA;
+        const snapshot = await getDocs(
+            collection(
+                db,
+                "support_messages",
+                ticket.id,
+                "messages"
+            )
+        );
 
-            });
+        const messages = snapshot.docs.map(item => ({
+            id: item.id,
+            ...item.data()
+        }));
 
-            messagesContainer.replaceChildren();
+        messages.sort((a, b) =>
+            (a.createdAt?.seconds || 0) -
+            (b.createdAt?.seconds || 0)
+        );
 
-            if (tickets.length === 0) {
+        container.replaceChildren();
 
-                messagesContainer.textContent =
-                    "Aucun ticket pour le moment.";
+        const original = make(
+            "div",
+            "",
+            "bubble from-user"
+        );
 
-                return;
+        original.append(
+            make("strong", "👤 Message initial"),
+            make("p", ticket.content || "")
+        );
+
+        container.append(original);
+
+        if (ticket.reply) {
+
+            const oldReply = make(
+                "div",
+                "",
+                "bubble from-admin"
+            );
+
+            oldReply.append(
+                make("strong", "🛠️ Ancienne réponse"),
+                make("p", ticket.reply)
+            );
+
+            container.append(oldReply);
+        }
+
+        messages.forEach(message => {
+
+            const isAdmin = message.uid === ADMIN_UID;
+
+            const bubble = make(
+                "div",
+                "",
+                "bubble " + (
+                    isAdmin ? "from-admin" : "from-user"
+                )
+            );
+
+            bubble.append(
+                make(
+                    "strong",
+                    isAdmin
+                        ? "🛠️ Vous — Assistance"
+                        : "👤 Utilisateur"
+                ),
+                make("p", message.text || ""),
+                make(
+                    "div",
+                    formatDate(message.createdAt),
+                    "small"
+                )
+            );
+
+            addFileLink(bubble, message);
+
+            container.append(bubble);
+        });
+
+        container.scrollTop = container.scrollHeight;
+
+    } catch (error) {
+
+        console.error(error);
+        container.textContent =
+            "Impossible de charger la conversation.";
+    }
+}
+
+async function sendReply(
+    ticket,
+    textarea,
+    fileInput,
+    button,
+    conversation
+) {
+
+    const text = textarea.value.trim();
+    const file = fileInput.files[0];
+
+    if (!text && !file) {
+        alert("Écris un message ou joins un fichier.");
+        return;
+    }
+
+    try {
+        validateFile(file);
+    } catch (error) {
+        alert(error.message);
+        return;
+    }
+
+    button.disabled = true;
+
+    try {
+
+        const messagesRef = collection(
+            db,
+            "support_messages",
+            ticket.id,
+            "messages"
+        );
+
+        const messageRef = doc(messagesRef);
+
+        let attachment = null;
+
+        if (file) {
+            attachment = await uploadAttachment(
+                ticket.id,
+                messageRef.id,
+                file
+            );
+        }
+
+        const data = {
+            uid: ADMIN_UID,
+            text,
+            createdAt: serverTimestamp()
+        };
+
+        if (attachment) {
+            data.attachmentPath = attachment.path;
+            data.attachmentName = attachment.name;
+        }
+
+        await addDoc(messagesRef, data);
+
+        textarea.value = "";
+        fileInput.value = "";
+
+        notify("Message envoyé !");
+
+        await loadConversation(ticket, conversation);
+
+    } catch (error) {
+
+        console.error(error);
+        notify("Erreur d'envoi : " + error.message, true);
+
+    } finally {
+
+        button.disabled = false;
+    }
+}
+
+async function deleteTicket(ticket) {
+
+    if (!confirm(
+        "Supprimer définitivement ce ticket et sa conversation ?"
+    )) return;
+
+    try {
+
+        const messagesRef = collection(
+            db,
+            "support_messages",
+            ticket.id,
+            "messages"
+        );
+
+        const snapshot = await getDocs(messagesRef);
+
+        for (const item of snapshot.docs) {
+
+            const data = item.data();
+
+            if (data.attachmentPath) {
+
+                try {
+                    await deleteObject(
+                        ref(storage, data.attachmentPath)
+                    );
+                } catch (error) {
+                    console.warn("Fichier non supprimé :", error);
+                }
             }
 
-            tickets.forEach(ticket => {
+            await deleteDoc(item.ref);
+        }
 
-                const card = element(
-                    "article",
-                    "",
-                    "item"
-                );
+        await deleteDoc(
+            doc(db, "support_messages", ticket.id)
+        );
 
-                const title = element(
-                    "h3",
-                    ticket.title || "Sans titre"
-                );
+        notify("Ticket supprimé.");
 
-                const email = element(
-                    "div",
-                    "👤 " + (ticket.email || "Utilisateur"),
-                    "small"
-                );
+        await loadTickets();
 
-                const subject = element(
-                    "div",
-                    "Sujet : " + (ticket.subject || "Autre")
-                );
+    } catch (error) {
 
-                const date = element(
-                    "div",
-                    "Créé le : " + formatDate(ticket.createdAt),
-                    "small"
-                );
+        console.error(error);
 
-                const content = element(
-                    "p",
-                    ticket.content || ""
-                );
+        notify("Erreur de suppression : " + error.message, true);
+    }
+}
 
-                const status = element(
-                    "span",
-                    "Statut : " + (ticket.status || "En attente"),
-                    "status"
-                );
+async function changeStatus(ticket, status) {
 
-                if (ticket.status === "Fermé") {
+    try {
 
-                    status.classList.add("status-closed");
+        await updateDoc(
+            doc(db, "support_messages", ticket.id),
+            { status }
+        );
 
-                } else if (ticket.status === "Répondu") {
+        notify("Statut modifié.");
 
-                    status.classList.add("status-replied");
+        await loadTickets();
 
-                } else {
+    } catch (error) {
 
-                    status.classList.add("status-open");
+        console.error(error);
 
-                }
+        notify("Erreur : " + error.message, true);
+    }
+}
 
-                card.append(
-                    title,
-                    email,
-                    subject,
-                    date,
-                    content,
-                    status
-                );
+async function loadTickets() {
 
+    ticketsContainer.textContent = "Chargement des tickets...";
 
-                // RÉPONSE EXISTANTE
+    try {
 
-                if (ticket.reply) {
+        const snapshot = await getDocs(
+            collection(db, "support_messages")
+        );
 
-                    card.append(
-                        element(
-                            "h4",
-                            "💬 Réponse de l'assistance"
-                        )
-                    );
+        const tickets = snapshot.docs.map(item => ({
+            id: item.id,
+            ...item.data()
+        }));
 
-                    card.append(
-                        element(
-                            "p",
-                            ticket.reply
-                        )
-                    );
+        tickets.sort((a, b) =>
+            (b.createdAt?.seconds || 0) -
+            (a.createdAt?.seconds || 0)
+        );
 
-                }
+        ticketsContainer.replaceChildren();
 
+        if (!tickets.length) {
+            ticketsContainer.textContent = "Aucun ticket.";
+            return;
+        }
 
-                // CHAMP DE RÉPONSE
+        tickets.forEach(ticket => {
 
-                const textarea = document.createElement(
-                    "textarea"
-                );
+            const card = make("article", "", "item");
 
-                textarea.placeholder =
-                    "Écrire une réponse à l'utilisateur...";
+            card.append(
+                make("h3", ticket.title || "Sans titre"),
+                make("p", "👤 " + (ticket.email || "")),
+                make("p", "Sujet : " + ticket.subject),
+                make("p", "Statut : " + ticket.status)
+            );
 
+            const conversation = make(
+                "div",
+                "",
+                "conversation"
+            );
+
+            card.append(conversation);
+
+            loadConversation(ticket, conversation);
+
+            if (ticket.status !== "Fermé") {
+
+                const textarea = document.createElement("textarea");
+
+                textarea.placeholder = "Répondre à l'utilisateur...";
                 textarea.maxLength = 3000;
 
-                textarea.value = ticket.reply || "";
+                const fileInput = document.createElement("input");
 
-                if (ticket.status === "Fermé") {
-                    textarea.disabled = true;
-                }
+                fileInput.type = "file";
 
+                fileInput.accept =
+                    ".png,.jpg,.jpeg,.webp,.pdf,.txt";
 
-                // BOUTON RÉPONDRE
-
-                const replyButton = element(
+                const button = make(
                     "button",
                     "💬 Envoyer la réponse"
                 );
 
-                replyButton.disabled =
-                    ticket.status === "Fermé";
+                button.addEventListener("click", () => {
 
-                replyButton.addEventListener(
-                    "click",
-                    async () => {
+                    sendReply(
+                        ticket,
+                        textarea,
+                        fileInput,
+                        button,
+                        conversation
+                    );
+                });
 
-                        const reply = textarea.value.trim();
-
-                        if (!reply) {
-
-                            notify(
-                                "Écris une réponse avant d'envoyer.",
-                                true
-                            );
-
-                            return;
-                        }
-
-                        setButtonBusy(replyButton, true);
-
-                        try {
-
-                            await updateDoc(
-                                doc(
-                                    db,
-                                    "support_messages",
-                                    ticket.id
-                                ),
-                                {
-                                    reply: reply,
-                                    status: "Répondu",
-                                    repliedAt: serverTimestamp()
-                                }
-                            );
-
-                            notify(
-                                "Réponse envoyée avec succès !"
-                            );
-
-                            await loadMessages();
-
-                        } catch (error) {
-
-                            console.error(error);
-
-                            notify(
-                                "Impossible d'envoyer la réponse.",
-                                true
-                            );
-
-                        } finally {
-
-                            setButtonBusy(replyButton, false);
-
-                        }
-
-                    }
-                );
-
-
-                // FERMER LE TICKET
-
-                const closeButton = element(
+                const closeButton = make(
                     "button",
-                    "🔒 Fermer le ticket",
+                    "🔒 Fermer",
                     "warning"
                 );
 
-                closeButton.addEventListener(
-                    "click",
-                    async () => {
-
-                        setButtonBusy(closeButton, true);
-
-                        try {
-
-                            await updateDoc(
-                                doc(
-                                    db,
-                                    "support_messages",
-                                    ticket.id
-                                ),
-                                {
-                                    status: "Fermé"
-                                }
-                            );
-
-                            notify("Ticket fermé.");
-
-                            await loadMessages();
-
-                        } catch (error) {
-
-                            console.error(error);
-
-                            notify(
-                                "Impossible de fermer le ticket.",
-                                true
-                            );
-
-                        } finally {
-
-                            setButtonBusy(closeButton, false);
-
-                        }
-
-                    }
-                );
-
-
-                // ROUVRIR LE TICKET
-
-                const reopenButton = element(
-                    "button",
-                    "🔓 Rouvrir le ticket",
-                    "success"
-                );
-
-                reopenButton.addEventListener(
-                    "click",
-                    async () => {
-
-                        setButtonBusy(reopenButton, true);
-
-                        try {
-
-                            await updateDoc(
-                                doc(
-                                    db,
-                                    "support_messages",
-                                    ticket.id
-                                ),
-                                {
-                                    status: "En attente"
-                                }
-                            );
-
-                            notify("Ticket rouvert.");
-
-                            await loadMessages();
-
-                        } catch (error) {
-
-                            console.error(error);
-
-                            notify(
-                                "Impossible de rouvrir le ticket.",
-                                true
-                            );
-
-                        } finally {
-
-                            setButtonBusy(reopenButton, false);
-
-                        }
-
-                    }
-                );
-
-
-                // SUPPRIMER LE TICKET
-
-                const deleteButton = element(
-                    "button",
-                    "🗑️ Supprimer le ticket",
-                    "danger"
-                );
-
-                deleteButton.addEventListener(
-                    "click",
-                    async () => {
-
-                        const confirmation = confirm(
-                            "Supprimer définitivement ce ticket ?"
-                        );
-
-                        if (!confirmation) {
-                            return;
-                        }
-
-                        setButtonBusy(deleteButton, true);
-
-                        try {
-
-                            await deleteDoc(
-                                doc(
-                                    db,
-                                    "support_messages",
-                                    ticket.id
-                                )
-                            );
-
-                            notify(
-                                "Ticket supprimé définitivement."
-                            );
-
-                            await loadMessages();
-
-                        } catch (error) {
-
-                            console.error(error);
-
-                            notify(
-                                "Impossible de supprimer le ticket.",
-                                true
-                            );
-
-                        } finally {
-
-                            setButtonBusy(deleteButton, false);
-
-                        }
-
-                    }
-                );
-
-
-                // AFFICHAGE DES ACTIONS
-
-                const actions = element(
-                    "div",
-                    "",
-                    "actions"
-                );
-
-                if (ticket.status === "Fermé") {
-
-                    actions.append(
-                        reopenButton,
-                        deleteButton
-                    );
-
-                } else {
-
-                    actions.append(
-                        replyButton,
-                        closeButton,
-                        deleteButton
-                    );
-
-                }
+                closeButton.addEventListener("click", () => {
+                    changeStatus(ticket, "Fermé");
+                });
 
                 card.append(
                     textarea,
-                    actions
+                    fileInput,
+                    button,
+                    closeButton
                 );
 
-                messagesContainer.appendChild(card);
+            } else {
 
-            });
-
-        } catch (error) {
-
-            console.error(error);
-
-            messagesContainer.textContent =
-                "Impossible de charger les tickets.";
-
-            notify(
-                "Erreur lors du chargement des tickets.",
-                true
-            );
-
-        }
-
-    }
-
-
-    document.getElementById("refreshMessages")
-        .addEventListener("click", loadMessages);
-
-
-    // ACTUALITÉS : PUBLICATION
-
-    document.getElementById("newsForm")
-        .addEventListener("submit", async event => {
-
-            event.preventDefault();
-
-            const title = document.getElementById(
-                "newsTitle"
-            ).value.trim();
-
-            const category = document.getElementById(
-                "newsCategory"
-            ).value;
-
-            const content = document.getElementById(
-                "newsContent"
-            ).value.trim();
-
-            if (!title || !content) {
-
-                notify(
-                    "Remplis tous les champs de l'actualité.",
-                    true
+                const reopenButton = make(
+                    "button",
+                    "🔓 Rouvrir",
+                    "success"
                 );
 
-                return;
-            }
-
-            const button = document.getElementById(
-                "publishNews"
-            );
-
-            setButtonBusy(button, true);
-
-            try {
-
-                await addDoc(
-                    collection(db, "news"),
-                    {
-                        title: title,
-                        category: category,
-                        content: content,
-                        createdAt: serverTimestamp()
-                    }
-                );
-
-                document.getElementById(
-                    "newsForm"
-                ).reset();
-
-                notify(
-                    "Actualité publiée avec succès !"
-                );
-
-                await loadNews();
-
-            } catch (error) {
-
-                console.error(error);
-
-                notify(
-                    "Impossible de publier l'actualité.",
-                    true
-                );
-
-            } finally {
-
-                setButtonBusy(button, false);
-
-            }
-
-        });
-
-
-    // ACTUALITÉS : CHARGEMENT
-
-    async function loadNews() {
-
-        newsContainer.textContent =
-            "Chargement des actualités...";
-
-        try {
-
-            const snapshot = await getDocs(
-                collection(db, "news")
-            );
-
-            const articles = [];
-
-            snapshot.forEach(document => {
-
-                articles.push({
-                    id: document.id,
-                    ...document.data()
+                reopenButton.addEventListener("click", () => {
+                    changeStatus(ticket, "En attente");
                 });
 
-            });
-
-            articles.sort((a, b) => {
-
-                const dateA = a.createdAt?.seconds || 0;
-
-                const dateB = b.createdAt?.seconds || 0;
-
-                return dateB - dateA;
-
-            });
-
-            newsContainer.replaceChildren();
-
-            if (articles.length === 0) {
-
-                newsContainer.textContent =
-                    "Aucune actualité publiée.";
-
-                return;
+                card.append(reopenButton);
             }
 
-            articles.forEach(article => {
-
-                const card = element(
-                    "article",
-                    "",
-                    "item"
-                );
-
-                const title = element(
-                    "h3",
-                    article.title || "Sans titre"
-                );
-
-                const category = element(
-                    "div",
-                    article.category || "Annonce",
-                    "small"
-                );
-
-                const date = element(
-                    "div",
-                    formatDate(article.createdAt),
-                    "small"
-                );
-
-                const content = element(
-                    "p",
-                    article.content || ""
-                );
-
-                const deleteButton = element(
-                    "button",
-                    "🗑️ Supprimer",
-                    "danger"
-                );
-
-                deleteButton.addEventListener(
-                    "click",
-                    async () => {
-
-                        if (!confirm(
-                            "Supprimer cette actualité ?"
-                        )) {
-                            return;
-                        }
-
-                        setButtonBusy(deleteButton, true);
-
-                        try {
-
-                            await deleteDoc(
-                                doc(
-                                    db,
-                                    "news",
-                                    article.id
-                                )
-                            );
-
-                            notify(
-                                "Actualité supprimée."
-                            );
-
-                            await loadNews();
-
-                        } catch (error) {
-
-                            console.error(error);
-
-                            notify(
-                                "Impossible de supprimer l'actualité.",
-                                true
-                            );
-
-                        } finally {
-
-                            setButtonBusy(deleteButton, false);
-
-                        }
-
-                    }
-                );
-
-                card.append(
-                    title,
-                    category,
-                    date,
-                    content,
-                    deleteButton
-                );
-
-                newsContainer.appendChild(card);
-
-            });
-
-        } catch (error) {
-
-            console.error(error);
-
-            newsContainer.textContent =
-                "Impossible de charger les actualités.";
-
-            notify(
-                "Erreur lors du chargement des actualités.",
-                true
+            const deleteButton = make(
+                "button",
+                "🗑️ Supprimer",
+                "danger"
             );
 
-        }
+            deleteButton.addEventListener("click", () => {
+                deleteTicket(ticket);
+            });
 
+            card.append(deleteButton);
+
+            ticketsContainer.append(card);
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        ticketsContainer.textContent =
+            "Impossible de charger les tickets.";
     }
+}
 
+async function loadNews() {
 
-    document.getElementById("refreshNews")
-        .addEventListener("click", loadNews);
+    newsContainer.textContent = "Chargement...";
 
+    try {
 
-    // MAINTENANCE : CHRONOMÈTRE
-
-    function displayMaintenance(data) {
-
-        if (maintenanceInterval) {
-
-            clearInterval(maintenanceInterval);
-
-            maintenanceInterval = null;
-
-        }
-
-        if (!data || data.active !== true) {
-
-            maintenanceStatus.textContent =
-                "🟢 Site disponible.";
-
-            maintenanceStatus.className =
-                "maintenance-inactive";
-
-            countdown.textContent = "";
-
-            return;
-        }
-
-        const endDate = data.endsAt?.toDate?.();
-
-        if (!endDate) {
-
-            maintenanceStatus.textContent =
-                "🔴 Maintenance activée.";
-
-            maintenanceStatus.className =
-                "maintenance-active";
-
-            countdown.textContent =
-                "Date de fin non définie.";
-
-            return;
-        }
-
-        function updateCountdown() {
-
-            const remaining = Math.max(
-                0,
-                Math.ceil(
-                    (endDate.getTime() - Date.now()) / 1000
-                )
-            );
-
-            if (remaining <= 0) {
-
-                maintenanceStatus.textContent =
-                    "🟢 Durée de maintenance terminée.";
-
-                maintenanceStatus.className =
-                    "maintenance-inactive";
-
-                countdown.textContent = "00:00:00";
-
-                clearInterval(maintenanceInterval);
-
-                maintenanceInterval = null;
-
-                return;
-            }
-
-            maintenanceStatus.textContent =
-                "🔴 Maintenance en cours.";
-
-            maintenanceStatus.className =
-                "maintenance-active";
-
-            const hours = Math.floor(
-                remaining / 3600
-            );
-
-            const minutes = Math.floor(
-                (remaining % 3600) / 60
-            );
-
-            const seconds = remaining % 60;
-
-            countdown.textContent =
-                String(hours).padStart(2, "0") + ":" +
-                String(minutes).padStart(2, "0") + ":" +
-                String(seconds).padStart(2, "0");
-
-        }
-
-        updateCountdown();
-
-        maintenanceInterval = setInterval(
-            updateCountdown,
-            1000
+        const snapshot = await getDocs(
+            collection(db, "news")
         );
 
+        const articles = snapshot.docs.map(item => ({
+            id: item.id,
+            ...item.data()
+        }));
+
+        articles.sort((a, b) =>
+            (b.createdAt?.seconds || 0) -
+            (a.createdAt?.seconds || 0)
+        );
+
+        newsContainer.replaceChildren();
+
+        articles.forEach(article => {
+
+            const card = make("div", "", "item");
+
+            card.append(
+                make("h3", article.title || ""),
+                make("p", article.category || ""),
+                make("p", article.content || "")
+            );
+
+            const deleteButton = make(
+                "button",
+                "Supprimer",
+                "danger"
+            );
+
+            deleteButton.addEventListener("click", async () => {
+
+                if (!confirm("Supprimer cette actualité ?")) return;
+
+                try {
+
+                    await deleteDoc(
+                        doc(db, "news", article.id)
+                    );
+
+                    await loadNews();
+
+                } catch (error) {
+
+                    notify(error.message, true);
+                }
+            });
+
+            card.append(deleteButton);
+
+            newsContainer.append(card);
+        });
+
+        if (!articles.length) {
+            newsContainer.textContent = "Aucune actualité.";
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+        newsContainer.textContent =
+            "Impossible de charger les actualités.";
+    }
+}
+
+document.getElementById("newsForm")
+.addEventListener("submit", async event => {
+
+    event.preventDefault();
+
+    const title = document.getElementById("newsTitle").value.trim();
+    const category = document.getElementById("newsCategory").value;
+    const content = document.getElementById("newsContent").value.trim();
+
+    if (!title || !content) return;
+
+    try {
+
+        await addDoc(
+            collection(db, "news"),
+            {
+                title,
+                category,
+                content,
+                createdAt: serverTimestamp()
+            }
+        );
+
+        document.getElementById("newsForm").reset();
+
+        notify("Actualité publiée !");
+
+        await loadNews();
+
+    } catch (error) {
+
+        notify("Erreur : " + error.message, true);
+    }
+});
+
+function watchMaintenance() {
+
+    if (unsubscribeMaintenance) {
+        unsubscribeMaintenance();
     }
 
+    unsubscribeMaintenance = onSnapshot(
+        maintenanceRef,
+        snapshot => {
 
-    // MAINTENANCE : SUIVI EN TEMPS RÉEL
+            const data = snapshot.exists()
+                ? snapshot.data()
+                : null;
 
-    function watchMaintenance() {
+            if (maintenanceTimer) {
+                clearInterval(maintenanceTimer);
+            }
 
-        unsubscribeMaintenance = onSnapshot(
+            const status = document.getElementById(
+                "maintenanceStatus"
+            );
+
+            const countdown = document.getElementById(
+                "countdown"
+            );
+
+            if (!data?.active) {
+
+                status.textContent = "🟢 Site disponible";
+                countdown.textContent = "";
+
+                return;
+            }
+
+            const endDate = data.endsAt?.toDate?.();
+
+            function tick() {
+
+                if (!endDate) {
+                    countdown.textContent = "Date inconnue";
+                    return;
+                }
+
+                const seconds = Math.max(
+                    0,
+                    Math.ceil(
+                        (endDate.getTime() - Date.now()) / 1000
+                    )
+                );
+
+                if (seconds === 0) {
+                    status.textContent = "🟢 Maintenance terminée";
+                    countdown.textContent = "00:00:00";
+                    clearInterval(maintenanceTimer);
+                    return;
+                }
+
+                status.textContent = "🔴 Maintenance en cours";
+
+                const h = Math.floor(seconds / 3600);
+                const m = Math.floor((seconds % 3600) / 60);
+                const s = seconds % 60;
+
+                countdown.textContent =
+                    String(h).padStart(2, "0") + ":" +
+                    String(m).padStart(2, "0") + ":" +
+                    String(s).padStart(2, "0");
+            }
+
+            tick();
+
+            maintenanceTimer = setInterval(tick, 1000);
+        }
+    );
+}
+
+document.getElementById("startMaintenance")
+.addEventListener("click", async () => {
+
+    const minutes = Number(
+        document.getElementById("duration").value
+    );
+
+    try {
+
+        await setDoc(
             maintenanceRef,
-
-            snapshot => {
-
-                const data = snapshot.exists()
-                    ? snapshot.data()
-                    : null;
-
-                displayMaintenance(data);
-
-            },
-
-            error => {
-
-                console.error(error);
-
-                notify(
-                    "Impossible de récupérer l'état de maintenance.",
-                    true
-                );
-
+            {
+                active: true,
+                endsAt: Timestamp.fromDate(
+                    new Date(Date.now() + minutes * 60000)
+                ),
+                updatedAt: serverTimestamp()
             }
         );
 
+        notify("Maintenance activée.");
+
+    } catch (error) {
+
+        notify(error.message, true);
+    }
+});
+
+document.getElementById("stopMaintenance")
+.addEventListener("click", async () => {
+
+    try {
+
+        await setDoc(
+            maintenanceRef,
+            {
+                active: false,
+                endsAt: null,
+                updatedAt: serverTimestamp()
+            }
+        );
+
+        notify("Maintenance désactivée.");
+
+    } catch (error) {
+
+        notify(error.message, true);
+    }
+});
+
+document.getElementById("refreshTickets")
+.addEventListener("click", loadTickets);
+
+onAuthStateChanged(auth, async user => {
+
+    if (!user) {
+
+        access.replaceChildren();
+
+        const text = make(
+            "p",
+            "Connectez-vous pour accéder à l'administration."
+        );
+
+        const link = make("a", "Se connecter");
+
+        link.href = "connexion.html";
+
+        access.append(text, link);
+
+        dashboard.style.display = "none";
+
+        return;
     }
 
+    if (user.uid !== ADMIN_UID) {
 
-    // ACTIVER LA MAINTENANCE
+        access.textContent =
+            "⛔ Accès refusé : administrateur uniquement.";
 
-    document.getElementById("startMaintenance")
-        .addEventListener("click", async () => {
+        dashboard.style.display = "none";
 
-            const minutes = Number(
-                document.getElementById(
-                    "maintenanceDuration"
-                ).value
-            );
+        return;
+    }
 
-            const endDate = new Date(
-                Date.now() + minutes * 60000
-            );
+    access.style.display = "none";
+    dashboard.style.display = "block";
 
-            const button = document.getElementById(
-                "startMaintenance"
-            );
+    await Promise.all([
+        loadTickets(),
+        loadNews()
+    ]);
 
-            setButtonBusy(button, true);
-
-            try {
-
-                await setDoc(
-                    maintenanceRef,
-                    {
-                        active: true,
-                        endsAt: Timestamp.fromDate(endDate),
-                        updatedAt: serverTimestamp()
-                    }
-                );
-
-                notify(
-                    "Maintenance activée avec succès !"
-                );
-
-            } catch (error) {
-
-                console.error(error);
-
-                notify(
-                    "Impossible d'activer la maintenance.",
-                    true
-                );
-
-            } finally {
-
-                setButtonBusy(button, false);
-
-            }
-
-        });
-
-
-    // DÉSACTIVER LA MAINTENANCE
-
-    document.getElementById("stopMaintenance")
-        .addEventListener("click", async () => {
-
-            const button = document.getElementById(
-                "stopMaintenance"
-            );
-
-            setButtonBusy(button, true);
-
-            try {
-
-                await setDoc(
-                    maintenanceRef,
-                    {
-                        active: false,
-                        endsAt: null,
-                        updatedAt: serverTimestamp()
-                    }
-                );
-
-                notify(
-                    "Maintenance désactivée avec succès !"
-                );
-
-            } catch (error) {
-
-                console.error(error);
-
-                notify(
-                    "Impossible de désactiver la maintenance.",
-                    true
-                );
-
-            } finally {
-
-                setButtonBusy(button, false);
-
-            }
-
-        });
+    watchMaintenance();
+});
 
 </script>
 
