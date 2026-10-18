@@ -1,109 +1,129 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Actualités — Mon Bot PC</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <style>
-        * { box-sizing: border-box; }
+<title>Actualités — Mon Bot PC</title>
 
-        body {
-            margin: 0;
-            background: #0B1120;
-            color: white;
-            font-family: "Segoe UI", Arial, sans-serif;
-            padding: 30px 20px;
-        }
+<style>
+* { box-sizing: border-box; }
 
-        main {
-            max-width: 900px;
-            margin: auto;
-        }
+body {
+    margin: 0;
+    background: #0B1120;
+    color: white;
+    font-family: "Segoe UI", Arial, sans-serif;
+    padding: 30px 20px;
+}
 
-        h1 { color: #60A5FA; }
+main {
+    max-width: 900px;
+    margin: auto;
+}
 
-        a {
-            color: #60A5FA;
-            text-decoration: none;
-        }
+h1, h2 {
+    color: #60A5FA;
+}
 
-        .card {
-            background: #172033;
-            border: 1px solid #334155;
-            border-radius: 15px;
-            padding: 25px;
-            margin: 20px 0;
-        }
+a {
+    color: #60A5FA;
+    text-decoration: none;
+}
 
-        .card h2 {
-            color: #60A5FA;
-            margin-top: 0;
-        }
+.card {
+    background: #172033;
+    border: 1px solid #334155;
+    border-radius: 15px;
+    padding: 25px;
+    margin: 20px 0;
+}
 
-        .date {
-            color: #94A3B8;
-            font-size: 13px;
-        }
+.date {
+    color: #94A3B8;
+    font-size: 13px;
+}
 
-        .content {
-            white-space: pre-wrap;
-            overflow-wrap: anywhere;
-            line-height: 1.7;
-        }
+.category {
+    display: inline-block;
+    background: #1D4ED8;
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 12px;
+}
 
-        button {
-            background: #3B82F6;
-            border: 0;
-            border-radius: 9px;
-            padding: 12px 20px;
-            color: white;
-            cursor: pointer;
-        }
-    </style>
+.content {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    line-height: 1.7;
+}
+
+button {
+    background: #3B82F6;
+    border: 0;
+    border-radius: 9px;
+    padding: 12px 20px;
+    color: white;
+    cursor: pointer;
+}
+</style>
+
 </head>
 
 <body>
 
 <main>
-    <a href="index.html">← Retour à l'accueil</a>
 
-    <h1>📰 Actualités Mon Bot PC</h1>
+<a href="index.html">← Retour à l'accueil</a>
 
-    <p>Découvrez les dernières annonces officielles.</p>
+<h1>📰 Actualités Mon Bot PC</h1>
 
-    <button id="refresh">↻ Actualiser</button>
+<p>Retrouvez les dernières annonces et mises à jour.</p>
 
-    <div id="news">Chargement...</div>
+<button id="refresh">
+    ↻ Actualiser
+</button>
+
+<div id="news">
+    Chargement des actualités...
+</div>
+
 </main>
 
 <script type="module">
 
-import { initializeApp }
-from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 
 import {
     getFirestore,
     collection,
     getDocs
-}
-from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-const config = {
+const firebaseConfig = {
     apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
     authDomain: "monbotpc.firebaseapp.com",
     projectId: "monbotpc",
     appId: "1:691729637594:web:9564d52349c04809fe85e3"
 };
 
-const app = initializeApp(config);
+const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const container = document.getElementById("news");
 
+function formatDate(timestamp) {
+    return timestamp?.toDate
+        ? timestamp.toDate().toLocaleString("fr-CA")
+        : "";
+}
+
 async function loadNews() {
 
-    container.textContent = "Chargement des actualités...";
+    container.textContent = "Chargement...";
 
     try {
 
@@ -111,71 +131,77 @@ async function loadNews() {
             collection(db, "news")
         );
 
-        const articles = [];
+        const articles = snapshot.docs.map(item => ({
+            id: item.id,
+            ...item.data()
+        }));
 
-        snapshot.forEach(document => {
-            articles.push({
-                id: document.id,
-                ...document.data()
-            });
-        });
-
-        articles.sort((a, b) => {
-            const dateA = a.createdAt?.seconds || 0;
-            const dateB = b.createdAt?.seconds || 0;
-            return dateB - dateA;
-        });
+        articles.sort((a, b) =>
+            (b.createdAt?.seconds || 0) -
+            (a.createdAt?.seconds || 0)
+        );
 
         container.replaceChildren();
 
-        if (articles.length === 0) {
+        if (!articles.length) {
+
             container.textContent =
-                "Aucune actualité publiée.";
+                "Aucune actualité pour le moment.";
+
             return;
         }
 
         articles.forEach(article => {
 
             const card = document.createElement("article");
+
             card.className = "card";
 
             const title = document.createElement("h2");
-            title.textContent =
-                article.title || "Actualité Mon Bot PC";
+            title.textContent = article.title || "Sans titre";
 
-            const category = document.createElement("p");
-            category.textContent =
-                article.category || "Annonce officielle";
+            const category = document.createElement("span");
+            category.className = "category";
+            category.textContent = article.category || "Annonce";
 
             const date = document.createElement("p");
             date.className = "date";
-
-            if (article.createdAt?.toDate) {
-                date.textContent =
-                    article.createdAt.toDate().toLocaleString("fr-CA");
-            }
+            date.textContent = formatDate(article.createdAt);
 
             const content = document.createElement("p");
             content.className = "content";
             content.textContent = article.content || "";
 
-            card.append(title, category, date, content);
+            card.append(
+                title,
+                category,
+                date,
+                content
+            );
 
-            container.appendChild(card);
-
+            container.append(card);
         });
+
+        // Les actualités affichées sont maintenant considérées comme lues.
+        const ids = articles.map(article => article.id);
+
+        localStorage.setItem(
+            "monbotpc_news_lues",
+            JSON.stringify(ids)
+        );
 
     } catch (error) {
 
         console.error(error);
 
         container.textContent =
-            "Erreur de chargement : " + error.message;
+            "Impossible de charger les actualités : " +
+            error.message;
     }
 }
 
 document.getElementById("refresh")
-    .addEventListener("click", loadNews);
+.addEventListener("click", loadNews);
 
 loadNews();
 
