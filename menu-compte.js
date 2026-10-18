@@ -9,10 +9,18 @@ import {
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
-const config = {
+import {
+    getFirestore,
+    collection,
+    getDocs
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+const firebaseConfig = {
     apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
     authDomain: "monbotpc.firebaseapp.com",
     projectId: "monbotpc",
+    storageBucket: "monbotpc.firebasestorage.app",
+    messagingSenderId: "691729637594",
     appId: "1:691729637594:web:9564d52349c04809fe85e3"
 };
 
@@ -20,80 +28,147 @@ const ADMIN_UID = "rWEk3vGHK1W2EDvemVfw6xNtKxU2";
 
 const app = getApps().length
     ? getApp()
-    : initializeApp(config);
+    : initializeApp(firebaseConfig);
 
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-const more = document.getElementById("mbpc-more");
-const dropdown = document.getElementById("mbpc-dropdown");
-const status = document.getElementById("mbpc-status");
-const account = document.getElementById("mbpc-account");
+// Compatible avec les deux versions de ton index.html
+const menuButton = document.getElementById("monbot-menu-button")
+    || document.getElementById("mbpc-more");
 
-const adminLink = document.createElement("a");
+const menu = document.getElementById("monbot-menu")
+    || document.getElementById("mbpc-dropdown");
 
-adminLink.href = "admin.html";
-adminLink.textContent = "⚙️ Administration";
-adminLink.hidden = true;
+const accountStatus = document.getElementById("monbot-account-status")
+    || document.getElementById("mbpc-status");
 
-adminLink.style.cssText = `
-    display:none;
-    color:#FACC15;
-    font-weight:bold;
-`;
+const accountLink = document.getElementById("monbot-account-link")
+    || document.getElementById("mbpc-account");
 
-dropdown.appendChild(adminLink);
+if (!menuButton || !menu) {
+    console.error("Menu Mon Bot PC introuvable dans index.html");
+} else {
 
-function closeMenu() {
+    function fermerMenu() {
+        menu.hidden = true;
+        menuButton.setAttribute("aria-expanded", "false");
+    }
 
-    dropdown.hidden = true;
+    menuButton.addEventListener("click", event => {
+        event.stopPropagation();
 
-    more.setAttribute("aria-expanded", "false");
+        menu.hidden = !menu.hidden;
+
+        menuButton.setAttribute(
+            "aria-expanded",
+            String(!menu.hidden)
+        );
+    });
+
+    menu.addEventListener("click", event => {
+        event.stopPropagation();
+    });
+
+    document.addEventListener("click", fermerMenu);
+
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape") fermerMenu();
+    });
+
+    // On crée le lien Administration s'il n'existe pas.
+    let adminLink = document.getElementById("monbot-admin-link");
+
+    if (!adminLink) {
+        adminLink = document.createElement("a");
+        adminLink.id = "monbot-admin-link";
+        adminLink.href = "admin.html";
+        adminLink.textContent = "⚙️ Administration";
+        menu.appendChild(adminLink);
+    }
+
+    adminLink.hidden = true;
+    adminLink.style.display = "none";
+
+    onAuthStateChanged(auth, user => {
+
+        if (accountStatus) {
+            accountStatus.textContent = user
+                ? "🟢 Connecté : " + (user.email || "Compte Google")
+                : "🔴 Non connecté";
+        }
+
+        if (accountLink) {
+            accountLink.href = "connexion.html";
+
+            accountLink.textContent = user
+                ? "👤 Mon compte"
+                : "👤 Se connecter";
+        }
+
+        const isAdmin = user?.uid === ADMIN_UID;
+
+        adminLink.hidden = !isAdmin;
+        adminLink.style.display = isAdmin ? "block" : "none";
+    });
 }
 
-more.addEventListener("click", () => {
+// Notifications des actualités non lues
+async function afficherNotifications() {
 
-    dropdown.hidden = !dropdown.hidden;
+    try {
+        const snapshot = await getDocs(collection(db, "news"));
 
-    more.setAttribute(
-        "aria-expanded",
-        String(!dropdown.hidden)
-    );
-});
+        const articles = snapshot.docs.map(doc => doc.id);
 
-document.addEventListener("click", event => {
+        // Les actualités déjà consultées dans ce navigateur
+        const lues = JSON.parse(
+            localStorage.getItem("monbotpc_news_lues") || "[]"
+        );
 
-    if (!event.target.closest(".mbpc-menu-wrap")) {
-        closeMenu();
+        const nouvelles = articles.filter(id => !lues.includes(id));
+
+        const liens = document.querySelectorAll(
+            'a[href="actualites.html"]'
+        );
+
+        liens.forEach(lien => {
+
+            const ancienBadge = lien.querySelector(".news-badge");
+
+            if (ancienBadge) ancienBadge.remove();
+
+            if (nouvelles.length === 0) return;
+
+            const badge = document.createElement("span");
+
+            badge.className = "news-badge";
+            badge.textContent = nouvelles.length > 99
+                ? "99+"
+                : nouvelles.length;
+
+            badge.style.cssText = `
+                display:inline-flex;
+                align-items:center;
+                justify-content:center;
+                min-width:19px;
+                height:19px;
+                padding:0 5px;
+                margin-left:6px;
+                background:#EF4444;
+                color:white;
+                border-radius:20px;
+                font-size:11px;
+                font-weight:bold;
+                vertical-align:middle;
+            `;
+
+            lien.appendChild(badge);
+        });
+
+    } catch (error) {
+        console.error("Notifications actualités :", error);
     }
-});
+}
 
-document.addEventListener("keydown", event => {
-
-    if (event.key === "Escape") {
-        closeMenu();
-    }
-});
-
-onAuthStateChanged(auth, user => {
-
-    if (user) {
-
-        status.textContent =
-            "🟢 Connecté : " +
-            (user.email || "Compte Google");
-
-        account.textContent = "👤 Mon compte";
-
-    } else {
-
-        status.textContent = "🔴 Non connecté";
-
-        account.textContent = "👤 Se connecter";
-    }
-
-    const isAdmin = user?.uid === ADMIN_UID;
-
-    adminLink.hidden = !isAdmin;
-
-    adminLink.style.display = isAdmin ? "block" : "none";
-});
+afficherNotifications();
