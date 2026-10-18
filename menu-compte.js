@@ -15,19 +15,14 @@ import {
     getDocs
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-/* ADMINISTRATEURS */
-
-const ADMIN_UIDS = [
-    "rWEk3vGHK1W2EDvemVfw6xNtKxU2",
-    "8lq3zxa8nkdZ6hXpa8FeZTpI55Q2"
-];
-
-const app = getApps().length
-    ? getApp()
-    : initializeApp(firebaseConfig);
-
-const auth = getAuth(app);
-const db = getFirestore(app);
+const firebaseConfig = {
+    apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
+    authDomain: "monbotpc.firebaseapp.com",
+    projectId: "monbotpc",
+    storageBucket: "monbotpc.firebasestorage.app",
+    messagingSenderId: "691729637594",
+    appId: "1:691729637594:web:9564d52349c04809fe85e3"
+};
 
 const ADMIN_UID = "rWEk3vGHK1W2EDvemVfw6xNtKxU2";
 
