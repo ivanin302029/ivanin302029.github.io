@@ -24,7 +24,10 @@ const firebaseConfig = {
     appId: "1:691729637594:web:9564d52349c04809fe85e3"
 };
 
-const ADMIN_UID = "rWEk3vGHK1W2EDvemVfw6xNtKxU2";
+const ADMIN_UIDS = { 
+     "rWEk3vGHK1W2EDvemVfw6xNtKxU2",
+    "8lq3zxa8nkdZ6hXpa8FeZTpI55Q2"
+];
 
 const app = getApps().length
     ? getApp()
