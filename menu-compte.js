@@ -6,8 +6,7 @@ import {
 
 import {
     getAuth,
-    onAuthStateChanged,
-    signOut
+    onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
 import {
@@ -15,8 +14,6 @@ import {
     collection,
     getDocs
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-
-/* FIREBASE */
 
 const firebaseConfig = {
     apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
@@ -41,233 +38,150 @@ const app = getApps().length
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* INITIALISATION */
 
-function initialiserMenu() {
+const app = getApps().length
+    ? getApp()
+    : initializeApp(firebaseConfig);
 
-    const bouton = document.getElementById("mbpc-more");
-    const menu = document.getElementById("mbpc-dropdown");
-    const statut = document.getElementById("mbpc-status");
-    const compte = document.getElementById("mbpc-account");
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-    if (!bouton || !menu) {
-        console.warn("Menu Mon Bot PC introuvable.");
-        return;
-    }
+// Compatible avec les deux versions de ton index.html
+const menuButton = document.getElementById("monbot-menu-button")
+    || document.getElementById("mbpc-more");
 
-    /* MENU */
+const menu = document.getElementById("monbot-menu")
+    || document.getElementById("mbpc-dropdown");
+
+const accountStatus = document.getElementById("monbot-account-status")
+    || document.getElementById("mbpc-status");
+
+const accountLink = document.getElementById("monbot-account-link")
+    || document.getElementById("mbpc-account");
+
+if (!menuButton || !menu) {
+    console.error("Menu Mon Bot PC introuvable dans index.html");
+} else {
 
     function fermerMenu() {
         menu.hidden = true;
-        menu.style.setProperty(
-            "display",
-            "none",
-            "important"
-        );
-
-        bouton.setAttribute("aria-expanded", "false");
+        menuButton.setAttribute("aria-expanded", "false");
     }
 
-    function ouvrirMenu() {
-        menu.hidden = false;
-
-        menu.style.setProperty(
-            "display",
-            "block",
-            "important"
-        );
-
-        menu.style.position = "absolute";
-        menu.style.zIndex = "99999";
-
-        bouton.setAttribute("aria-expanded", "true");
-    }
-
-    fermerMenu();
-
-    bouton.addEventListener("click", function(event) {
-
-        event.preventDefault();
+    menuButton.addEventListener("click", event => {
         event.stopPropagation();
 
-        if (menu.hidden) {
-            ouvrirMenu();
-        } else {
-            fermerMenu();
-        }
+        menu.hidden = !menu.hidden;
 
+        menuButton.setAttribute(
+            "aria-expanded",
+            String(!menu.hidden)
+        );
     });
 
-    document.addEventListener("click", function(event) {
-
-        if (
-            !bouton.contains(event.target) &&
-            !menu.contains(event.target)
-        ) {
-            fermerMenu();
-        }
-
+    menu.addEventListener("click", event => {
+        event.stopPropagation();
     });
 
-    document.addEventListener("keydown", function(event) {
+    document.addEventListener("click", fermerMenu);
 
-        if (event.key === "Escape") {
-            fermerMenu();
-        }
-
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape") fermerMenu();
     });
 
-    /* LIENS */
+    // On crée le lien Administration s'il n'existe pas.
+    let adminLink = document.getElementById("monbot-admin-link");
 
-    function ajouterLien(id, texte, adresse) {
-
-        let lien = document.getElementById(id);
-
-        if (!lien) {
-            lien = document.createElement("a");
-            lien.id = id;
-            menu.appendChild(lien);
-        }
-
-        lien.textContent = texte;
-        lien.href = adresse;
-
-        return lien;
+    if (!adminLink) {
+        adminLink = document.createElement("a");
+        adminLink.id = "monbot-admin-link";
+        adminLink.href = "admin.html";
+        adminLink.textContent = "⚙️ Administration";
+        menu.appendChild(adminLink);
     }
 
-    const lienActualites = ajouterLien(
-        "mbpc-news-link",
-        "📰 Actualités",
-        "actualites.html"
-    );
+    adminLink.hidden = true;
+    adminLink.style.display = "none";
 
-    const lienContact = ajouterLien(
-        "mbpc-contact-link",
-        "📩 Assistance",
-        "contact.html"
-    );
+    onAuthStateChanged(auth, user => {
 
-    const lienAdmin = ajouterLien(
-        "mbpc-admin-link",
-        "⚙️ Administration",
-        "admin.html"
-    );
-
-    lienAdmin.style.display = "none";
-
-    /* CONNEXION */
-
-    onAuthStateChanged(auth, function(user) {
-
-        const estAdmin = user &&
-            ADMIN_UIDS.includes(user.uid);
-
-        lienAdmin.style.display = estAdmin
-            ? "block"
-            : "none";
-
-        if (statut) {
-            statut.textContent = user
-                ? "🟢 Connecté"
+        if (accountStatus) {
+            accountStatus.textContent = user
+                ? "🟢 Connecté : " + (user.email || "Compte Google")
                 : "🔴 Non connecté";
         }
 
-        if (compte) {
-            compte.textContent = user
+        if (accountLink) {
+            accountLink.href = "connexion.html";
+
+            accountLink.textContent = user
                 ? "👤 Mon compte"
                 : "👤 Se connecter";
-
-            compte.href = "connexion.html";
         }
 
+        const isAdmin = user?.uid === ADMIN_UID;
+
+        adminLink.hidden = !isAdmin;
+        adminLink.style.display = isAdmin ? "block" : "none";
     });
+}
 
-    /* NOTIFICATIONS ACTUALITÉS */
+// Notifications des actualités non lues
+async function afficherNotifications() {
 
-    async function chargerNotifications() {
+    try {
+        const snapshot = await getDocs(collection(db, "news"));
 
-        try {
+        const articles = snapshot.docs.map(doc => doc.id);
 
-            const snapshot = await getDocs(
-                collection(db, "news")
-            );
+        // Les actualités déjà consultées dans ce navigateur
+        const lues = JSON.parse(
+            localStorage.getItem("monbotpc_news_lues") || "[]"
+        );
 
-            let actualitesLues = [];
+        const nouvelles = articles.filter(id => !lues.includes(id));
 
-            try {
-                const sauvegarde = JSON.parse(
-                    localStorage.getItem(
-                        "monbotpc_news_lues"
-                    ) || "[]"
-                );
+        const liens = document.querySelectorAll(
+            'a[href="actualites.html"]'
+        );
 
-                if (Array.isArray(sauvegarde)) {
-                    actualitesLues = sauvegarde;
-                }
+        liens.forEach(lien => {
 
-            } catch (erreur) {
-                actualitesLues = [];
-            }
+            const ancienBadge = lien.querySelector(".news-badge");
 
-            const nouvelles = snapshot.docs.filter(
-                document => !actualitesLues.includes(
-                    document.id
-                )
-            );
+            if (ancienBadge) ancienBadge.remove();
 
-            let badge = document.getElementById(
-                "mbpc-news-badge"
-            );
+            if (nouvelles.length === 0) return;
 
-            if (!badge) {
-                badge = document.createElement("span");
-                badge.id = "mbpc-news-badge";
+            const badge = document.createElement("span");
 
-                badge.style.cssText = `
-                    background:#EF4444;
-                    color:white;
-                    border-radius:20px;
-                    padding:2px 7px;
-                    margin-left:8px;
-                    font-size:11px;
-                    font-weight:bold;
-                `;
+            badge.className = "news-badge";
+            badge.textContent = nouvelles.length > 99
+                ? "99+"
+                : nouvelles.length;
 
-                lienActualites.appendChild(badge);
-            }
+            badge.style.cssText = `
+                display:inline-flex;
+                align-items:center;
+                justify-content:center;
+                min-width:19px;
+                height:19px;
+                padding:0 5px;
+                margin-left:6px;
+                background:#EF4444;
+                color:white;
+                border-radius:20px;
+                font-size:11px;
+                font-weight:bold;
+                vertical-align:middle;
+            `;
 
-            badge.textContent = nouvelles.length;
+            lien.appendChild(badge);
+        });
 
-            badge.style.display = nouvelles.length > 0
-                ? "inline-block"
-                : "none";
-
-        } catch (erreur) {
-
-            console.error(
-                "Notifications indisponibles :",
-                erreur
-            );
-
-        }
-
+    } catch (error) {
+        console.error("Notifications actualités :", error);
     }
-
-    chargerNotifications();
-
 }
 
-/* ATTENDRE LE CHARGEMENT DU HTML */
-
-if (document.readyState === "loading") {
-
-    document.addEventListener(
-        "DOMContentLoaded",
-        initialiserMenu
-    );
-
-} else {
-
-    initialiserMenu();
-
-}
+afficherNotifications();
