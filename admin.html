@@ -17,171 +17,143 @@ body {
     font-family: "Segoe UI", Arial, sans-serif;
 }
 
-header {
-    background: #111827;
-    border-bottom: 1px solid #334155;
-    padding: 20px;
-    display: flex;
-    justify-content: space-between;
-    gap: 15px;
-    flex-wrap: wrap;
-}
-
-header h1 {
-    margin: 0;
-    font-size: 24px;
-    color: #60A5FA;
-}
-
-a {
-    color: #60A5FA;
-    text-decoration: none;
-}
-
 main {
     max-width: 1100px;
-    margin: 30px auto;
-    padding: 15px;
+    margin: auto;
+    padding: 25px;
 }
+
+a { color: #60A5FA; }
+
+h1, h2 { color: #60A5FA; }
 
 .card {
     background: #172033;
+    padding: 25px;
     border: 1px solid #334155;
     border-radius: 15px;
-    padding: 25px;
-    margin-bottom: 25px;
+    margin: 20px 0;
 }
 
-h2 { color: #60A5FA; }
+.item {
+    background: #0B1120;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 18px;
+    margin: 12px 0;
+    overflow-wrap: anywhere;
+}
 
 input, textarea, select {
+    display: block;
     width: 100%;
-    padding: 12px;
-    margin: 10px 0;
     background: #0B1120;
     color: white;
-    border: 1px solid #334155;
+    border: 1px solid #475569;
     border-radius: 9px;
+    padding: 12px;
+    margin: 10px 0;
     font-family: inherit;
 }
 
 textarea {
-    min-height: 100px;
-    resize: vertical;
+    min-height: 110px;
 }
 
 button {
     background: #3B82F6;
     color: white;
-    padding: 12px 18px;
-    border: 0;
+    border: none;
     border-radius: 9px;
+    padding: 12px 18px;
     cursor: pointer;
     margin: 5px;
-    font-weight: bold;
 }
 
-button:disabled {
-    opacity: .5;
-    cursor: wait;
-}
+button:disabled { opacity: .5; }
 
 .danger { background: #DC2626; }
-.success { background: #16A34A; }
-.warning { background: #D97706; }
 
-.item {
-    background: #0B1120;
-    border: 1px solid #334155;
-    padding: 20px;
-    margin: 15px 0;
-    border-radius: 12px;
-    overflow-wrap: anywhere;
-}
+.hidden { display: none !important; }
 
 .small {
     color: #94A3B8;
     font-size: 13px;
 }
 
-.conversation {
-    background: #111827;
-    padding: 15px;
-    border-radius: 12px;
-    margin: 15px 0;
-    max-height: 450px;
-    overflow-y: auto;
-}
-
-.bubble {
-    padding: 12px;
-    border-radius: 12px;
-    margin: 12px 0;
-    max-width: 90%;
-    overflow-wrap: anywhere;
-}
-
-.bubble p {
+.text {
     white-space: pre-wrap;
     line-height: 1.6;
 }
 
-.from-user {
-    background: #334155;
-    margin-right: auto;
+.option-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
 }
 
-.from-admin {
-    background: #1D4ED8;
-    margin-left: auto;
-}
-
-.file-link {
-    display: block;
-    margin-top: 10px;
-    color: #93C5FD;
-}
-
-#dashboard {
-    display: none;
+.option-row input {
+    flex: 1;
 }
 
 #countdown {
-    font-size: 42px;
-    font-weight: bold;
     color: #22C55E;
-    font-variant-numeric: tabular-nums;
-}
-
-#notice {
-    margin: 15px 0;
-    color: #22C55E;
-    overflow-wrap: anywhere;
+    font-size: 38px;
 }
 </style>
+
 </head>
 
 <body>
 
-<header>
-    <h1>⚙️ Mon Bot PC — Administration</h1>
-    <a href="index.html">← Retour au site</a>
-</header>
-
 <main>
 
+<a href="index.html">← Retour au site</a>
+
+<h1>⚙️ Administration Mon Bot PC</h1>
+
 <div id="access" class="card">
-    Vérification de l'administrateur...
+    Vérification des droits...
 </div>
 
-<div id="dashboard">
+<div id="dashboard" class="hidden">
 
 <section class="card">
 
-    <h2>📩 Assistance — Conversations</h2>
+    <h2>👤 Mon profil administrateur</h2>
+
+    <form id="profileForm">
+
+        <label>Pseudo public</label>
+
+        <input
+            id="nickname"
+            maxlength="40"
+            placeholder="Votre pseudo"
+            required
+        >
+
+        <label>URL HTTPS de votre photo</label>
+
+        <input
+            id="avatarUrl"
+            placeholder="https://..."
+        >
+
+        <button type="submit">
+            Enregistrer mon profil
+        </button>
+
+    </form>
+
+</section>
+
+<section class="card">
+
+    <h2>📩 Assistance</h2>
 
     <button id="refreshTickets">
-        ↻ Actualiser les tickets
+        Actualiser les tickets
     </button>
 
     <div id="tickets"></div>
@@ -196,8 +168,8 @@ button:disabled {
 
         <input
             id="newsTitle"
-            placeholder="Titre de l'actualité"
             maxlength="150"
+            placeholder="Titre"
             required
         >
 
@@ -210,13 +182,13 @@ button:disabled {
 
         <textarea
             id="newsContent"
-            placeholder="Contenu de l'actualité"
             maxlength="10000"
+            placeholder="Contenu"
             required
         ></textarea>
 
         <button type="submit">
-            📢 Publier
+            Publier l'actualité
         </button>
 
     </form>
@@ -224,6 +196,49 @@ button:disabled {
     <h2>Actualités publiées</h2>
 
     <div id="newsList"></div>
+
+</section>
+
+<section class="card">
+
+    <h2>📊 Créer un sondage</h2>
+
+    <form id="pollForm">
+
+        <label>Question</label>
+
+        <input
+            id="pollQuestion"
+            maxlength="250"
+            placeholder="Quelle fonctionnalité préférez-vous ?"
+            required
+        >
+
+        <h3>Réponses possibles</h3>
+
+        <div id="pollOptions"></div>
+
+        <button id="addOption" type="button">
+            ➕ Ajouter une réponse
+        </button>
+
+        <p class="small">
+            Entre 2 et 10 réponses possibles.
+        </p>
+
+        <button id="savePoll" type="submit">
+            Publier le sondage
+        </button>
+
+        <button id="cancelPoll" type="button" class="hidden">
+            Annuler la modification
+        </button>
+
+    </form>
+
+    <h2>Sondages publiés</h2>
+
+    <div id="pollList"></div>
 
 </section>
 
@@ -241,11 +256,11 @@ button:disabled {
     </select>
 
     <button id="startMaintenance" class="danger">
-        Activer la maintenance
+        Activer
     </button>
 
-    <button id="stopMaintenance" class="success">
-        Désactiver la maintenance
+    <button id="stopMaintenance">
+        Désactiver
     </button>
 
     <h3 id="maintenanceStatus"></h3>
@@ -256,7 +271,7 @@ button:disabled {
 
 </div>
 
-<div id="notice" role="status"></div>
+<p id="notice"></p>
 
 </main>
 
@@ -275,6 +290,7 @@ import {
     getFirestore,
     collection,
     doc,
+    getDoc,
     getDocs,
     addDoc,
     setDoc,
@@ -285,36 +301,532 @@ import {
     onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-import {
-    getStorage,
-    ref,
-    uploadBytes,
-    getDownloadURL,
-    deleteObject
-} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
-
-const firebaseConfig = {
+const config = {
     apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
     authDomain: "monbotpc.firebaseapp.com",
     projectId: "monbotpc",
     storageBucket: "monbotpc.firebasestorage.app",
-    messagingSenderId: "691729637594",
     appId: "1:691729637594:web:9564d52349c04809fe85e3"
 };
 
-const ADMIN_UID = "rWEk3vGHK1W2EDvemVfw6xNtKxU2";
-const app = initializeApp(firebaseConfig);
+const ADMINS = [
+    "rWEk3vGHK1W2EDvemVfw6xNtKxU2",
+    "8lq3zxa8nkdZ6hXpa8FeZTpI55Q2"
+];
 
+const app = initializeApp(config);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
 
-const access = document.getElementById("access");
-const dashboard = document.getElementById("dashboard");
-const notice = document.getElementById("notice");
+let currentUser = null;
+let editingPoll = null;
+let maintenanceTimer = null;
 
-const ticketsContainer = document.getElementById("tickets");
-const newsContainer = document.getElementById("newsList");
+const $ = id => document.getElementById(id);
+
+function element(tag, text = "") {
+    const node = document.createElement(tag);
+    node.textContent = text;
+    return node;
+}
+
+function notify(text) {
+    $("notice").textContent = text;
+}
+
+function admin(user) {
+    return user && ADMINS.includes(user.uid);
+}
+
+/* PROFIL */
+
+async function chargerProfil() {
+    const snapshot = await getDoc(
+        doc(db, "admin_profiles", currentUser.uid)
+    );
+
+    if (snapshot.exists()) {
+        $("nickname").value = snapshot.data().nickname || "";
+        $("avatarUrl").value = snapshot.data().avatarUrl || "";
+    }
+}
+
+$("profileForm").addEventListener("submit", async event => {
+    event.preventDefault();
+
+    const nickname = $("nickname").value.trim();
+    const avatarUrl = $("avatarUrl").value.trim();
+
+    if (!nickname) return;
+
+    if (avatarUrl && !avatarUrl.startsWith("https://")) {
+        alert("Utilisez une URL HTTPS.");
+        return;
+    }
+
+    try {
+        await setDoc(
+            doc(db, "admin_profiles", currentUser.uid),
+            { nickname, avatarUrl }
+        );
+
+        notify("Profil enregistré.");
+
+    } catch (error) {
+        alert(error.message);
+    }
+});
+
+/* TICKETS */
+
+async function chargerTickets() {
+    const container = $("tickets");
+
+    try {
+        const snapshot = await getDocs(
+            collection(db, "support_messages")
+        );
+
+        container.replaceChildren();
+
+        for (const ticketDoc of snapshot.docs) {
+            const ticket = ticketDoc.data();
+
+            const carte = element("article");
+            carte.className = "item";
+
+            carte.append(
+                element("h3", ticket.title || "Ticket"),
+                element("p", ticket.email || ""),
+                element("p", ticket.content || ""),
+                element("p", "Statut : " + ticket.status)
+            );
+
+            if (ticket.reply) {
+                carte.appendChild(
+                    element("p", "Ancienne réponse : " + ticket.reply)
+                );
+            }
+
+            const conversation = element("div");
+
+            const messages = await getDocs(
+                collection(
+                    db,
+                    "support_messages",
+                    ticketDoc.id,
+                    "messages"
+                )
+            );
+
+            const liste = messages.docs.map(m => m.data());
+
+            liste.sort((a, b) =>
+                (a.createdAt?.seconds || 0) -
+                (b.createdAt?.seconds || 0)
+            );
+
+            for (const message of liste) {
+                conversation.appendChild(
+                    element(
+                        "p",
+                        (ADMINS.includes(message.uid)
+                            ? "🛠️ Assistance : "
+                            : "👤 Utilisateur : ") +
+                        message.text
+                    )
+                );
+            }
+
+            carte.appendChild(conversation);
+
+            if (ticket.status !== "Fermé") {
+                const textarea = element("textarea");
+
+                textarea.placeholder = "Votre réponse...";
+
+                const bouton = element("button", "Répondre");
+
+                bouton.addEventListener("click", async () => {
+                    const text = textarea.value.trim();
+
+                    if (!text) return;
+
+                    bouton.disabled = true;
+
+                    try {
+                        await addDoc(
+                            collection(
+                                db,
+                                "support_messages",
+                                ticketDoc.id,
+                                "messages"
+                            ),
+                            {
+                                uid: currentUser.uid,
+                                text,
+                                createdAt: serverTimestamp()
+                            }
+                        );
+
+                        await updateDoc(
+                            ticketDoc.ref,
+                            { status: "Répondu" }
+                        );
+
+                        await chargerTickets();
+
+                    } catch (error) {
+                        alert(error.message);
+                    } finally {
+                        bouton.disabled = false;
+                    }
+                });
+
+                const fermer = element("button", "Fermer");
+
+                fermer.addEventListener("click", async () => {
+                    await updateDoc(
+                        ticketDoc.ref,
+                        { status: "Fermé" }
+                    );
+
+                    await chargerTickets();
+                });
+
+                carte.append(textarea, bouton, fermer);
+
+            } else {
+                const rouvrir = element("button", "Rouvrir");
+
+                rouvrir.addEventListener("click", async () => {
+                    await updateDoc(
+                        ticketDoc.ref,
+                        { status: "En attente" }
+                    );
+
+                    await chargerTickets();
+                });
+
+                carte.appendChild(rouvrir);
+            }
+
+            const supprimer = element("button", "Supprimer");
+            supprimer.className = "danger";
+
+            supprimer.addEventListener("click", async () => {
+                if (!confirm("Supprimer ce ticket ?")) return;
+
+                for (const message of messages.docs) {
+                    await deleteDoc(message.ref);
+                }
+
+                await deleteDoc(ticketDoc.ref);
+                await chargerTickets();
+            });
+
+            carte.appendChild(supprimer);
+            container.appendChild(carte);
+        }
+
+    } catch (error) {
+        container.textContent = "Erreur : " + error.message;
+    }
+}
+
+$("refreshTickets").addEventListener("click", chargerTickets);
+
+/* ACTUALITÉS */
+
+async function chargerActualites() {
+    const container = $("newsList");
+
+    try {
+        const snapshot = await getDocs(
+            collection(db, "news")
+        );
+
+        container.replaceChildren();
+
+        for (const item of snapshot.docs) {
+            const actualite = item.data();
+
+            const carte = element("article");
+            carte.className = "item";
+
+            carte.append(
+                element("h3", actualite.title),
+                element("p", actualite.content)
+            );
+
+            const supprimer = element("button", "Supprimer");
+            supprimer.className = "danger";
+
+            supprimer.addEventListener("click", async () => {
+                if (!confirm("Supprimer cette actualité ?")) return;
+
+                await deleteDoc(item.ref);
+                await chargerActualites();
+            });
+
+            carte.appendChild(supprimer);
+            container.appendChild(carte);
+        }
+
+    } catch (error) {
+        container.textContent = error.message;
+    }
+}
+
+$("newsForm").addEventListener("submit", async event => {
+    event.preventDefault();
+
+    try {
+        await addDoc(
+            collection(db, "news"),
+            {
+                title: $("newsTitle").value.trim(),
+                category: $("newsCategory").value,
+                content: $("newsContent").value.trim(),
+                authorUid: currentUser.uid,
+                createdAt: serverTimestamp()
+            }
+        );
+
+        $("newsForm").reset();
+
+        notify("Actualité publiée !");
+        await chargerActualites();
+
+    } catch (error) {
+        alert(error.message);
+    }
+});
+
+/* SONDAGES */
+
+function ajouterOption(valeur = "") {
+    const container = $("pollOptions");
+
+    if (container.children.length >= 10) {
+        alert("Maximum 10 réponses.");
+        return;
+    }
+
+    const ligne = element("div");
+    ligne.className = "option-row";
+
+    const input = document.createElement("input");
+    input.value = valeur;
+    input.maxLength = 150;
+    input.placeholder = "Réponse possible";
+    input.required = true;
+
+    const supprimer = element("button", "❌");
+    supprimer.type = "button";
+
+    supprimer.addEventListener("click", () => {
+        if (container.children.length <= 2) {
+            alert("Il faut au moins deux réponses.");
+            return;
+        }
+
+        ligne.remove();
+    });
+
+    ligne.append(input, supprimer);
+    container.appendChild(ligne);
+}
+
+function reinitialiserSondage() {
+    editingPoll = null;
+
+    $("pollForm").reset();
+    $("pollOptions").replaceChildren();
+
+    ajouterOption();
+    ajouterOption();
+
+    $("savePoll").textContent = "Publier le sondage";
+    $("cancelPoll").classList.add("hidden");
+}
+
+$("addOption").addEventListener("click", () => {
+    ajouterOption();
+});
+
+$("cancelPoll").addEventListener(
+    "click",
+    reinitialiserSondage
+);
+
+async function chargerSondages() {
+    const container = $("pollList");
+
+    try {
+        const snapshot = await getDocs(
+            collection(db, "polls")
+        );
+
+        container.replaceChildren();
+
+        for (const item of snapshot.docs) {
+            const sondage = item.data();
+
+            const carte = element("article");
+            carte.className = "item";
+
+            carte.appendChild(
+                element("h3", sondage.question)
+            );
+
+            sondage.options.forEach((option, index) => {
+                carte.appendChild(
+                    element(
+                        "p",
+                        (index + 1) + ". " + option
+                    )
+                );
+            });
+
+            const modifier = element("button", "Modifier");
+
+            modifier.addEventListener("click", async () => {
+                const votes = await getDocs(
+                    collection(db, "polls", item.id, "votes")
+                );
+
+                editingPoll = item.id;
+
+                $("pollQuestion").value = sondage.question;
+
+                $("pollOptions").replaceChildren();
+
+                sondage.options.forEach(option => {
+                    ajouterOption(option);
+                });
+
+                // Les options sont verrouillées si des votes existent.
+                if (!votes.empty) {
+                    $("pollOptions")
+                        .querySelectorAll("input,button")
+                        .forEach(champ => {
+                            champ.disabled = true;
+                        });
+
+                    $("addOption").disabled = true;
+
+                    alert(
+                        "Ce sondage possède déjà des votes. " +
+                        "Seule sa question peut être modifiée."
+                    );
+                } else {
+                    $("addOption").disabled = false;
+                }
+
+                $("savePoll").textContent =
+                    "Enregistrer les modifications";
+
+                $("cancelPoll").classList.remove("hidden");
+
+                $("pollForm").scrollIntoView({
+                    behavior: "smooth"
+                });
+            });
+
+            const supprimer = element("button", "Supprimer");
+            supprimer.className = "danger";
+
+            supprimer.addEventListener("click", async () => {
+                if (!confirm("Supprimer ce sondage ?")) return;
+
+                const votes = await getDocs(
+                    collection(db, "polls", item.id, "votes")
+                );
+
+                for (const vote of votes.docs) {
+                    await deleteDoc(vote.ref);
+                }
+
+                await deleteDoc(item.ref);
+
+                await chargerSondages();
+            });
+
+            carte.append(modifier, supprimer);
+            container.appendChild(carte);
+        }
+
+    } catch (error) {
+        container.textContent = error.message;
+    }
+}
+
+$("pollForm").addEventListener("submit", async event => {
+    event.preventDefault();
+
+    const question = $("pollQuestion").value.trim();
+
+    const options = Array.from(
+        $("pollOptions").querySelectorAll("input")
+    ).map(input => input.value.trim());
+
+    if (
+        question.length < 5 ||
+        options.length < 2 ||
+        options.some(option => !option)
+    ) {
+        alert("Vérifiez la question et les réponses.");
+        return;
+    }
+
+    try {
+        if (editingPoll) {
+            const votes = await getDocs(
+                collection(
+                    db,
+                    "polls",
+                    editingPoll,
+                    "votes"
+                )
+            );
+
+            const modifications = votes.empty
+                ? { question, options }
+                : { question };
+
+            await updateDoc(
+                doc(db, "polls", editingPoll),
+                modifications
+            );
+
+            notify("Sondage modifié.");
+
+        } else {
+            await addDoc(
+                collection(db, "polls"),
+                {
+                    question,
+                    options,
+                    authorUid: currentUser.uid,
+                    createdAt: serverTimestamp()
+                }
+            );
+
+            notify("Sondage publié !");
+        }
+
+        $("addOption").disabled = false;
+
+        reinitialiserSondage();
+        await chargerSondages();
+
+    } catch (error) {
+        alert(error.message);
+    }
+});
+
+/* MAINTENANCE */
 
 const maintenanceRef = doc(
     db,
@@ -322,771 +834,113 @@ const maintenanceRef = doc(
     "maintenance"
 );
 
-let maintenanceTimer = null;
-let unsubscribeMaintenance = null;
-
-const allowedTypes = [
-    "image/png",
-    "image/jpeg",
-    "image/webp",
-    "application/pdf",
-    "text/plain"
-];
-
-function notify(text, error = false) {
-    notice.textContent = text;
-    notice.style.color = error ? "#EF4444" : "#22C55E";
-}
-
-function make(tag, text = "", className = "") {
-    const element = document.createElement(tag);
-    element.textContent = text;
-    element.className = className;
-    return element;
-}
-
-function formatDate(timestamp) {
-    return timestamp?.toDate
-        ? timestamp.toDate().toLocaleString("fr-CA")
-        : "";
-}
-
-function validateFile(file) {
-
-    if (!file) return;
-
-    if (!allowedTypes.includes(file.type)) {
-        throw new Error("Type de fichier non autorisé.");
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-        throw new Error("Maximum 5 Mo.");
-    }
-}
-
-async function uploadAttachment(ticketId, messageId, file) {
-
-    validateFile(file);
-
-    const extension = {
-        "image/png": "png",
-        "image/jpeg": "jpg",
-        "image/webp": "webp",
-        "application/pdf": "pdf",
-        "text/plain": "txt"
-    }[file.type];
-
-    const path =
-        `tickets/${ticketId}/${messageId}/piece-jointe.${extension}`;
-
-    await uploadBytes(
-        ref(storage, path),
-        file,
-        { contentType: file.type }
-    );
-
-    return {
-        path,
-        name: file.name
-    };
-}
-
-function addFileLink(container, data) {
-
-    if (!data.attachmentPath) return;
-
-    const link = make(
-        "a",
-        "📎 " + (data.attachmentName || "Pièce jointe"),
-        "file-link"
-    );
-
-    link.href = "#";
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-
-    link.addEventListener("click", async event => {
-
-        event.preventDefault();
-
-        try {
-
-            const url = await getDownloadURL(
-                ref(storage, data.attachmentPath)
-            );
-
-            window.open(url, "_blank", "noopener,noreferrer");
-
-        } catch (error) {
-
-            console.error(error);
-            alert("Impossible d'ouvrir le fichier.");
-        }
-    });
-
-    container.append(link);
-}
-
-async function loadConversation(ticket, container) {
-
-    container.textContent = "Chargement...";
-
-    try {
-
-        const snapshot = await getDocs(
-            collection(
-                db,
-                "support_messages",
-                ticket.id,
-                "messages"
-            )
-        );
-
-        const messages = snapshot.docs.map(item => ({
-            id: item.id,
-            ...item.data()
-        }));
-
-        messages.sort((a, b) =>
-            (a.createdAt?.seconds || 0) -
-            (b.createdAt?.seconds || 0)
-        );
-
-        container.replaceChildren();
-
-        const original = make(
-            "div",
-            "",
-            "bubble from-user"
-        );
-
-        original.append(
-            make("strong", "👤 Message initial"),
-            make("p", ticket.content || "")
-        );
-
-        container.append(original);
-
-        if (ticket.reply) {
-
-            const oldReply = make(
-                "div",
-                "",
-                "bubble from-admin"
-            );
-
-            oldReply.append(
-                make("strong", "🛠️ Ancienne réponse"),
-                make("p", ticket.reply)
-            );
-
-            container.append(oldReply);
+function surveillerMaintenance() {
+    onSnapshot(maintenanceRef, snapshot => {
+        if (maintenanceTimer) {
+            clearInterval(maintenanceTimer);
         }
 
-        messages.forEach(message => {
+        const data = snapshot.data();
 
-            const isAdmin = message.uid === ADMIN_UID;
+        if (!data?.active) {
+            $("maintenanceStatus").textContent =
+                "🟢 Site disponible";
 
-            const bubble = make(
-                "div",
-                "",
-                "bubble " + (
-                    isAdmin ? "from-admin" : "from-user"
-                )
-            );
-
-            bubble.append(
-                make(
-                    "strong",
-                    isAdmin
-                        ? "🛠️ Vous — Assistance"
-                        : "👤 Utilisateur"
-                ),
-                make("p", message.text || ""),
-                make(
-                    "div",
-                    formatDate(message.createdAt),
-                    "small"
-                )
-            );
-
-            addFileLink(bubble, message);
-
-            container.append(bubble);
-        });
-
-        container.scrollTop = container.scrollHeight;
-
-    } catch (error) {
-
-        console.error(error);
-        container.textContent =
-            "Impossible de charger la conversation.";
-    }
-}
-
-async function sendReply(
-    ticket,
-    textarea,
-    fileInput,
-    button,
-    conversation
-) {
-
-    const text = textarea.value.trim();
-    const file = fileInput.files[0];
-
-    if (!text && !file) {
-        alert("Écris un message ou joins un fichier.");
-        return;
-    }
-
-    try {
-        validateFile(file);
-    } catch (error) {
-        alert(error.message);
-        return;
-    }
-
-    button.disabled = true;
-
-    try {
-
-        const messagesRef = collection(
-            db,
-            "support_messages",
-            ticket.id,
-            "messages"
-        );
-
-        const messageRef = doc(messagesRef);
-
-        let attachment = null;
-
-        if (file) {
-            attachment = await uploadAttachment(
-                ticket.id,
-                messageRef.id,
-                file
-            );
-        }
-
-        const data = {
-            uid: ADMIN_UID,
-            text,
-            createdAt: serverTimestamp()
-        };
-
-        if (attachment) {
-            data.attachmentPath = attachment.path;
-            data.attachmentName = attachment.name;
-        }
-
-        await addDoc(messagesRef, data);
-
-        textarea.value = "";
-        fileInput.value = "";
-
-        notify("Message envoyé !");
-
-        await loadConversation(ticket, conversation);
-
-    } catch (error) {
-
-        console.error(error);
-        notify("Erreur d'envoi : " + error.message, true);
-
-    } finally {
-
-        button.disabled = false;
-    }
-}
-
-async function deleteTicket(ticket) {
-
-    if (!confirm(
-        "Supprimer définitivement ce ticket et sa conversation ?"
-    )) return;
-
-    try {
-
-        const messagesRef = collection(
-            db,
-            "support_messages",
-            ticket.id,
-            "messages"
-        );
-
-        const snapshot = await getDocs(messagesRef);
-
-        for (const item of snapshot.docs) {
-
-            const data = item.data();
-
-            if (data.attachmentPath) {
-
-                try {
-                    await deleteObject(
-                        ref(storage, data.attachmentPath)
-                    );
-                } catch (error) {
-                    console.warn("Fichier non supprimé :", error);
-                }
-            }
-
-            await deleteDoc(item.ref);
-        }
-
-        await deleteDoc(
-            doc(db, "support_messages", ticket.id)
-        );
-
-        notify("Ticket supprimé.");
-
-        await loadTickets();
-
-    } catch (error) {
-
-        console.error(error);
-
-        notify("Erreur de suppression : " + error.message, true);
-    }
-}
-
-async function changeStatus(ticket, status) {
-
-    try {
-
-        await updateDoc(
-            doc(db, "support_messages", ticket.id),
-            { status }
-        );
-
-        notify("Statut modifié.");
-
-        await loadTickets();
-
-    } catch (error) {
-
-        console.error(error);
-
-        notify("Erreur : " + error.message, true);
-    }
-}
-
-async function loadTickets() {
-
-    ticketsContainer.textContent = "Chargement des tickets...";
-
-    try {
-
-        const snapshot = await getDocs(
-            collection(db, "support_messages")
-        );
-
-        const tickets = snapshot.docs.map(item => ({
-            id: item.id,
-            ...item.data()
-        }));
-
-        tickets.sort((a, b) =>
-            (b.createdAt?.seconds || 0) -
-            (a.createdAt?.seconds || 0)
-        );
-
-        ticketsContainer.replaceChildren();
-
-        if (!tickets.length) {
-            ticketsContainer.textContent = "Aucun ticket.";
+            $("countdown").textContent = "";
             return;
         }
 
-        tickets.forEach(ticket => {
+        const fin = data.endsAt?.toDate?.();
 
-            const card = make("article", "", "item");
+        function actualiser() {
+            if (!fin) return;
 
-            card.append(
-                make("h3", ticket.title || "Sans titre"),
-                make("p", "👤 " + (ticket.email || "")),
-                make("p", "Sujet : " + ticket.subject),
-                make("p", "Statut : " + ticket.status)
+            const secondes = Math.max(
+                0,
+                Math.ceil((fin.getTime() - Date.now()) / 1000)
             );
 
-            const conversation = make(
-                "div",
-                "",
-                "conversation"
-            );
-
-            card.append(conversation);
-
-            loadConversation(ticket, conversation);
-
-            if (ticket.status !== "Fermé") {
-
-                const textarea = document.createElement("textarea");
-
-                textarea.placeholder = "Répondre à l'utilisateur...";
-                textarea.maxLength = 3000;
-
-                const fileInput = document.createElement("input");
-
-                fileInput.type = "file";
-
-                fileInput.accept =
-                    ".png,.jpg,.jpeg,.webp,.pdf,.txt";
-
-                const button = make(
-                    "button",
-                    "💬 Envoyer la réponse"
-                );
-
-                button.addEventListener("click", () => {
-
-                    sendReply(
-                        ticket,
-                        textarea,
-                        fileInput,
-                        button,
-                        conversation
-                    );
-                });
-
-                const closeButton = make(
-                    "button",
-                    "🔒 Fermer",
-                    "warning"
-                );
-
-                closeButton.addEventListener("click", () => {
-                    changeStatus(ticket, "Fermé");
-                });
-
-                card.append(
-                    textarea,
-                    fileInput,
-                    button,
-                    closeButton
-                );
-
-            } else {
-
-                const reopenButton = make(
-                    "button",
-                    "🔓 Rouvrir",
-                    "success"
-                );
-
-                reopenButton.addEventListener("click", () => {
-                    changeStatus(ticket, "En attente");
-                });
-
-                card.append(reopenButton);
-            }
-
-            const deleteButton = make(
-                "button",
-                "🗑️ Supprimer",
-                "danger"
-            );
-
-            deleteButton.addEventListener("click", () => {
-                deleteTicket(ticket);
-            });
-
-            card.append(deleteButton);
-
-            ticketsContainer.append(card);
-        });
-
-    } catch (error) {
-
-        console.error(error);
-
-        ticketsContainer.textContent =
-            "Impossible de charger les tickets.";
-    }
-}
-
-async function loadNews() {
-
-    newsContainer.textContent = "Chargement...";
-
-    try {
-
-        const snapshot = await getDocs(
-            collection(db, "news")
-        );
-
-        const articles = snapshot.docs.map(item => ({
-            id: item.id,
-            ...item.data()
-        }));
-
-        articles.sort((a, b) =>
-            (b.createdAt?.seconds || 0) -
-            (a.createdAt?.seconds || 0)
-        );
-
-        newsContainer.replaceChildren();
-
-        articles.forEach(article => {
-
-            const card = make("div", "", "item");
-
-            card.append(
-                make("h3", article.title || ""),
-                make("p", article.category || ""),
-                make("p", article.content || "")
-            );
-
-            const deleteButton = make(
-                "button",
-                "Supprimer",
-                "danger"
-            );
-
-            deleteButton.addEventListener("click", async () => {
-
-                if (!confirm("Supprimer cette actualité ?")) return;
-
-                try {
-
-                    await deleteDoc(
-                        doc(db, "news", article.id)
-                    );
-
-                    await loadNews();
-
-                } catch (error) {
-
-                    notify(error.message, true);
-                }
-            });
-
-            card.append(deleteButton);
-
-            newsContainer.append(card);
-        });
-
-        if (!articles.length) {
-            newsContainer.textContent = "Aucune actualité.";
-        }
-
-    } catch (error) {
-
-        console.error(error);
-
-        newsContainer.textContent =
-            "Impossible de charger les actualités.";
-    }
-}
-
-document.getElementById("newsForm")
-.addEventListener("submit", async event => {
-
-    event.preventDefault();
-
-    const title = document.getElementById("newsTitle").value.trim();
-    const category = document.getElementById("newsCategory").value;
-    const content = document.getElementById("newsContent").value.trim();
-
-    if (!title || !content) return;
-
-    try {
-
-        await addDoc(
-            collection(db, "news"),
-            {
-                title,
-                category,
-                content,
-                createdAt: serverTimestamp()
-            }
-        );
-
-        document.getElementById("newsForm").reset();
-
-        notify("Actualité publiée !");
-
-        await loadNews();
-
-    } catch (error) {
-
-        notify("Erreur : " + error.message, true);
-    }
-});
-
-function watchMaintenance() {
-
-    if (unsubscribeMaintenance) {
-        unsubscribeMaintenance();
-    }
-
-    unsubscribeMaintenance = onSnapshot(
-        maintenanceRef,
-        snapshot => {
-
-            const data = snapshot.exists()
-                ? snapshot.data()
-                : null;
-
-            if (maintenanceTimer) {
+            if (secondes === 0) {
+                $("maintenanceStatus").textContent =
+                    "🟢 Maintenance terminée";
+
+                $("countdown").textContent = "00:00:00";
                 clearInterval(maintenanceTimer);
-            }
-
-            const status = document.getElementById(
-                "maintenanceStatus"
-            );
-
-            const countdown = document.getElementById(
-                "countdown"
-            );
-
-            if (!data?.active) {
-
-                status.textContent = "🟢 Site disponible";
-                countdown.textContent = "";
-
                 return;
             }
 
-            const endDate = data.endsAt?.toDate?.();
+            $("maintenanceStatus").textContent =
+                "🔴 Maintenance en cours";
 
-            function tick() {
+            const h = Math.floor(secondes / 3600);
+            const m = Math.floor((secondes % 3600) / 60);
+            const s = secondes % 60;
 
-                if (!endDate) {
-                    countdown.textContent = "Date inconnue";
-                    return;
-                }
-
-                const seconds = Math.max(
-                    0,
-                    Math.ceil(
-                        (endDate.getTime() - Date.now()) / 1000
-                    )
-                );
-
-                if (seconds === 0) {
-                    status.textContent = "🟢 Maintenance terminée";
-                    countdown.textContent = "00:00:00";
-                    clearInterval(maintenanceTimer);
-                    return;
-                }
-
-                status.textContent = "🔴 Maintenance en cours";
-
-                const h = Math.floor(seconds / 3600);
-                const m = Math.floor((seconds % 3600) / 60);
-                const s = seconds % 60;
-
-                countdown.textContent =
-                    String(h).padStart(2, "0") + ":" +
-                    String(m).padStart(2, "0") + ":" +
-                    String(s).padStart(2, "0");
-            }
-
-            tick();
-
-            maintenanceTimer = setInterval(tick, 1000);
+            $("countdown").textContent =
+                String(h).padStart(2, "0") + ":" +
+                String(m).padStart(2, "0") + ":" +
+                String(s).padStart(2, "0");
         }
-    );
+
+        actualiser();
+
+        maintenanceTimer = setInterval(actualiser, 1000);
+    });
 }
 
-document.getElementById("startMaintenance")
-.addEventListener("click", async () => {
+$("startMaintenance").addEventListener("click", async () => {
+    const minutes = Number($("duration").value);
 
-    const minutes = Number(
-        document.getElementById("duration").value
+    await setDoc(
+        maintenanceRef,
+        {
+            active: true,
+            endsAt: Timestamp.fromDate(
+                new Date(Date.now() + minutes * 60000)
+            ),
+            updatedAt: serverTimestamp()
+        }
     );
-
-    try {
-
-        await setDoc(
-            maintenanceRef,
-            {
-                active: true,
-                endsAt: Timestamp.fromDate(
-                    new Date(Date.now() + minutes * 60000)
-                ),
-                updatedAt: serverTimestamp()
-            }
-        );
-
-        notify("Maintenance activée.");
-
-    } catch (error) {
-
-        notify(error.message, true);
-    }
 });
 
-document.getElementById("stopMaintenance")
-.addEventListener("click", async () => {
-
-    try {
-
-        await setDoc(
-            maintenanceRef,
-            {
-                active: false,
-                endsAt: null,
-                updatedAt: serverTimestamp()
-            }
-        );
-
-        notify("Maintenance désactivée.");
-
-    } catch (error) {
-
-        notify(error.message, true);
-    }
+$("stopMaintenance").addEventListener("click", async () => {
+    await setDoc(
+        maintenanceRef,
+        {
+            active: false,
+            endsAt: null,
+            updatedAt: serverTimestamp()
+        }
+    );
 });
 
-document.getElementById("refreshTickets")
-.addEventListener("click", loadTickets);
+/* CONNEXION */
 
 onAuthStateChanged(auth, async user => {
+    currentUser = user;
 
-    if (!user) {
+    if (!admin(user)) {
+        $("access").textContent = user
+            ? "⛔ Accès réservé aux administrateurs."
+            : "Connectez-vous pour accéder à l'administration.";
 
-        access.replaceChildren();
-
-        const text = make(
-            "p",
-            "Connectez-vous pour accéder à l'administration."
-        );
-
-        const link = make("a", "Se connecter");
-
-        link.href = "connexion.html";
-
-        access.append(text, link);
-
-        dashboard.style.display = "none";
-
+        $("dashboard").classList.add("hidden");
         return;
     }
 
-    if (user.uid !== ADMIN_UID) {
+    $("access").classList.add("hidden");
+    $("dashboard").classList.remove("hidden");
 
-        access.textContent =
-            "⛔ Accès refusé : administrateur uniquement.";
-
-        dashboard.style.display = "none";
-
-        return;
-    }
-
-    access.style.display = "none";
-    dashboard.style.display = "block";
+    reinitialiserSondage();
 
     await Promise.all([
-        loadTickets(),
-        loadNews()
+        chargerProfil(),
+        chargerTickets(),
+        chargerActualites(),
+        chargerSondages()
     ]);
 
-    watchMaintenance();
+    surveillerMaintenance();
 });
 
 </script>
