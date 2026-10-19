@@ -15,6 +15,10 @@ import {
     getDocs
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
+// ========================================
+// FIREBASE
+// ========================================
+
 const firebaseConfig = {
     apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
     authDomain: "monbotpc.firebaseapp.com",
@@ -24,20 +28,18 @@ const firebaseConfig = {
     appId: "1:691729637594:web:9564d52349c04809fe85e3"
 };
 
-/* ADMINISTRATEURS */
+// ========================================
+// ADMINISTRATEURS
+// ========================================
 
 const ADMIN_UIDS = [
     "rWEk3vGHK1W2EDvemVfw6xNtKxU2",
     "8lq3zxa8nkdZ6hXpa8FeZTpI55Q2"
 ];
 
-const app = getApps().length
-    ? getApp()
-    : initializeApp(firebaseConfig);
-
-const auth = getAuth(app);
-const db = getFirestore(app);
-
+// ========================================
+// INITIALISATION
+// ========================================
 
 const app = getApps().length
     ? getApp()
@@ -46,100 +48,228 @@ const app = getApps().length
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Compatible avec les deux versions de ton index.html
-const menuButton = document.getElementById("monbot-menu-button")
-    || document.getElementById("mbpc-more");
+// ========================================
+// MENU DES TROIS POINTS
+// ========================================
 
-const menu = document.getElementById("monbot-menu")
-    || document.getElementById("mbpc-dropdown");
+function initialiserMenu() {
 
-const accountStatus = document.getElementById("monbot-account-status")
-    || document.getElementById("mbpc-status");
+    const menuButton =
+        document.getElementById("monbot-menu-button") ||
+        document.getElementById("mbpc-more");
 
-const accountLink = document.getElementById("monbot-account-link")
-    || document.getElementById("mbpc-account");
+    const menu =
+        document.getElementById("monbot-menu") ||
+        document.getElementById("mbpc-dropdown");
 
-if (!menuButton || !menu) {
-    console.error("Menu Mon Bot PC introuvable dans index.html");
-} else {
+    const accountStatus =
+        document.getElementById("monbot-account-status") ||
+        document.getElementById("mbpc-status");
 
-    function fermerMenu() {
-        menu.hidden = true;
-        menuButton.setAttribute("aria-expanded", "false");
+    const accountLink =
+        document.getElementById("monbot-account-link") ||
+        document.getElementById("mbpc-account");
+
+    if (!menuButton || !menu) {
+
+        console.error(
+            "Impossible de trouver le bouton ou le menu."
+        );
+
+        return;
     }
 
-    menuButton.addEventListener("click", event => {
-        event.stopPropagation();
+    // ========================================
+    // OUVERTURE / FERMETURE
+    // ========================================
 
-        menu.hidden = !menu.hidden;
+    function fermerMenu() {
+
+        menu.hidden = true;
+
+        menu.style.setProperty(
+            "display",
+            "none",
+            "important"
+        );
 
         menuButton.setAttribute(
             "aria-expanded",
-            String(!menu.hidden)
+            "false"
         );
-    });
+    }
 
-    menu.addEventListener("click", event => {
+    function ouvrirMenu() {
+
+        menu.hidden = false;
+
+        menu.style.setProperty(
+            "display",
+            "block",
+            "important"
+        );
+
+        menu.style.zIndex = "99999";
+
+        menuButton.setAttribute(
+            "aria-expanded",
+            "true"
+        );
+    }
+
+    fermerMenu();
+
+    menuButton.addEventListener("click", function(event) {
+
+        event.preventDefault();
         event.stopPropagation();
+
+        if (menu.hidden) {
+
+            ouvrirMenu();
+
+        } else {
+
+            fermerMenu();
+
+        }
+
     });
 
-    document.addEventListener("click", fermerMenu);
+    menu.addEventListener("click", function(event) {
 
-    document.addEventListener("keydown", event => {
-        if (event.key === "Escape") fermerMenu();
+        event.stopPropagation();
+
     });
 
-    // On crée le lien Administration s'il n'existe pas.
-    let adminLink = document.getElementById("monbot-admin-link");
+    document.addEventListener("click", function(event) {
+
+        if (
+            !menuButton.contains(event.target) &&
+            !menu.contains(event.target)
+        ) {
+
+            fermerMenu();
+
+        }
+
+    });
+
+    document.addEventListener("keydown", function(event) {
+
+        if (event.key === "Escape") {
+
+            fermerMenu();
+
+        }
+
+    });
+
+    // ========================================
+    // ADMINISTRATION
+    // ========================================
+
+    let adminLink =
+        document.getElementById("monbot-admin-link") ||
+        document.getElementById("mbpc-admin-link");
 
     if (!adminLink) {
+
         adminLink = document.createElement("a");
+
         adminLink.id = "monbot-admin-link";
+
         adminLink.href = "admin.html";
+
         adminLink.textContent = "⚙️ Administration";
+
         menu.appendChild(adminLink);
+
     }
 
     adminLink.hidden = true;
     adminLink.style.display = "none";
 
-    onAuthStateChanged(auth, user => {
+    // ========================================
+    // CONNEXION FIREBASE
+    // ========================================
+
+    onAuthStateChanged(auth, function(user) {
+
+        const isAdmin =
+            user !== null &&
+            ADMIN_UIDS.includes(user.uid);
 
         if (accountStatus) {
+
             accountStatus.textContent = user
-                ? "🟢 Connecté : " + (user.email || "Compte Google")
+                ? "🟢 Connecté : " +
+                  (user.email || "Compte Google")
                 : "🔴 Non connecté";
+
         }
 
         if (accountLink) {
+
             accountLink.href = "connexion.html";
 
             accountLink.textContent = user
                 ? "👤 Mon compte"
                 : "👤 Se connecter";
+
         }
 
-        const isAdmin = user?.uid === ADMIN_UID;
-
         adminLink.hidden = !isAdmin;
-        adminLink.style.display = isAdmin ? "block" : "none";
+
+        adminLink.style.display = isAdmin
+            ? "block"
+            : "none";
+
     });
+
 }
 
-// Notifications des actualités non lues
+// ========================================
+// NOTIFICATIONS ACTUALITÉS
+// ========================================
+
 async function afficherNotifications() {
 
     try {
-        const snapshot = await getDocs(collection(db, "news"));
 
-        const articles = snapshot.docs.map(doc => doc.id);
-
-        // Les actualités déjà consultées dans ce navigateur
-        const lues = JSON.parse(
-            localStorage.getItem("monbotpc_news_lues") || "[]"
+        const snapshot = await getDocs(
+            collection(db, "news")
         );
 
-        const nouvelles = articles.filter(id => !lues.includes(id));
+        const articles = snapshot.docs.map(
+            document => document.id
+        );
+
+        let lues = [];
+
+        try {
+
+            const sauvegarde = JSON.parse(
+                localStorage.getItem(
+                    "monbotpc_news_lues"
+                ) || "[]"
+            );
+
+            if (Array.isArray(sauvegarde)) {
+
+                lues = sauvegarde;
+
+            }
+
+        } catch (error) {
+
+            lues = [];
+
+        }
+
+        const nouvelles = articles.filter(
+            id => !lues.includes(id)
+        );
 
         const liens = document.querySelectorAll(
             'a[href="actualites.html"]'
@@ -147,15 +277,25 @@ async function afficherNotifications() {
 
         liens.forEach(lien => {
 
-            const ancienBadge = lien.querySelector(".news-badge");
+            const ancienBadge =
+                lien.querySelector(".news-badge");
 
-            if (ancienBadge) ancienBadge.remove();
+            if (ancienBadge) {
 
-            if (nouvelles.length === 0) return;
+                ancienBadge.remove();
+
+            }
+
+            if (nouvelles.length === 0) {
+
+                return;
+
+            }
 
             const badge = document.createElement("span");
 
             badge.className = "news-badge";
+
             badge.textContent = nouvelles.length > 99
                 ? "99+"
                 : nouvelles.length;
@@ -177,11 +317,41 @@ async function afficherNotifications() {
             `;
 
             lien.appendChild(badge);
+
         });
 
     } catch (error) {
-        console.error("Notifications actualités :", error);
+
+        console.error(
+            "Erreur notifications :",
+            error
+        );
+
     }
+
 }
 
-afficherNotifications();
+// ========================================
+// DÉMARRAGE
+// ========================================
+
+function demarrer() {
+
+    initialiserMenu();
+
+    afficherNotifications();
+
+}
+
+if (document.readyState === "loading") {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        demarrer
+    );
+
+} else {
+
+    demarrer();
+
+}
