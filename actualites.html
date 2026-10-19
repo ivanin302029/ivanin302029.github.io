@@ -68,15 +68,6 @@ h1, h2 {
     overflow-wrap: anywhere;
 }
 
-.option {
-    display: block;
-    background: #1E293B;
-    padding: 13px;
-    border-radius: 9px;
-    margin: 10px 0;
-    cursor: pointer;
-}
-
 button {
     background: #3B82F6;
     color: white;
@@ -86,21 +77,161 @@ button {
     cursor: pointer;
 }
 
+button:hover:not(:disabled) {
+    background: #2563EB;
+}
+
 button:disabled {
     opacity: 0.5;
+    cursor: not-allowed;
 }
 
-.result {
-    background: #334155;
-    border-radius: 8px;
+/* SONDAGES */
+
+.poll-card {
+    background: #2B2D36;
+    border: 1px solid #3B3D48;
+    padding: 20px;
+    border-radius: 12px;
+    margin: 20px 0;
+}
+
+.poll-title {
+    color: #F3F4F6;
+    font-size: 17px;
+    font-weight: bold;
+    margin: 10px 0 5px;
+}
+
+.poll-subtitle {
+    color: #A1A1AA;
+    font-size: 13px;
+    margin-bottom: 15px;
+}
+
+.poll-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: #383A44;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    padding: 15px;
+    margin: 9px 0;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.poll-option:hover {
+    background: #454753;
+}
+
+.poll-option.selected {
+    border-color: #818CF8;
+    background: #42445C;
+}
+
+.poll-option input {
+    accent-color: #818CF8;
+    width: 19px;
+    height: 19px;
+    cursor: pointer;
+}
+
+.poll-option-text {
+    font-size: 14px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.poll-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.poll-votes {
+    font-size: 13px;
+    color: #E5E7EB;
+    font-weight: bold;
+}
+
+.poll-result-button {
+    background: transparent;
+    font-weight: bold;
+}
+
+.poll-result-button:hover {
+    background: #454753;
+}
+
+.poll-vote-button {
+    background: #5865F2;
+}
+
+.poll-vote-button:hover:not(:disabled) {
+    background: #4752C4;
+}
+
+/* RÉSULTATS */
+
+.result-option {
+    margin: 12px 0;
+    background: #383A44;
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.result-name {
+    font-weight: bold;
+    overflow-wrap: anywhere;
+}
+
+.result-percent {
+    font-weight: bold;
+    color: #C7D2FE;
+}
+
+.result-track {
+    height: 12px;
+    background: #242630;
+    border-radius: 20px;
     overflow: hidden;
-    margin: 10px 0;
 }
 
-.bar {
-    background: #2563EB;
-    padding: 8px;
-    min-width: 2px;
+.result-fill {
+    height: 100%;
+    background: #818CF8;
+    border-radius: 20px;
+    transition: width .4s ease;
+}
+
+.result-count {
+    font-size: 12px;
+    color: #A1A1AA;
+    margin-top: 7px;
+}
+
+.poll-message {
+    color: #A1A1AA;
+    font-size: 13px;
+    margin-top: 12px;
+}
+
+@media(max-width: 600px) {
+    body { padding: 12px; }
+    .card, .poll-card { padding: 15px; }
 }
 </style>
 
@@ -152,6 +283,7 @@ const config = {
     authDomain: "monbotpc.firebaseapp.com",
     projectId: "monbotpc",
     storageBucket: "monbotpc.firebasestorage.app",
+    messagingSenderId: "691729637594",
     appId: "1:691729637594:web:9564d52349c04809fe85e3"
 };
 
@@ -172,6 +304,10 @@ function element(tag, text = "") {
     return node;
 }
 
+/* ==========================================
+   PROFILS ADMINISTRATEURS
+========================================== */
+
 async function chargerProfils() {
     const profils = {};
 
@@ -184,6 +320,7 @@ async function chargerProfils() {
             if (snapshot.exists()) {
                 profils[uid] = snapshot.data();
             }
+
         } catch (error) {
             console.warn(error);
         }
@@ -210,6 +347,7 @@ function afficherProfil(uid, profils) {
         };
 
         cadre.appendChild(image);
+
     } else {
         cadre.appendChild(element("span", "👤"));
     }
@@ -223,6 +361,10 @@ function afficherProfil(uid, profils) {
 
     return cadre;
 }
+
+/* ==========================================
+   ACTUALITÉS
+========================================== */
 
 async function chargerActualites(profils) {
     const container = document.getElementById("news");
@@ -265,7 +407,6 @@ async function chargerActualites(profils) {
         );
 
         categorie.className = "small";
-
         carte.appendChild(categorie);
 
         const contenu = element(
@@ -284,6 +425,10 @@ async function chargerActualites(profils) {
         JSON.stringify(actualites.map(a => a.id))
     );
 }
+
+/* ==========================================
+   SONDAGES DISCORD
+========================================== */
 
 async function chargerSondages(profils) {
     const container = document.getElementById("polls");
@@ -311,126 +456,337 @@ async function chargerSondages(profils) {
 
     for (const sondage of sondages) {
         const carte = element("article");
-        carte.className = "card";
+        carte.className = "poll-card";
 
         carte.appendChild(
             afficherProfil(sondage.authorUid, profils)
         );
 
-        carte.appendChild(
-            element("h2", "📊 " + sondage.question)
+        const titre = element(
+            "div",
+            sondage.question || "Sondage"
         );
 
-        let dejaVote = false;
+        titre.className = "poll-title";
+        carte.appendChild(titre);
 
-        if (currentUser) {
-            const vote = await getDoc(
-                doc(
+        const sousTitre = element(
+            "div",
+            "Sélectionne une réponse"
+        );
+
+        sousTitre.className = "poll-subtitle";
+        carte.appendChild(sousTitre);
+
+        const options = Array.isArray(sondage.options)
+            ? sondage.options
+            : [];
+
+        const zone = element("div");
+        carte.appendChild(zone);
+
+        const actions = element("div");
+        actions.className = "poll-actions";
+
+        const totalLabel = element("span", "Chargement...");
+        totalLabel.className = "poll-votes";
+
+        const resultButton = element(
+            "button",
+            "Afficher les résultats"
+        );
+
+        resultButton.type = "button";
+        resultButton.className = "poll-result-button";
+
+        const voteButton = element("button", "Voter");
+        voteButton.type = "button";
+        voteButton.className = "poll-vote-button";
+        voteButton.disabled = true;
+
+        actions.append(
+            totalLabel,
+            resultButton,
+            voteButton
+        );
+
+        carte.appendChild(actions);
+
+        const message = element("p");
+        message.className = "poll-message";
+        carte.appendChild(message);
+
+        container.appendChild(carte);
+
+        let votes = [];
+        let monVote = null;
+        let afficherResultats = false;
+        let selection = null;
+
+        try {
+            const votesSnapshot = await getDocs(
+                collection(db, "polls", sondage.id, "votes")
+            );
+
+            votes = votesSnapshot.docs.map(item => ({
+                uid: item.id,
+                ...item.data()
+            }));
+
+            if (currentUser) {
+                monVote = votes.find(
+                    vote => vote.uid === currentUser.uid
+                ) || null;
+            }
+
+        } catch (error) {
+            console.error("Lecture des votes :", error);
+
+            message.textContent =
+                "Impossible de charger les votes : " +
+                error.message;
+
+            resultButton.disabled = true;
+            voteButton.disabled = true;
+            continue;
+        }
+
+        function calculerResultats() {
+            const comptes = Array(options.length).fill(0);
+
+            for (const vote of votes) {
+                const index = Number(vote.optionIndex);
+
+                if (
+                    Number.isInteger(index) &&
+                    index >= 0 &&
+                    index < comptes.length
+                ) {
+                    comptes[index]++;
+                }
+            }
+
+            return comptes;
+        }
+
+        function afficher() {
+            zone.replaceChildren();
+
+            const comptes = calculerResultats();
+            const total = comptes.reduce((a, b) => a + b, 0);
+
+            totalLabel.textContent =
+                total + (total > 1 ? " votes" : " vote");
+
+            const modeResultats =
+                afficherResultats || Boolean(monVote);
+
+            if (modeResultats) {
+                sousTitre.textContent = "Résultats du sondage";
+
+                options.forEach((option, index) => {
+                    const pourcentage = total
+                        ? Math.round(comptes[index] / total * 100)
+                        : 0;
+
+                    const bloc = element("div");
+                    bloc.className = "result-option";
+
+                    const entete = element("div");
+                    entete.className = "result-header";
+
+                    const nom = element(
+                        "span",
+                        option +
+                        (
+                            monVote?.optionIndex === index
+                                ? " ✓"
+                                : ""
+                        )
+                    );
+
+                    nom.className = "result-name";
+
+                    const pourcent = element(
+                        "span",
+                        pourcentage + "%"
+                    );
+
+                    pourcent.className = "result-percent";
+
+                    entete.append(nom, pourcent);
+
+                    const piste = element("div");
+                    piste.className = "result-track";
+
+                    const barre = element("div");
+                    barre.className = "result-fill";
+                    barre.style.width = pourcentage + "%";
+
+                    piste.appendChild(barre);
+
+                    const nombre = element(
+                        "div",
+                        comptes[index] +
+                        (comptes[index] > 1 ? " votes" : " vote")
+                    );
+
+                    nombre.className = "result-count";
+
+                    bloc.append(entete, piste, nombre);
+                    zone.appendChild(bloc);
+                });
+
+                resultButton.textContent =
+                    monVote
+                        ? "Résultats affichés"
+                        : "Masquer les résultats";
+
+                resultButton.disabled = Boolean(monVote);
+
+                voteButton.style.display = "none";
+
+                if (monVote) {
+                    message.textContent =
+                        "✅ Tu as déjà voté à ce sondage.";
+                }
+
+            } else {
+                sousTitre.textContent = "Sélectionne une réponse";
+
+                options.forEach((option, index) => {
+                    const label = element("label");
+                    label.className = "poll-option";
+
+                    if (selection === index) {
+                        label.classList.add("selected");
+                    }
+
+                    const texte = element("span", option);
+                    texte.className = "poll-option-text";
+
+                    const radio = document.createElement("input");
+                    radio.type = "radio";
+                    radio.name = "poll_" + sondage.id;
+                    radio.value = index;
+                    radio.checked = selection === index;
+                    radio.disabled = !currentUser;
+
+                    radio.addEventListener("change", () => {
+                        selection = index;
+                        afficher();
+                    });
+
+                    label.append(texte, radio);
+                    zone.appendChild(label);
+                });
+
+                resultButton.textContent =
+                    "Afficher les résultats";
+
+                voteButton.style.display = "inline-block";
+                voteButton.disabled =
+                    !currentUser || selection === null;
+
+                message.textContent = currentUser
+                    ? ""
+                    : "Connecte-toi pour voter.";
+            }
+        }
+
+        resultButton.addEventListener("click", () => {
+            if (monVote) return;
+
+            afficherResultats = !afficherResultats;
+            afficher();
+        });
+
+        voteButton.addEventListener("click", async () => {
+            if (
+                !currentUser ||
+                monVote ||
+                selection === null
+            ) {
+                return;
+            }
+
+            voteButton.disabled = true;
+
+            try {
+                const uid = currentUser.uid;
+
+                const voteRef = doc(
                     db,
                     "polls",
                     sondage.id,
                     "votes",
-                    currentUser.uid
-                )
-            );
+                    uid
+                );
 
-            dejaVote = vote.exists();
-        }
+                const voteExistant = await getDoc(voteRef);
 
-        const formulaire = element("form");
+                if (voteExistant.exists()) {
+                    alert("Tu as déjà voté.");
+                    await charger();
+                    return;
+                }
 
-        sondage.options.forEach((option, index) => {
-            const label = element("label");
-            label.className = "option";
+                await setDoc(
+                    voteRef,
+                    {
+                        uid,
+                        optionIndex: selection,
+                        createdAt: serverTimestamp()
+                    }
+                );
 
-            const radio = document.createElement("input");
+                await charger();
 
-            radio.type = "radio";
-            radio.name = "sondage_" + sondage.id;
-            radio.value = index;
-            radio.disabled = dejaVote || !currentUser;
+            } catch (error) {
+                alert(
+                    "Impossible d'enregistrer le vote : " +
+                    error.message
+                );
 
-            label.append(
-                radio,
-                document.createTextNode(" " + option)
-            );
-
-            formulaire.appendChild(label);
+                voteButton.disabled = false;
+            }
         });
 
-        if (!currentUser) {
-            formulaire.appendChild(
-                element("p", "Connectez-vous pour voter.")
-            );
-        } else if (dejaVote) {
-            formulaire.appendChild(
-                element("p", "✅ Vous avez déjà voté.")
-            );
-        } else {
-            const bouton = element("button", "Voter");
-            bouton.type = "submit";
-
-            formulaire.appendChild(bouton);
-
-            formulaire.addEventListener(
-                "submit",
-                async event => {
-                    event.preventDefault();
-
-                    const selection = formulaire.querySelector(
-                        "input:checked"
-                    );
-
-                    if (!selection) {
-                        alert("Choisissez une réponse.");
-                        return;
-                    }
-
-                    bouton.disabled = true;
-
-                    try {
-                        await setDoc(
-                            doc(
-                                db,
-                                "polls",
-                                sondage.id,
-                                "votes",
-                                currentUser.uid
-                            ),
-                            {
-                                uid: currentUser.uid,
-                                optionIndex: Number(selection.value),
-                                createdAt: serverTimestamp()
-                            }
-                        );
-
-                        alert("Vote enregistré !");
-                        await charger();
-
-                    } catch (error) {
-                        alert("Erreur : " + error.message);
-                        bouton.disabled = false;
-                    }
-                }
-            );
-        }
-
-        carte.appendChild(formulaire);
-        container.appendChild(carte);
+        afficher();
     }
 }
 
+/* ==========================================
+   CHARGEMENT
+========================================== */
+
 async function charger() {
+    const newsContainer = document.getElementById("news");
+    const pollsContainer = document.getElementById("polls");
+
     try {
         const profils = await chargerProfils();
 
-        await chargerActualites(profils);
-        await chargerSondages(profils);
+        try {
+            await chargerActualites(profils);
+        } catch (error) {
+            console.error(error);
+            newsContainer.textContent =
+                "Erreur actualités : " + error.message;
+        }
+
+        try {
+            await chargerSondages(profils);
+        } catch (error) {
+            console.error(error);
+            pollsContainer.textContent =
+                "Erreur sondages : " + error.message;
+        }
 
     } catch (error) {
         console.error(error);
 
-        document.getElementById("polls").textContent =
+        pollsContainer.textContent =
             "Erreur : " + error.message;
     }
 }
