@@ -1,10 +1,8 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <title>Administration — Mon Bot PC</title>
 
 <style>
@@ -56,9 +54,7 @@ input, textarea, select {
     font-family: inherit;
 }
 
-textarea {
-    min-height: 110px;
-}
+textarea { min-height: 110px; }
 
 button {
     background: #3B82F6;
@@ -70,10 +66,10 @@ button {
     margin: 5px;
 }
 
-button:disabled { opacity: .5; }
+button:hover:not(:disabled) { background: #2563EB; }
+button:disabled { opacity: .5; cursor: not-allowed; }
 
 .danger { background: #DC2626; }
-
 .hidden { display: none !important; }
 
 .small {
@@ -92,16 +88,58 @@ button:disabled { opacity: .5; }
     align-items: center;
 }
 
-.option-row input {
-    flex: 1;
-}
+.option-row input { flex: 1; }
 
 #countdown {
     color: #22C55E;
     font-size: 38px;
 }
-</style>
 
+.avatar-preview {
+    width: 95px;
+    height: 95px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #3B82F6;
+    background: #334155;
+}
+
+.profile-methods {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 15px 0;
+}
+
+.profile-methods button {
+    background: #334155;
+}
+
+#notice {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #166534;
+    color: white;
+    padding: 15px 22px;
+    border-radius: 12px;
+    z-index: 9999;
+    display: none;
+    box-shadow: 0 5px 25px #0008;
+}
+
+#customDurationBox {
+    background: #1E293B;
+    border-radius: 12px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+@media(max-width: 650px) {
+    .option-row { flex-wrap: wrap; }
+    main { padding: 12px; }
+}
+</style>
 </head>
 
 <body>
@@ -124,6 +162,13 @@ button:disabled { opacity: .5; }
 
     <form id="profileForm">
 
+        <img
+            id="avatarPreview"
+            class="avatar-preview"
+            alt="Photo de profil"
+            src="https://ui-avatars.com/api/?name=Admin&background=334155&color=fff"
+        >
+
         <label>Pseudo public</label>
 
         <input
@@ -133,15 +178,56 @@ button:disabled { opacity: .5; }
             required
         >
 
-        <label>URL HTTPS de votre photo</label>
+        <h3>📸 Photo de profil</h3>
 
-        <input
-            id="avatarUrl"
-            placeholder="https://..."
-        >
+        <div class="profile-methods">
 
-        <button type="submit">
-            Enregistrer mon profil
+            <button type="button" id="methodUrl">
+                🔗 URL
+            </button>
+
+            <button type="button" id="methodUpload">
+                📁 Importer depuis mon PC
+            </button>
+
+            <button type="button" id="methodGoogle">
+                🔎 Google Images
+            </button>
+
+        </div>
+
+        <div id="urlBox">
+
+            <label>URL HTTPS de votre photo</label>
+
+            <input
+                id="avatarUrl"
+                placeholder="https://..."
+            >
+
+        </div>
+
+        <div id="uploadBox" class="hidden">
+
+            <label>Choisir une image</label>
+
+            <input
+                type="file"
+                id="avatarFile"
+                accept="image/png,image/jpeg,image/webp"
+            >
+
+            <p class="small">
+                Formats : PNG, JPG ou WEBP.
+                Taille maximale : 2 Mo.
+            </p>
+
+        </div>
+
+        <p id="profileHelp" class="small"></p>
+
+        <button type="submit" id="saveProfile">
+            💾 Enregistrer mon profil
         </button>
 
     </form>
@@ -224,13 +310,18 @@ button:disabled { opacity: .5; }
 
         <p class="small">
             Entre 2 et 10 réponses possibles.
+            Chaque réponse peut contenir un emoji.
         </p>
 
         <button id="savePoll" type="submit">
             Publier le sondage
         </button>
 
-        <button id="cancelPoll" type="button" class="hidden">
+        <button
+            id="cancelPoll"
+            type="button"
+            class="hidden"
+        >
             Annuler la modification
         </button>
 
@@ -246,6 +337,8 @@ button:disabled { opacity: .5; }
 
     <h2>🔧 Maintenance</h2>
 
+    <label>Durée de maintenance</label>
+
     <select id="duration">
         <option value="30">30 minutes</option>
         <option value="60">1 heure</option>
@@ -253,7 +346,28 @@ button:disabled { opacity: .5; }
         <option value="360">6 heures</option>
         <option value="720">12 heures</option>
         <option value="1440">24 heures</option>
+        <option value="custom">⏱ Custom time</option>
     </select>
+
+    <div id="customDurationBox" class="hidden">
+
+        <h3>⏱ Durée personnalisée</h3>
+
+        <input
+            type="number"
+            id="customDuration"
+            min="1"
+            max="525600"
+            value="45"
+        >
+
+        <select id="customUnit">
+            <option value="1">Minutes</option>
+            <option value="60">Heures</option>
+            <option value="1440">Jours</option>
+        </select>
+
+    </div>
 
     <button id="startMaintenance" class="danger">
         Activer
@@ -301,11 +415,19 @@ import {
     onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
+import {
+    getStorage,
+    ref,
+    uploadBytes,
+    getDownloadURL
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
+
 const config = {
     apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
     authDomain: "monbotpc.firebaseapp.com",
     projectId: "monbotpc",
     storageBucket: "monbotpc.firebasestorage.app",
+    messagingSenderId: "691729637594",
     appId: "1:691729637594:web:9564d52349c04809fe85e3"
 };
 
@@ -317,10 +439,13 @@ const ADMINS = [
 const app = initializeApp(config);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 let currentUser = null;
 let editingPoll = null;
 let maintenanceTimer = null;
+let selectedAvatarFile = null;
+let maintenanceUnsubscribe = null;
 
 const $ = id => document.getElementById(id);
 
@@ -330,15 +455,87 @@ function element(tag, text = "") {
     return node;
 }
 
-function notify(text) {
-    $("notice").textContent = text;
+function notify(text, erreur = false) {
+    const notice = $("notice");
+
+    notice.textContent = text;
+    notice.style.background = erreur ? "#991B1B" : "#166534";
+    notice.style.display = "block";
+
+    clearTimeout(notice.timer);
+
+    notice.timer = setTimeout(() => {
+        notice.style.display = "none";
+    }, 3500);
 }
 
 function admin(user) {
     return user && ADMINS.includes(user.uid);
 }
 
-/* PROFIL */
+/* ==========================================
+   PROFIL ADMINISTRATEUR
+========================================== */
+
+$("methodUrl").onclick = () => {
+    $("urlBox").classList.remove("hidden");
+    $("uploadBox").classList.add("hidden");
+    selectedAvatarFile = null;
+    $("avatarFile").value = "";
+    $("profileHelp").textContent = "Collez une URL HTTPS.";
+};
+
+$("methodUpload").onclick = () => {
+    $("uploadBox").classList.remove("hidden");
+    $("urlBox").classList.add("hidden");
+    $("profileHelp").textContent =
+        "Choisissez une image depuis votre ordinateur.";
+};
+
+$("methodGoogle").onclick = () => {
+    window.open(
+        "https://www.google.com/search?tbm=isch&q=photo+de+profil+avatar",
+        "_blank",
+        "noopener,noreferrer"
+    );
+
+    $("urlBox").classList.remove("hidden");
+    $("uploadBox").classList.add("hidden");
+    selectedAvatarFile = null;
+
+    $("profileHelp").textContent =
+        "Recherchez une image, copiez son URL HTTPS et collez-la ici.";
+};
+
+$("avatarUrl").addEventListener("input", () => {
+    const url = $("avatarUrl").value.trim();
+
+    if (url.startsWith("https://")) {
+        $("avatarPreview").src = url;
+    }
+});
+
+$("avatarFile").addEventListener("change", event => {
+    const file = event.target.files[0];
+
+    if (!file) return;
+
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+        notify("Format d'image non autorisé.", true);
+        event.target.value = "";
+        return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+        notify("L'image dépasse 2 Mo.", true);
+        event.target.value = "";
+        return;
+    }
+
+    selectedAvatarFile = file;
+
+    $("avatarPreview").src = URL.createObjectURL(file);
+});
 
 async function chargerProfil() {
     const snapshot = await getDoc(
@@ -346,38 +543,83 @@ async function chargerProfil() {
     );
 
     if (snapshot.exists()) {
-        $("nickname").value = snapshot.data().nickname || "";
-        $("avatarUrl").value = snapshot.data().avatarUrl || "";
+        const profil = snapshot.data();
+
+        $("nickname").value = profil.nickname || "";
+        $("avatarUrl").value = profil.avatarUrl || "";
+
+        if (profil.avatarUrl?.startsWith("https://")) {
+            $("avatarPreview").src = profil.avatarUrl;
+        }
     }
 }
 
 $("profileForm").addEventListener("submit", async event => {
     event.preventDefault();
 
+    if (!admin(currentUser)) return;
+
     const nickname = $("nickname").value.trim();
-    const avatarUrl = $("avatarUrl").value.trim();
+    let avatarUrl = $("avatarUrl").value.trim();
 
-    if (!nickname) return;
-
-    if (avatarUrl && !avatarUrl.startsWith("https://")) {
-        alert("Utilisez une URL HTTPS.");
+    if (!nickname) {
+        notify("Veuillez entrer un pseudo.", true);
         return;
     }
 
+    const bouton = $("saveProfile");
+    bouton.disabled = true;
+
     try {
+        if (selectedAvatarFile) {
+            const extensions = {
+                "image/png": "png",
+                "image/jpeg": "jpg",
+                "image/webp": "webp"
+            };
+
+            const extension = extensions[selectedAvatarFile.type];
+
+            const chemin = ref(
+                storage,
+                `admin_avatars/${currentUser.uid}/avatar_${Date.now()}.${extension}`
+            );
+
+            await uploadBytes(chemin, selectedAvatarFile, {
+                contentType: selectedAvatarFile.type
+            });
+
+            avatarUrl = await getDownloadURL(chemin);
+        }
+
+        if (avatarUrl && !avatarUrl.startsWith("https://")) {
+            throw new Error("L'image doit utiliser une URL HTTPS.");
+        }
+
         await setDoc(
             doc(db, "admin_profiles", currentUser.uid),
-            { nickname, avatarUrl }
+            {
+                nickname,
+                avatarUrl
+            }
         );
 
-        notify("Profil enregistré.");
+        $("avatarUrl").value = avatarUrl;
+        selectedAvatarFile = null;
+        $("avatarFile").value = "";
+
+        notify("✅ Profil modifié avec succès !");
 
     } catch (error) {
-        alert(error.message);
+        notify("Erreur : " + error.message, true);
+    } finally {
+        bouton.disabled = false;
     }
 });
 
-/* TICKETS */
+/* ==========================================
+   ASSISTANCE
+========================================== */
 
 async function chargerTickets() {
     const container = $("tickets");
@@ -389,6 +631,11 @@ async function chargerTickets() {
 
         container.replaceChildren();
 
+        if (snapshot.empty) {
+            container.textContent = "Aucun ticket.";
+            return;
+        }
+
         for (const ticketDoc of snapshot.docs) {
             const ticket = ticketDoc.data();
 
@@ -399,7 +646,7 @@ async function chargerTickets() {
                 element("h3", ticket.title || "Ticket"),
                 element("p", ticket.email || ""),
                 element("p", ticket.content || ""),
-                element("p", "Statut : " + ticket.status)
+                element("p", "Statut : " + (ticket.status || "En attente"))
             );
 
             if (ticket.reply) {
@@ -433,7 +680,7 @@ async function chargerTickets() {
                         (ADMINS.includes(message.uid)
                             ? "🛠️ Assistance : "
                             : "👤 Utilisateur : ") +
-                        message.text
+                        (message.text || "")
                     )
                 );
             }
@@ -442,7 +689,6 @@ async function chargerTickets() {
 
             if (ticket.status !== "Fermé") {
                 const textarea = element("textarea");
-
                 textarea.placeholder = "Votre réponse...";
 
                 const bouton = element("button", "Répondre");
@@ -477,8 +723,7 @@ async function chargerTickets() {
                         await chargerTickets();
 
                     } catch (error) {
-                        alert(error.message);
-                    } finally {
+                        notify(error.message, true);
                         bouton.disabled = false;
                     }
                 });
@@ -486,12 +731,16 @@ async function chargerTickets() {
                 const fermer = element("button", "Fermer");
 
                 fermer.addEventListener("click", async () => {
-                    await updateDoc(
-                        ticketDoc.ref,
-                        { status: "Fermé" }
-                    );
+                    try {
+                        await updateDoc(
+                            ticketDoc.ref,
+                            { status: "Fermé" }
+                        );
 
-                    await chargerTickets();
+                        await chargerTickets();
+                    } catch (error) {
+                        notify(error.message, true);
+                    }
                 });
 
                 carte.append(textarea, bouton, fermer);
@@ -500,12 +749,16 @@ async function chargerTickets() {
                 const rouvrir = element("button", "Rouvrir");
 
                 rouvrir.addEventListener("click", async () => {
-                    await updateDoc(
-                        ticketDoc.ref,
-                        { status: "En attente" }
-                    );
+                    try {
+                        await updateDoc(
+                            ticketDoc.ref,
+                            { status: "En attente" }
+                        );
 
-                    await chargerTickets();
+                        await chargerTickets();
+                    } catch (error) {
+                        notify(error.message, true);
+                    }
                 });
 
                 carte.appendChild(rouvrir);
@@ -517,12 +770,17 @@ async function chargerTickets() {
             supprimer.addEventListener("click", async () => {
                 if (!confirm("Supprimer ce ticket ?")) return;
 
-                for (const message of messages.docs) {
-                    await deleteDoc(message.ref);
-                }
+                try {
+                    for (const message of messages.docs) {
+                        await deleteDoc(message.ref);
+                    }
 
-                await deleteDoc(ticketDoc.ref);
-                await chargerTickets();
+                    await deleteDoc(ticketDoc.ref);
+                    await chargerTickets();
+
+                } catch (error) {
+                    notify(error.message, true);
+                }
             });
 
             carte.appendChild(supprimer);
@@ -536,7 +794,9 @@ async function chargerTickets() {
 
 $("refreshTickets").addEventListener("click", chargerTickets);
 
-/* ACTUALITÉS */
+/* ==========================================
+   ACTUALITÉS
+========================================== */
 
 async function chargerActualites() {
     const container = $("newsList");
@@ -548,6 +808,11 @@ async function chargerActualites() {
 
         container.replaceChildren();
 
+        if (snapshot.empty) {
+            container.textContent = "Aucune actualité.";
+            return;
+        }
+
         for (const item of snapshot.docs) {
             const actualite = item.data();
 
@@ -555,8 +820,8 @@ async function chargerActualites() {
             carte.className = "item";
 
             carte.append(
-                element("h3", actualite.title),
-                element("p", actualite.content)
+                element("h3", actualite.title || "Sans titre"),
+                element("p", actualite.content || "")
             );
 
             const supprimer = element("button", "Supprimer");
@@ -565,8 +830,13 @@ async function chargerActualites() {
             supprimer.addEventListener("click", async () => {
                 if (!confirm("Supprimer cette actualité ?")) return;
 
-                await deleteDoc(item.ref);
-                await chargerActualites();
+                try {
+                    await deleteDoc(item.ref);
+                    await chargerActualites();
+                    notify("Actualité supprimée.");
+                } catch (error) {
+                    notify(error.message, true);
+                }
             });
 
             carte.appendChild(supprimer);
@@ -580,6 +850,8 @@ async function chargerActualites() {
 
 $("newsForm").addEventListener("submit", async event => {
     event.preventDefault();
+
+    if (!admin(currentUser)) return;
 
     try {
         await addDoc(
@@ -595,21 +867,23 @@ $("newsForm").addEventListener("submit", async event => {
 
         $("newsForm").reset();
 
-        notify("Actualité publiée !");
+        notify("✅ Actualité publiée !");
         await chargerActualites();
 
     } catch (error) {
-        alert(error.message);
+        notify(error.message, true);
     }
 });
 
-/* SONDAGES */
+/* ==========================================
+   SONDAGES
+========================================== */
 
 function ajouterOption(valeur = "") {
     const container = $("pollOptions");
 
     if (container.children.length >= 10) {
-        alert("Maximum 10 réponses.");
+        notify("Maximum 10 réponses.", true);
         return;
     }
 
@@ -617,9 +891,10 @@ function ajouterOption(valeur = "") {
     ligne.className = "option-row";
 
     const input = document.createElement("input");
+
     input.value = valeur;
     input.maxLength = 150;
-    input.placeholder = "Réponse possible";
+    input.placeholder = "Réponse possible, avec emoji si souhaité";
     input.required = true;
 
     const supprimer = element("button", "❌");
@@ -627,7 +902,7 @@ function ajouterOption(valeur = "") {
 
     supprimer.addEventListener("click", () => {
         if (container.children.length <= 2) {
-            alert("Il faut au moins deux réponses.");
+            notify("Il faut au moins deux réponses.", true);
             return;
         }
 
@@ -647,6 +922,7 @@ function reinitialiserSondage() {
     ajouterOption();
     ajouterOption();
 
+    $("addOption").disabled = false;
     $("savePoll").textContent = "Publier le sondage";
     $("cancelPoll").classList.add("hidden");
 }
@@ -670,6 +946,11 @@ async function chargerSondages() {
 
         container.replaceChildren();
 
+        if (snapshot.empty) {
+            container.textContent = "Aucun sondage.";
+            return;
+        }
+
         for (const item of snapshot.docs) {
             const sondage = item.data();
 
@@ -677,61 +958,60 @@ async function chargerSondages() {
             carte.className = "item";
 
             carte.appendChild(
-                element("h3", sondage.question)
+                element("h3", sondage.question || "Sondage")
             );
 
-            sondage.options.forEach((option, index) => {
+            (sondage.options || []).forEach((option, index) => {
                 carte.appendChild(
-                    element(
-                        "p",
-                        (index + 1) + ". " + option
-                    )
+                    element("p", (index + 1) + ". " + option)
                 );
             });
 
             const modifier = element("button", "Modifier");
 
             modifier.addEventListener("click", async () => {
-                const votes = await getDocs(
-                    collection(db, "polls", item.id, "votes")
-                );
+                try {
+                    const votes = await getDocs(
+                        collection(db, "polls", item.id, "votes")
+                    );
 
-                editingPoll = item.id;
+                    editingPoll = item.id;
 
-                $("pollQuestion").value = sondage.question;
+                    $("pollQuestion").value = sondage.question;
+                    $("pollOptions").replaceChildren();
 
-                $("pollOptions").replaceChildren();
+                    (sondage.options || []).forEach(option => {
+                        ajouterOption(option);
+                    });
 
-                sondage.options.forEach(option => {
-                    ajouterOption(option);
-                });
+                    const verrouille = !votes.empty;
 
-                // Les options sont verrouillées si des votes existent.
-                if (!votes.empty) {
                     $("pollOptions")
                         .querySelectorAll("input,button")
                         .forEach(champ => {
-                            champ.disabled = true;
+                            champ.disabled = verrouille;
                         });
 
-                    $("addOption").disabled = true;
+                    $("addOption").disabled = verrouille;
 
-                    alert(
-                        "Ce sondage possède déjà des votes. " +
-                        "Seule sa question peut être modifiée."
-                    );
-                } else {
-                    $("addOption").disabled = false;
+                    if (verrouille) {
+                        notify(
+                            "Ce sondage possède des votes : seule la question est modifiable."
+                        );
+                    }
+
+                    $("savePoll").textContent =
+                        "Enregistrer les modifications";
+
+                    $("cancelPoll").classList.remove("hidden");
+
+                    $("pollForm").scrollIntoView({
+                        behavior: "smooth"
+                    });
+
+                } catch (error) {
+                    notify(error.message, true);
                 }
-
-                $("savePoll").textContent =
-                    "Enregistrer les modifications";
-
-                $("cancelPoll").classList.remove("hidden");
-
-                $("pollForm").scrollIntoView({
-                    behavior: "smooth"
-                });
             });
 
             const supprimer = element("button", "Supprimer");
@@ -740,17 +1020,23 @@ async function chargerSondages() {
             supprimer.addEventListener("click", async () => {
                 if (!confirm("Supprimer ce sondage ?")) return;
 
-                const votes = await getDocs(
-                    collection(db, "polls", item.id, "votes")
-                );
+                try {
+                    const votes = await getDocs(
+                        collection(db, "polls", item.id, "votes")
+                    );
 
-                for (const vote of votes.docs) {
-                    await deleteDoc(vote.ref);
+                    for (const vote of votes.docs) {
+                        await deleteDoc(vote.ref);
+                    }
+
+                    await deleteDoc(item.ref);
+
+                    await chargerSondages();
+                    notify("Sondage supprimé.");
+
+                } catch (error) {
+                    notify(error.message, true);
                 }
-
-                await deleteDoc(item.ref);
-
-                await chargerSondages();
             });
 
             carte.append(modifier, supprimer);
@@ -758,12 +1044,14 @@ async function chargerSondages() {
         }
 
     } catch (error) {
-        container.textContent = error.message;
+        container.textContent = "Erreur : " + error.message;
     }
 }
 
 $("pollForm").addEventListener("submit", async event => {
     event.preventDefault();
+
+    if (!admin(currentUser)) return;
 
     const question = $("pollQuestion").value.trim();
 
@@ -774,9 +1062,10 @@ $("pollForm").addEventListener("submit", async event => {
     if (
         question.length < 5 ||
         options.length < 2 ||
+        options.length > 10 ||
         options.some(option => !option)
     ) {
-        alert("Vérifiez la question et les réponses.");
+        notify("Vérifiez la question et les réponses.", true);
         return;
     }
 
@@ -800,7 +1089,7 @@ $("pollForm").addEventListener("submit", async event => {
                 modifications
             );
 
-            notify("Sondage modifié.");
+            notify("✅ Sondage modifié !");
 
         } else {
             await addDoc(
@@ -813,20 +1102,20 @@ $("pollForm").addEventListener("submit", async event => {
                 }
             );
 
-            notify("Sondage publié !");
+            notify("✅ Sondage publié !");
         }
-
-        $("addOption").disabled = false;
 
         reinitialiserSondage();
         await chargerSondages();
 
     } catch (error) {
-        alert(error.message);
+        notify(error.message, true);
     }
 });
 
-/* MAINTENANCE */
+/* ==========================================
+   MAINTENANCE
+========================================== */
 
 const maintenanceRef = doc(
     db,
@@ -834,87 +1123,152 @@ const maintenanceRef = doc(
     "maintenance"
 );
 
+$("duration").addEventListener("change", () => {
+    $("customDurationBox").classList.toggle(
+        "hidden",
+        $("duration").value !== "custom"
+    );
+});
+
 function surveillerMaintenance() {
-    onSnapshot(maintenanceRef, snapshot => {
-        if (maintenanceTimer) {
-            clearInterval(maintenanceTimer);
-        }
+    if (maintenanceUnsubscribe) {
+        maintenanceUnsubscribe();
+    }
 
-        const data = snapshot.data();
-
-        if (!data?.active) {
-            $("maintenanceStatus").textContent =
-                "🟢 Site disponible";
-
-            $("countdown").textContent = "";
-            return;
-        }
-
-        const fin = data.endsAt?.toDate?.();
-
-        function actualiser() {
-            if (!fin) return;
-
-            const secondes = Math.max(
-                0,
-                Math.ceil((fin.getTime() - Date.now()) / 1000)
-            );
-
-            if (secondes === 0) {
-                $("maintenanceStatus").textContent =
-                    "🟢 Maintenance terminée";
-
-                $("countdown").textContent = "00:00:00";
+    maintenanceUnsubscribe = onSnapshot(
+        maintenanceRef,
+        snapshot => {
+            if (maintenanceTimer) {
                 clearInterval(maintenanceTimer);
+            }
+
+            const data = snapshot.data();
+
+            if (!data?.active) {
+                $("maintenanceStatus").textContent =
+                    "🟢 Site disponible";
+
+                $("countdown").textContent = "";
                 return;
             }
 
-            $("maintenanceStatus").textContent =
-                "🔴 Maintenance en cours";
+            const fin = data.endsAt?.toDate?.();
 
-            const h = Math.floor(secondes / 3600);
-            const m = Math.floor((secondes % 3600) / 60);
-            const s = secondes % 60;
+            function actualiser() {
+                if (!fin) return;
 
-            $("countdown").textContent =
-                String(h).padStart(2, "0") + ":" +
-                String(m).padStart(2, "0") + ":" +
-                String(s).padStart(2, "0");
+                const secondes = Math.max(
+                    0,
+                    Math.ceil(
+                        (fin.getTime() - Date.now()) / 1000
+                    )
+                );
+
+                if (secondes === 0) {
+                    $("maintenanceStatus").textContent =
+                        "🟢 Maintenance terminée";
+
+                    $("countdown").textContent = "00:00:00";
+
+                    clearInterval(maintenanceTimer);
+                    return;
+                }
+
+                $("maintenanceStatus").textContent =
+                    "🔴 Maintenance en cours";
+
+                const h = Math.floor(secondes / 3600);
+                const m = Math.floor((secondes % 3600) / 60);
+                const s = secondes % 60;
+
+                $("countdown").textContent =
+                    String(h).padStart(2, "0") + ":" +
+                    String(m).padStart(2, "0") + ":" +
+                    String(s).padStart(2, "0");
+            }
+
+            actualiser();
+
+            maintenanceTimer = setInterval(
+                actualiser,
+                1000
+            );
+        },
+        error => {
+            notify("Erreur maintenance : " + error.message, true);
         }
-
-        actualiser();
-
-        maintenanceTimer = setInterval(actualiser, 1000);
-    });
+    );
 }
 
 $("startMaintenance").addEventListener("click", async () => {
-    const minutes = Number($("duration").value);
+    if (!admin(currentUser)) return;
 
-    await setDoc(
-        maintenanceRef,
-        {
-            active: true,
-            endsAt: Timestamp.fromDate(
-                new Date(Date.now() + minutes * 60000)
-            ),
-            updatedAt: serverTimestamp()
+    let minutes;
+
+    if ($("duration").value === "custom") {
+        const valeur = Number($("customDuration").value);
+        const unite = Number($("customUnit").value);
+
+        if (
+            !Number.isInteger(valeur) ||
+            valeur < 1 ||
+            valeur * unite > 525600
+        ) {
+            notify(
+                "Choisissez une durée entre 1 minute et 365 jours.",
+                true
+            );
+            return;
         }
-    );
+
+        minutes = valeur * unite;
+
+    } else {
+        minutes = Number($("duration").value);
+    }
+
+    try {
+        await setDoc(
+            maintenanceRef,
+            {
+                active: true,
+                endsAt: Timestamp.fromDate(
+                    new Date(Date.now() + minutes * 60000)
+                ),
+                updatedAt: serverTimestamp()
+            }
+        );
+
+        notify("🔧 Maintenance activée !");
+
+    } catch (error) {
+        notify(error.message, true);
+    }
 });
 
 $("stopMaintenance").addEventListener("click", async () => {
-    await setDoc(
-        maintenanceRef,
-        {
-            active: false,
-            endsAt: null,
-            updatedAt: serverTimestamp()
-        }
-    );
+    if (!admin(currentUser)) return;
+
+    try {
+        await setDoc(
+            maintenanceRef,
+            {
+                active: false,
+                endsAt: null,
+                updatedAt: serverTimestamp()
+            }
+        );
+
+        notify("✅ Maintenance désactivée !");
+
+    } catch (error) {
+        notify(error.message, true);
+    }
 });
 
-/* CONNEXION */
+/* ==========================================
+   CONNEXION
+========================================== */
 
 onAuthStateChanged(auth, async user => {
     currentUser = user;
@@ -924,7 +1278,14 @@ onAuthStateChanged(auth, async user => {
             ? "⛔ Accès réservé aux administrateurs."
             : "Connectez-vous pour accéder à l'administration.";
 
+        $("access").classList.remove("hidden");
         $("dashboard").classList.add("hidden");
+
+        if (maintenanceUnsubscribe) {
+            maintenanceUnsubscribe();
+            maintenanceUnsubscribe = null;
+        }
+
         return;
     }
 
@@ -933,12 +1294,19 @@ onAuthStateChanged(auth, async user => {
 
     reinitialiserSondage();
 
-    await Promise.all([
+    const resultats = await Promise.allSettled([
         chargerProfil(),
         chargerTickets(),
         chargerActualites(),
         chargerSondages()
     ]);
+
+    resultats.forEach(resultat => {
+        if (resultat.status === "rejected") {
+            console.error(resultat.reason);
+            notify("Certaines données n'ont pas pu être chargées.", true);
+        }
+    });
 
     surveillerMaintenance();
 });
