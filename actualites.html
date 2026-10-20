@@ -508,24 +508,27 @@ async function chargerSondages() {
                 continue;
             }
 
-            const form = el("form");
-            const choices = el("div");
-            choices.className = "poll-options";
-            const group = "poll-" + poll.id;
+           const form = el("form");
 
-            options.forEach((option, i) => {
-                const label = el("label");
-                label.className = "poll-option";
-                const radio = document.createElement("input");
-                radio.type = "radio";
-                radio.name = group;
-                radio.value = String(i);
-                radio.required = true;
-                const text = el("span", option);
-                text.className = "poll-option-text";
-                label.append(radio, text);
-                choices.appendChild(label);
-            });
+const pseudoLabel = el("label", "👤 Choisis ton pseudo pour voter");
+pseudoLabel.style.display = "block";
+pseudoLabel.style.marginBottom = "8px";
+
+const pseudoInput = document.createElement("input");
+pseudoInput.type = "text";
+pseudoInput.placeholder = "Ton pseudo";
+pseudoInput.maxLength = 20;
+pseudoInput.minLength = 3;
+pseudoInput.required = true;
+pseudoInput.autocomplete = "nickname";
+pseudoInput.style.width = "100%";
+pseudoInput.style.padding = "12px";
+pseudoInput.style.borderRadius = "9px";
+pseudoInput.style.border = "1px solid #475569";
+pseudoInput.style.background = "#111827";
+pseudoInput.style.color = "#F8FAFC";
+
+form.append(pseudoLabel, pseudoInput);
 
             form.appendChild(choices);
 
