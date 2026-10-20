@@ -1,696 +1,389 @@
+```html
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <title>Actualités — Mon Bot PC</title>
 
 <style>
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    background: #0B1120;
-    color: white;
-    font-family: "Segoe UI", Arial, sans-serif;
-    padding: 25px;
-}
-
-main {
-    max-width: 950px;
-    margin: auto;
-}
-
-a {
-    color: #60A5FA;
-    text-decoration: none;
-}
-
-h1, h2 {
-    color: #60A5FA;
-}
-
-.card {
-    background: #172033;
-    border: 1px solid #334155;
-    padding: 25px;
-    margin: 20px 0;
-    border-radius: 15px;
-}
-
-.profile {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 15px;
-}
-
-.avatar {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    object-fit: cover;
-    background: #334155;
-}
-
-.small {
-    color: #94A3B8;
-    font-size: 13px;
-}
-
-.content {
-    white-space: pre-wrap;
-    line-height: 1.7;
-    overflow-wrap: anywhere;
-}
-
-button {
-    background: #3B82F6;
-    color: white;
-    border: none;
-    border-radius: 9px;
-    padding: 12px 20px;
-    cursor: pointer;
-}
-
-button:hover:not(:disabled) {
-    background: #2563EB;
-}
-
-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* SONDAGES */
-
-.poll-card {
-    background: #2B2D36;
-    border: 1px solid #3B3D48;
-    padding: 20px;
-    border-radius: 12px;
-    margin: 20px 0;
-}
-
-.poll-title {
-    color: #F3F4F6;
-    font-size: 17px;
-    font-weight: bold;
-    margin: 10px 0 5px;
-}
-
-.poll-subtitle {
-    color: #A1A1AA;
-    font-size: 13px;
-    margin-bottom: 15px;
-}
-
-.poll-option {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    background: #383A44;
-    border: 1px solid transparent;
-    border-radius: 9px;
-    padding: 15px;
-    margin: 9px 0;
-    cursor: pointer;
-    transition: .2s;
-}
-
-.poll-option:hover {
-    background: #454753;
-}
-
-.poll-option.selected {
-    border-color: #818CF8;
-    background: #42445C;
-}
-
-.poll-option input {
-    accent-color: #818CF8;
-    width: 19px;
-    height: 19px;
-    cursor: pointer;
-}
-
-.poll-option-text {
-    font-size: 14px;
-    font-weight: 600;
-    overflow-wrap: anywhere;
-}
-
-.poll-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-top: 20px;
-}
-
-.poll-votes {
-    font-size: 13px;
-    color: #E5E7EB;
-    font-weight: bold;
-}
-
-.poll-result-button {
-    background: transparent;
-    font-weight: bold;
-}
-
-.poll-result-button:hover {
-    background: #454753;
-}
-
-.poll-vote-button {
-    background: #5865F2;
-}
-
-.poll-vote-button:hover:not(:disabled) {
-    background: #4752C4;
-}
-
-/* RÉSULTATS */
-
-.result-option {
-    margin: 12px 0;
-    background: #383A44;
-    border-radius: 10px;
-    padding: 12px;
-}
-
-.result-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.result-name {
-    font-weight: bold;
-    overflow-wrap: anywhere;
-}
-
-.result-percent {
-    font-weight: bold;
-    color: #C7D2FE;
-}
-
-.result-track {
-    height: 12px;
-    background: #242630;
-    border-radius: 20px;
-    overflow: hidden;
-}
-
-.result-fill {
-    height: 100%;
-    background: #818CF8;
-    border-radius: 20px;
-    transition: width .4s ease;
-}
-
-.result-count {
-    font-size: 12px;
-    color: #A1A1AA;
-    margin-top: 7px;
-}
-
-.poll-message {
-    color: #A1A1AA;
-    font-size: 13px;
-    margin-top: 12px;
-}
-
-@media(max-width: 600px) {
-    body { padding: 12px; }
-    .card, .poll-card { padding: 15px; }
-}
+*{box-sizing:border-box}
+body{margin:0;background:#0B1120;color:white;font-family:"Segoe UI",Arial,sans-serif;padding:25px}
+main{max-width:950px;margin:auto}
+a{color:#60A5FA;text-decoration:none}
+h1,h2{color:#60A5FA}
+.card{background:#172033;border:1px solid #334155;padding:25px;margin:20px 0;border-radius:15px}
+.profile{display:flex;align-items:center;gap:12px;margin-bottom:15px}
+.avatar{width:45px;height:45px;border-radius:50%;object-fit:cover;background:#334155}
+.small{color:#94A3B8;font-size:13px}
+.content{white-space:pre-wrap;line-height:1.7;overflow-wrap:anywhere}
+button{background:#3B82F6;color:white;border:none;border-radius:9px;padding:12px 20px;cursor:pointer;font-size:14px}
+button:hover:not(:disabled){background:#2563EB}
+button:disabled{opacity:.5;cursor:not-allowed}
+.poll-card{background:#2B2D36;border:1px solid #3B3D48;padding:20px;border-radius:12px;margin:20px 0}
+.poll-title{color:#F3F4F6;font-size:19px;font-weight:bold;margin:10px 0}
+.poll-subtitle{color:#A1A1AA;font-size:13px;margin-bottom:15px}
+.poll-options{display:flex;flex-direction:column;gap:10px;margin-top:15px}
+.poll-option{display:flex;align-items:center;gap:12px;background:#383A44;border:1px solid #4B4D59;border-radius:9px;padding:14px;cursor:pointer;transition:background .2s,border-color .2s}
+.poll-option:hover{background:#454753}
+.poll-option.selected{border-color:#818CF8;background:#42445C}
+.poll-option input{accent-color:#818CF8;width:19px;height:19px;flex-shrink:0;cursor:pointer}
+.poll-option-text{font-size:14px;font-weight:600;overflow-wrap:anywhere}
+.poll-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:18px}
+.poll-votes{font-size:13px;color:#E5E7EB;font-weight:bold}
+.poll-vote-button{background:#5865F2}
+.poll-vote-button:hover:not(:disabled){background:#4752C4}
+.poll-delete-button{background:#DC2626}
+.poll-delete-button:hover:not(:disabled){background:#B91C1C}
+.poll-message{color:#A1A1AA;font-size:13px;margin-top:12px}
+.result-option{margin:12px 0;background:#383A44;border-radius:10px;padding:12px}
+.result-header{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.result-name{font-weight:bold;overflow-wrap:anywhere}
+.result-percent{font-weight:bold;color:#C7D2FE;white-space:nowrap}
+.result-track{height:12px;background:#242630;border-radius:20px;overflow:hidden}
+.result-fill{height:100%;background:#818CF8;border-radius:20px;transition:width .4s ease}
+.result-count{font-size:12px;color:#A1A1AA;margin-top:7px}
+@media(max-width:600px){body{padding:12px}.card,.poll-card{padding:15px}}
 </style>
-
 </head>
 
 <body>
-
 <main>
-
 <a href="index.html">← Retour à l'accueil</a>
-
 <h1>📰 Actualités Mon Bot PC</h1>
-
 <button id="refresh">↻ Actualiser</button>
 
 <h2>Dernières actualités</h2>
-
 <div id="news">Chargement...</div>
 
 <h2>📊 Sondages</h2>
-
 <div id="polls">Chargement...</div>
-
 </main>
 
 <script type="module">
-
+import {initializeApp} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import {
-    initializeApp
-} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-
-import {
-    getAuth,
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-
-import {
-    getFirestore,
-    collection,
-    doc,
-    getDoc,
-    getDocs,
-    setDoc,
-    serverTimestamp
+    getFirestore,collection,doc,getDoc,getDocs,setDoc,
+    updateDoc,deleteDoc,serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-const config = {
-    apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
-    authDomain: "monbotpc.firebaseapp.com",
-    projectId: "monbotpc",
-    storageBucket: "monbotpc.firebasestorage.app",
-    messagingSenderId: "691729637594",
-    appId: "1:691729637594:web:9564d52349c04809fe85e3"
+const config={
+    apiKey:"AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
+    authDomain:"monbotpc.firebaseapp.com",
+    projectId:"monbotpc",
+    storageBucket:"monbotpc.firebasestorage.app",
+    messagingSenderId:"691729637594",
+    appId:"1:691729637594:web:9564d52349c04809fe85e3"
 };
 
-const app = initializeApp(config);
-const auth = getAuth(app);
-const db = getFirestore(app);
+const app=initializeApp(config);
+const auth=getAuth(app);
+const db=getFirestore(app);
 
-let currentUser = null;
+let currentUser=null;
+let chargementEnCours=false;
 
-const ADMINS = [
+const ADMINS=[
     "rWEk3vGHK1W2EDvemVfw6xNtKxU2",
     "8lq3zxa8nkdZ6hXpa8FeZTpI55Q2"
 ];
 
-function element(tag, text = "") {
-    const node = document.createElement(tag);
-    node.textContent = text;
+function element(tag,text=""){
+    const node=document.createElement(tag);
+    node.textContent=text;
     return node;
 }
 
-/* ==========================================
-   PROFILS ADMINISTRATEURS
-========================================== */
+async function chargerProfils(){
+    const profils={};
 
-async function chargerProfils() {
-    const profils = {};
-
-    for (const uid of ADMINS) {
-        try {
-            const snapshot = await getDoc(
-                doc(db, "admin_profiles", uid)
-            );
-
-            if (snapshot.exists()) {
-                profils[uid] = snapshot.data();
-            }
-
-        } catch (error) {
-            console.warn(error);
+    for(const uid of ADMINS){
+        try{
+            const snapshot=await getDoc(doc(db,"admin_profiles",uid));
+            if(snapshot.exists())profils[uid]=snapshot.data();
+        }catch(error){
+            console.warn("Chargement du profil impossible :",error);
         }
     }
-
     return profils;
 }
 
-function afficherProfil(uid, profils) {
-    const profil = profils[uid] || {};
+function afficherProfil(uid,profils){
+    const profil=profils[uid]||{};
+    const cadre=element("div");
+    cadre.className="profile";
 
-    const cadre = element("div");
-    cadre.className = "profile";
-
-    if (profil.avatarUrl?.startsWith("https://")) {
-        const image = document.createElement("img");
-
-        image.src = profil.avatarUrl;
-        image.className = "avatar";
-        image.alt = "Photo de profil";
-
-        image.onerror = () => {
-            image.replaceWith(element("span", "👤"));
-        };
-
+    if(profil.avatarUrl?.startsWith("https://")){
+        const image=document.createElement("img");
+        image.src=profil.avatarUrl;
+        image.className="avatar";
+        image.alt="Photo de profil";
+        image.onerror=()=>image.replaceWith(element("span","👤"));
         cadre.appendChild(image);
-
-    } else {
-        cadre.appendChild(element("span", "👤"));
+    }else{
+        cadre.appendChild(element("span","👤"));
     }
 
-    cadre.appendChild(
-        element(
-            "strong",
-            profil.nickname || "Équipe Mon Bot PC"
-        )
-    );
-
+    cadre.appendChild(element("strong",profil.nickname||"Équipe Mon Bot PC"));
     return cadre;
 }
 
-/* ==========================================
-   ACTUALITÉS
-========================================== */
+async function chargerActualites(profils){
+    const container=document.getElementById("news");
+    container.textContent="Chargement...";
 
-async function chargerActualites(profils) {
-    const container = document.getElementById("news");
+    const snapshot=await getDocs(collection(db,"news"));
+    const actualites=snapshot.docs.map(item=>({id:item.id,...item.data()}));
 
-    const snapshot = await getDocs(
-        collection(db, "news")
-    );
-
-    const actualites = snapshot.docs.map(item => ({
-        id: item.id,
-        ...item.data()
-    }));
-
-    actualites.sort((a, b) =>
-        (b.createdAt?.seconds || 0) -
-        (a.createdAt?.seconds || 0)
-    );
-
+    actualites.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
     container.replaceChildren();
 
-    if (!actualites.length) {
-        container.textContent = "Aucune actualité.";
+    if(!actualites.length){
+        container.textContent="Aucune actualité.";
+        return;
     }
 
-    for (const actualite of actualites) {
-        const carte = element("article");
-        carte.className = "card";
+    for(const actualite of actualites){
+        const carte=element("article");
+        carte.className="card";
+        carte.appendChild(afficherProfil(actualite.authorUid,profils));
+        carte.appendChild(element("h2",actualite.title||"Sans titre"));
 
-        carte.appendChild(
-            afficherProfil(actualite.authorUid, profils)
-        );
-
-        carte.appendChild(
-            element("h2", actualite.title || "Sans titre")
-        );
-
-        const categorie = element(
-            "p",
-            actualite.category || "Annonce"
-        );
-
-        categorie.className = "small";
+        const categorie=element("p",actualite.category||"Annonce");
+        categorie.className="small";
         carte.appendChild(categorie);
 
-        const contenu = element(
-            "p",
-            actualite.content || ""
-        );
-
-        contenu.className = "content";
-
+        const contenu=element("p",actualite.content||"");
+        contenu.className="content";
         carte.appendChild(contenu);
         container.appendChild(carte);
     }
 
-    localStorage.setItem(
-        "monbotpc_news_lues",
-        JSON.stringify(actualites.map(a => a.id))
-    );
+    localStorage.setItem("monbotpc_news_lues",JSON.stringify(actualites.map(a=>a.id)));
 }
 
-/* ==========================================
-   SONDAGES DISCORD
-========================================== */
-
-async function chargerSondages(profils) {
-    const container = document.getElementById("polls");
+/*
+ * Affichage des réponses et du vote.
+ * Les votes restent privés : les règles Firestore actuelles ne permettent
+ * pas aux visiteurs ordinaires de lire tous les votes.
+ */
+async function chargerSondages(profils){
+    const container=document.getElementById("polls");
     container.replaceChildren();
 
-    try {
-        const snapshot = await getDocs(collection(db, "polls"));
+    try{
+        const snapshot=await getDocs(collection(db,"polls"));
+        const sondages=snapshot.docs.map(item=>({id:item.id,...item.data()}));
 
-        const sondages = snapshot.docs.map(item => ({
-            id: item.id,
-            ...item.data()
-        }));
+        sondages.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
 
-        sondages.sort((a, b) =>
-            (b.createdAt?.seconds || 0) -
-            (a.createdAt?.seconds || 0)
-        );
-
-        if (!sondages.length) {
-            container.textContent = "Aucun sondage.";
+        if(!sondages.length){
+            container.textContent="Aucun sondage pour le moment.";
             return;
         }
 
-        for (const sondage of sondages) {
-            const carte = element("article");
-            carte.className = "card";
+        for(const sondage of sondages){
+            const carte=element("article");
+            carte.className="poll-card";
 
-            carte.appendChild(
-                afficherProfil(sondage.authorUid, profils)
-            );
+            carte.appendChild(afficherProfil(sondage.authorUid,profils));
 
-            carte.appendChild(
-                element("h2", "📊 " + (sondage.question || "Sondage"))
-            );
+            const question=element("div","📊 "+(sondage.question||"Sondage"));
+            question.className="poll-title";
+            carte.appendChild(question);
 
-            const options = Array.isArray(sondage.options)
-                ? sondage.options
-                : [];
+            const options=Array.isArray(sondage.options)
+                ?sondage.options.filter(o=>typeof o==="string"&&o.trim().length>0)
+                :[];
 
-            if (options.length < 2) {
-                carte.appendChild(element("p", "Ce sondage est invalide."));
+            if(options.length<2){
+                carte.appendChild(element("p","Ce sondage ne contient pas au moins deux réponses valides."));
                 container.appendChild(carte);
                 continue;
             }
 
-            const formulaire = element("form");
-            let voteExistant = null;
+            const sousTitre=element("div",currentUser
+                ?"Choisis une réponse puis valide ton vote."
+                :"Connecte-toi pour participer à ce sondage.");
+            sousTitre.className="poll-subtitle";
+            carte.appendChild(sousTitre);
 
-            if (currentUser) {
-                try {
-                    const voteSnapshot = await getDoc(
-                        doc(
-                            db,
-                            "polls",
-                            sondage.id,
-                            "votes",
-                            currentUser.uid
-                        )
-                    );
+            let voteExistant=null;
 
-                    if (voteSnapshot.exists()) {
-                        voteExistant = voteSnapshot.data();
-                    }
-                } catch (error) {
-                    console.error("Lecture du vote impossible :", error);
-                    formulaire.appendChild(
-                        element("p", "Impossible de charger votre vote.")
+            if(currentUser){
+                try{
+                    const voteSnapshot=await getDoc(
+                        doc(db,"polls",sondage.id,"votes",currentUser.uid)
                     );
+                    if(voteSnapshot.exists())voteExistant=voteSnapshot.data();
+                }catch(error){
+                    console.error("Lecture du vote impossible :",error);
                 }
             }
 
-            const choix = document.createElement("div");
+            const formulaire=element("form");
+            const choix=element("div");
+            choix.className="poll-options";
 
-            options.forEach((option, index) => {
-                const label = element("label");
-                label.className = "option";
+            options.forEach((option,index)=>{
+                const label=element("label");
+                label.className="poll-option";
 
-                const radio = document.createElement("input");
-                radio.type = "radio";
-                radio.name = "sondage_" + sondage.id;
-                radio.value = String(index);
+                const radio=document.createElement("input");
+                radio.type="radio";
+                radio.name="sondage_"+sondage.id;
+                radio.value=String(index);
 
-                if (
-                    voteExistant &&
-                    voteExistant.optionIndex === index
-                ) {
-                    radio.checked = true;
+                if(voteExistant&&voteExistant.optionIndex===index){
+                    radio.checked=true;
+                    label.classList.add("selected");
                 }
 
-                label.append(
-                    radio,
-                    document.createTextNode(" " + option)
-                );
+                radio.addEventListener("change",()=>{
+                    choix.querySelectorAll(".poll-option").forEach(item=>item.classList.remove("selected"));
+                    label.classList.add("selected");
+                });
 
+                const texte=element("span",option);
+                texte.className="poll-option-text";
+
+                label.append(radio,texte);
                 choix.appendChild(label);
             });
 
             formulaire.appendChild(choix);
 
-            if (!currentUser) {
-                formulaire.appendChild(
-                    element("p", "Connectez-vous pour voter.")
-                );
+            if(!currentUser){
+                const connexion=element("a","Se connecter pour voter");
+                connexion.href="connexion.html";
+                connexion.style.display="inline-block";
+                connexion.style.marginTop="15px";
+                carte.appendChild(formulaire);
+                carte.appendChild(connexion);
+            }else{
+                carte.appendChild(formulaire);
 
-            } else {
-                const boutonVoter = element(
-                    "button",
-                    voteExistant ? "Enregistrer mon nouveau vote" : "Voter"
-                );
+                const actions=element("div");
+                actions.className="poll-actions";
 
-                boutonVoter.type = "submit";
-                formulaire.appendChild(boutonVoter);
+                const boutonVoter=element("button",voteExistant?"Modifier mon vote":"Voter");
+                boutonVoter.type="submit";
+                boutonVoter.className="poll-vote-button";
+                actions.appendChild(boutonVoter);
 
-                if (voteExistant) {
-                    const boutonSupprimer = element(
-                        "button",
-                        "Supprimer mon vote"
-                    );
+                if(voteExistant){
+                    const supprimer=element("button","Supprimer mon vote");
+                    supprimer.type="button";
+                    supprimer.className="poll-delete-button";
+                    actions.appendChild(supprimer);
 
-                    boutonSupprimer.type = "button";
-                    boutonSupprimer.style.background = "#DC2626";
-                    boutonSupprimer.style.marginLeft = "8px";
+                    supprimer.addEventListener("click",async()=>{
+                        if(!confirm("Veux-tu vraiment supprimer ton vote ?"))return;
+                        supprimer.disabled=true;
 
-                    formulaire.appendChild(boutonSupprimer);
-
-                    boutonSupprimer.addEventListener("click", async () => {
-                        if (!confirm("Veux-tu vraiment supprimer ton vote ?")) {
-                            return;
-                        }
-
-                        boutonSupprimer.disabled = true;
-
-                        try {
-                            await deleteDoc(
-                                doc(
-                                    db,
-                                    "polls",
-                                    sondage.id,
-                                    "votes",
-                                    currentUser.uid
-                                )
-                            );
-
+                        try{
+                            await deleteDoc(doc(db,"polls",sondage.id,"votes",currentUser.uid));
                             await charger();
-
-                        } catch (error) {
+                        }catch(error){
                             console.error(error);
-                            alert(
-                                "Impossible de supprimer le vote : " +
-                                error.message
-                            );
-                            boutonSupprimer.disabled = false;
+                            alert("Impossible de supprimer le vote. Vérifie les règles Firestore et réessaie.");
+                            supprimer.disabled=false;
                         }
                     });
                 }
 
-                formulaire.addEventListener("submit", async event => {
+                formulaire.addEventListener("submit",async event=>{
                     event.preventDefault();
 
-                    const selection = formulaire.querySelector(
-                        'input[type="radio"]:checked'
-                    );
-
-                    if (!selection) {
-                        alert("Choisis une réponse.");
+                    const selection=formulaire.querySelector('input[type="radio"]:checked');
+                    if(!selection){
+                        alert("Choisis une réponse avant de voter.");
                         return;
                     }
 
-                    boutonVoter.disabled = true;
+                    boutonVoter.disabled=true;
 
-                    try {
-                        const voteRef = doc(
-                            db,
-                            "polls",
-                            sondage.id,
-                            "votes",
-                            currentUser.uid
-                        );
-
-                        const donneesVote = {
-                            uid: currentUser.uid,
-                            optionIndex: Number(selection.value)
+                    try{
+                        const voteRef=doc(db,"polls",sondage.id,"votes",currentUser.uid);
+                        const donneesVote={
+                            uid:currentUser.uid,
+                            optionIndex:Number(selection.value)
                         };
 
-                        if (voteExistant) {
-                            await updateDoc(voteRef, donneesVote);
-                        } else {
-                            await setDoc(voteRef, {
+                        if(voteExistant){
+                            await updateDoc(voteRef,donneesVote);
+                        }else{
+                            await setDoc(voteRef,{
                                 ...donneesVote,
-                                createdAt: serverTimestamp()
+                                createdAt:serverTimestamp()
                             });
                         }
 
                         await charger();
-
-                    } catch (error) {
+                    }catch(error){
                         console.error(error);
-                        alert(
-                            "Impossible d'enregistrer le vote : " +
-                            error.message
-                        );
-                        boutonVoter.disabled = false;
+                        alert("Impossible d'enregistrer ton vote. Vérifie les règles Firestore et réessaie.");
+                        boutonVoter.disabled=false;
                     }
                 });
             }
 
+            /*
+             * Les règles Firestore actuelles n'autorisent pas la lecture
+             * publique de tous les votes. On n'invente donc pas de résultats.
+             */
+            const note=element("p",voteExistant
+                ?"Ton vote est enregistré. Tu peux le modifier ou le supprimer."
+                :"Les résultats apparaîtront ici lorsqu'un comptage sécurisé sera configuré.");
+            note.className="poll-message";
+            carte.appendChild(note);
+
             container.appendChild(carte);
         }
-
-    } catch (error) {
-        console.error(error);
-        container.textContent =
-            "Erreur lors du chargement des sondages : " + error.message;
+    }catch(error){
+        console.error("Erreur sondages :",error);
+        container.textContent="Erreur lors du chargement des sondages : "+error.message;
     }
 }
 
-/* ==========================================
-   CHARGEMENT
-========================================== */
+async function charger(){
+    if(chargementEnCours)return;
+    chargementEnCours=true;
 
-async function charger() {
-    const newsContainer = document.getElementById("news");
-    const pollsContainer = document.getElementById("polls");
+    const newsContainer=document.getElementById("news");
+    const pollsContainer=document.getElementById("polls");
 
-    try {
-        const profils = await chargerProfils();
+    try{
+        const profils=await chargerProfils();
 
-        try {
+        try{
             await chargerActualites(profils);
-        } catch (error) {
+        }catch(error){
             console.error(error);
-            newsContainer.textContent =
-                "Erreur actualités : " + error.message;
+            newsContainer.textContent="Erreur actualités : "+error.message;
         }
 
-        try {
+        try{
             await chargerSondages(profils);
-        } catch (error) {
+        }catch(error){
             console.error(error);
-            pollsContainer.textContent =
-                "Erreur sondages : " + error.message;
+            pollsContainer.textContent="Erreur sondages : "+error.message;
         }
-
-    } catch (error) {
-        console.error(error);
-
-        pollsContainer.textContent =
-            "Erreur : " + error.message;
+    }finally{
+        chargementEnCours=false;
     }
 }
 
-document.getElementById("refresh")
-    .addEventListener("click", charger);
+document.getElementById("refresh").addEventListener("click",charger);
 
-onAuthStateChanged(auth, user => {
-    currentUser = user;
+onAuthStateChanged(auth,user=>{
+    currentUser=user;
     charger();
 });
-
 </script>
 
 <script type="module" src="maintenance.js"></script>
-
 </body>
 </html>
+```
