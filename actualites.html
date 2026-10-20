@@ -380,9 +380,12 @@ function afficherResultats(card, options, poll) {
  * Si les règles actuelles n'autorisent pas l'écriture du document poll,
  * Firestore refusera la transaction : ne désactive pas la sécurité.
  */
-async function changerVote(pollId, options, nouvelIndex, ancienIndex) {
-    if (!utilisateurActuel) throw new Error("Connectez-vous pour voter.");
+async function changerVote(pollId, options, nouvelIndex, ancienIndex, pseudo) {
+    pseudo = String(pseudo || "").trim();
 
+    if (pseudo.length < 3 || pseudo.length > 20) {
+        throw new Error("Ton pseudo doit contenir entre 3 et 20 caractères.");
+    }
     const uid = utilisateurActuel.uid;
     const pollRef = doc(db, "polls", pollId);
     const voteRef = doc(db, "polls", pollId, "votes", uid);
