@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -136,6 +135,24 @@ button.danger:hover:not(:disabled) { background: #B91C1C; }
 .poll-option input { width: 18px; height: 18px; margin-top: 3px; flex-shrink: 0; accent-color: #3B82F6; }
 .poll-option-text { flex: 1; overflow-wrap: anywhere; }
 
+.pseudo-label {
+    display: block;
+    margin-top: 12px;
+    font-weight: 600;
+}
+
+.pseudo-input {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+    padding: 12px;
+    border-radius: 9px;
+    border: 1px solid #475569;
+    background: #111827;
+    color: #F8FAFC;
+    font: inherit;
+}
+
 .results {
     display: grid;
     gap: 15px;
@@ -185,13 +202,19 @@ footer { border-top: 1px solid var(--border); padding: 22px; text-align: center;
 
     <section class="card">
         <h2>📰 Dernières actualités</h2>
-        <div id="newsContainer"><p class="muted">Chargement des actualités...</p></div>
+        <div id="newsContainer">
+            <p class="muted">Chargement des actualités...</p>
+        </div>
     </section>
 
     <section class="card">
         <h2>📊 Sondages</h2>
-        <p class="muted">Connectez-vous pour voter, modifier votre choix ou supprimer votre vote.</p>
-        <div id="pollContainer"><p class="muted">Chargement des sondages...</p></div>
+        <p class="muted">
+            Connectez-vous pour voter. Choisissez un pseudo qui sera affiché avec votre vote.
+        </p>
+        <div id="pollContainer">
+            <p class="muted">Chargement des sondages...</p>
+        </div>
     </section>
 </main>
 
@@ -199,10 +222,24 @@ footer { border-top: 1px solid var(--border); padding: 22px; text-align: center;
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
 import {
-    getFirestore, collection, doc, getDocs, getDoc,
-    setDoc, deleteDoc, runTransaction, query, orderBy, serverTimestamp
+    getAuth,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+import {
+    getFirestore,
+    collection,
+    doc,
+    getDocs,
+    getDoc,
+    setDoc,
+    deleteDoc,
+    runTransaction,
+    query,
+    orderBy,
+    serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -217,6 +254,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
 const $ = id => document.getElementById(id);
 
 let utilisateurActuel = null;
@@ -239,38 +277,73 @@ function dateValeur(value) {
     if (!value) return 0;
     if (typeof value.seconds === "number") return value.seconds;
     if (typeof value.toDate === "function") return value.toDate().getTime();
+
     const d = new Date(value);
     return Number.isNaN(d.getTime()) ? 0 : d.getTime();
 }
 
 function dateTexte(value) {
     if (!value) return "";
-    const d = typeof value.toDate === "function" ? value.toDate() : new Date(value);
-    return Number.isNaN(d.getTime()) ? "" : d.toLocaleString("fr-CA", { dateStyle: "medium", timeStyle: "short" });
+
+    const d = typeof value.toDate === "function"
+        ? value.toDate()
+        : new Date(value);
+
+    return Number.isNaN(d.getTime())
+        ? ""
+        : d.toLocaleString("fr-CA", {
+            dateStyle: "medium",
+            timeStyle: "short"
+        });
 }
 
 function normaliserOptions(value) {
     if (Array.isArray(value)) {
-        return value.map(v => typeof v === "string" ? v.trim() :
-            String(v?.text ?? v?.label ?? v?.name ?? v?.title ?? "").trim()
+        return value.map(v =>
+            typeof v === "string"
+                ? v.trim()
+                : String(v?.text ?? v?.label ?? v?.name ?? v?.title ?? "").trim()
         ).filter(Boolean);
     }
+
     if (typeof value === "string") {
         try {
             const parsed = JSON.parse(value);
             return Array.isArray(parsed) ? normaliserOptions(parsed) : [];
-        } catch {}
+        } catch {
+            return [];
+        }
     }
+
     return [];
 }
 
+function validerPseudo(value) {
+    const pseudo = String(value || "").trim();
+
+    if (pseudo.length < 3 || pseudo.length > 20) {
+        throw new Error("Le pseudo doit contenir entre 3 et 20 caractères.");
+    }
+
+    if (!/^[\p{L}\p{N}_ -]+$/u.test(pseudo)) {
+        throw new Error("Le pseudo contient des caractères non autorisés.");
+    }
+
+    return pseudo;
+}
+
 /* ACTUALITÉS */
+
 async function chargerActualites() {
     const container = $("newsContainer");
+
     try {
         let snap;
+
         try {
-            snap = await getDocs(query(collection(db, "news"), orderBy("createdAt", "desc")));
+            snap = await getDocs(
+                query(collection(db, "news"), orderBy("createdAt", "desc"))
+            );
         } catch {
             snap = await getDocs(collection(db, "news"));
         }
@@ -280,13 +353,18 @@ async function chargerActualites() {
             return;
         }
 
-        const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const items = snap.docs.map(d => ({
+            id: d.id,
+            ...d.data()
+        }));
+
         items.sort((a, b) => dateValeur(b.createdAt) - dateValeur(a.createdAt));
         container.replaceChildren();
 
         for (const item of items) {
             const card = el("article");
             card.className = "item";
+
             card.appendChild(el("h3", item.title || "Actualité sans titre"));
 
             if (item.category) {
@@ -300,56 +378,73 @@ async function chargerActualites() {
             card.appendChild(content);
 
             const date = dateTexte(item.createdAt);
+
             if (date) {
                 const p = el("p", "Publié le " + date);
                 p.className = "muted";
                 card.appendChild(p);
             }
+
             container.appendChild(card);
         }
     } catch (error) {
-        console.error(error);
-        message(container, "Impossible de charger les actualités : " + error.message, "error");
+        console.error("Erreur actualités :", error);
+        message(
+            container,
+            "Impossible de charger les actualités : " + error.message,
+            "error"
+        );
     }
 }
 
 /*
- * Résultats agrégés uniquement.
- * Le document du sondage doit contenir :
- * voteCounts: [nombreOption1, nombreOption2, ...]
- * totalVotes: nombreTotal
+ * Nouvelle structure :
+ *
+ * polls/{pollId}/votes/{voteId}
+ *   pseudo
+ *   optionIndex
+ *   createdAt
+ *
+ * polls/{pollId}/userVotes/{uid}
+ *   voteId
+ *   pseudo
+ *   optionIndex
+ *
+ * Le document public du vote ne contient pas l'UID.
+ * Le lien entre l'utilisateur et son vote est dans userVotes,
+ * dont la lecture doit être limitée au propriétaire.
  */
-function afficherResultats(card, options, poll) {
+
+function afficherResultats(card, options, votes) {
     const section = el("section");
     section.className = "results";
+
     section.appendChild(el("h4", "📊 Résultats"));
 
-    const counts = poll.voteCounts;
-    const total = poll.totalVotes;
+    const counts = options.map(() => 0);
 
-    const valide =
-        Array.isArray(counts) &&
-        counts.length === options.length &&
-        counts.every(n => Number.isInteger(n) && n >= 0) &&
-        Number.isInteger(total) &&
-        total >= 0 &&
-        counts.reduce((a, b) => a + b, 0) === total;
+    for (const vote of votes) {
+        const index = vote.optionIndex;
 
-    if (!valide) {
-        const info = el("p", "Les résultats agrégés ne sont pas encore configurés pour ce sondage.");
-        info.className = "muted";
-        section.appendChild(info);
-        card.appendChild(section);
-        return;
+        if (Number.isInteger(index) && index >= 0 && index < options.length) {
+            counts[index]++;
+        }
     }
+
+    const total = counts.reduce((a, b) => a + b, 0);
 
     options.forEach((option, i) => {
         const n = counts[i];
         const pct = total ? Math.round(n * 100 / total) : 0;
+
         const row = el("div");
         const heading = el("div");
         heading.className = "result-heading";
-        heading.append(el("span", option), el("span", `${pct} % (${n} vote${n > 1 ? "s" : ""})`));
+
+        heading.append(
+            el("span", option),
+            el("span", `${pct} % (${n} vote${n > 1 ? "s" : ""})`)
+        );
 
         const bar = el("div");
         bar.className = "progress";
@@ -361,141 +456,219 @@ function afficherResultats(card, options, poll) {
         const fill = el("div");
         fill.className = "progress-fill";
         fill.style.width = pct + "%";
+
         bar.appendChild(fill);
         row.append(heading, bar);
         section.appendChild(row);
     });
 
-    const totalP = el("p", `👥 ${total} participant${total === 1 ? "" : "s"} au total`);
-    totalP.className = "results-total";
-    section.appendChild(totalP);
+    section.appendChild(
+        el("p", `👥 ${total} participant${total === 1 ? "" : "s"} au total`)
+    );
+
+    section.lastElementChild.className = "results-total";
+
+    const voterList = el("div");
+    voterList.className = "muted";
+
+    if (votes.length) {
+        voterList.appendChild(el("p", "Participants :"));
+
+        for (const vote of votes) {
+            const index = vote.optionIndex;
+
+            if (index >= 0 && index < options.length) {
+                voterList.appendChild(
+                    el("p", `👤 ${vote.pseudo || "Participant"} — ${options[index]}`)
+                );
+            }
+        }
+    }
+
+    section.appendChild(voterList);
     card.appendChild(section);
 }
 
-/*
- * Enregistrement des votes et compteurs.
- *
- * Cette opération suppose que les règles Firestore ont été configurées
- * pour autoriser une mise à jour coordonnée et sécurisée des compteurs.
- * Si les règles actuelles n'autorisent pas l'écriture du document poll,
- * Firestore refusera la transaction : ne désactive pas la sécurité.
- */
-async function changerVote(pollId, options, nouvelIndex, ancienIndex, pseudo) {
-    pseudo = String(pseudo || "").trim();
+/* VOTER : lire les votes anonymes pour calculer les résultats */
 
-    if (pseudo.length < 3 || pseudo.length > 20) {
-        throw new Error("Ton pseudo doit contenir entre 3 et 20 caractères.");
+async function lireVotes(pollId) {
+    const snapshot = await getDocs(
+        collection(db, "polls", pollId, "votes")
+    );
+
+    return snapshot.docs.map(d => ({
+        id: d.id,
+        ...d.data()
+    }));
+}
+
+/* ENREGISTRER OU MODIFIER LE VOTE */
+
+async function enregistrerVote(pollId, options, nouvelIndex, pseudoSaisi) {
+    if (!utilisateurActuel) {
+        throw new Error("Connectez-vous pour voter.");
     }
+
+    const pseudo = validerPseudo(pseudoSaisi);
+
+    if (!Number.isInteger(nouvelIndex) ||
+        nouvelIndex < 0 ||
+        nouvelIndex >= options.length) {
+        throw new Error("Choisissez une réponse valide.");
+    }
+
     const uid = utilisateurActuel.uid;
+
     const pollRef = doc(db, "polls", pollId);
-    const voteRef = doc(db, "polls", pollId, "votes", uid);
+    const userVoteRef = doc(db, "polls", pollId, "userVotes", uid);
 
     await runTransaction(db, async transaction => {
         const pollSnap = await transaction.get(pollRef);
-        const voteSnap = await transaction.get(voteRef);
+        const userVoteSnap = await transaction.get(userVoteRef);
 
-        if (!pollSnap.exists()) throw new Error("Ce sondage n'existe plus.");
-
-        const poll = pollSnap.data();
-        let counts = Array.isArray(poll.voteCounts) ? [...poll.voteCounts] : null;
-        let total = Number.isInteger(poll.totalVotes) ? poll.totalVotes : null;
-
-        if (!counts || counts.length !== options.length ||
-            !counts.every(n => Number.isInteger(n) && n >= 0) ||
-            total === null || total < 0 ||
-            counts.reduce((a, b) => a + b, 0) !== total) {
-            throw new Error("Les compteurs de ce sondage ne sont pas initialisés. Un administrateur doit initialiser les résultats avant d'autoriser les votes.");
+        if (!pollSnap.exists()) {
+            throw new Error("Ce sondage n'existe plus.");
         }
 
-        if (ancienIndex === null) {
-            if (voteSnap.exists()) throw new Error("Vous avez déjà voté. Utilisez « Modifier mon vote ».");
-            counts[nouvelIndex] += 1;
-            total += 1;
-            transaction.set(voteRef, {
-                uid,
+        const pollOptions = normaliserOptions(pollSnap.data().options);
+
+        if (pollOptions.length !== options.length) {
+            throw new Error("Les options du sondage ont changé. Actualisez la page.");
+        }
+
+        let voteRef;
+        let voteData;
+
+        if (userVoteSnap.exists()) {
+            const previous = userVoteSnap.data();
+
+            if (!previous.voteId) {
+                throw new Error(
+                    "Votre ancien vote doit être migré avant de pouvoir être modifié."
+                );
+            }
+
+            voteRef = doc(db, "polls", pollId, "votes", previous.voteId);
+
+            const previousVoteSnap = await transaction.get(voteRef);
+
+            if (!previousVoteSnap.exists()) {
+                throw new Error(
+                    "Votre vote est introuvable. Supprimez votre référence de vote ou contactez un administrateur."
+                );
+            }
+
+            voteData = {
+                pseudo,
+                optionIndex: nouvelIndex
+            };
+
+            transaction.update(voteRef, voteData);
+
+            transaction.update(userVoteRef, {
+                pseudo,
+                optionIndex: nouvelIndex,
+                updatedAt: serverTimestamp()
+            });
+        } else {
+            const newVoteRef = doc(
+                collection(db, "polls", pollId, "votes")
+            );
+
+            transaction.set(newVoteRef, {
+                pseudo,
                 optionIndex: nouvelIndex,
                 createdAt: serverTimestamp()
             });
-        } else {
-            if (!voteSnap.exists()) throw new Error("Votre vote n'existe plus.");
-            const storedIndex = voteSnap.data().optionIndex;
-            if (!Number.isInteger(storedIndex) || storedIndex < 0 || storedIndex >= options.length) {
-                throw new Error("Votre ancien vote est invalide.");
-            }
-            if (storedIndex === nouvelIndex) return;
-            counts[storedIndex] = Math.max(0, counts[storedIndex] - 1);
-            counts[nouvelIndex] += 1;
-            transaction.update(voteRef, { optionIndex: nouvelIndex });
-        }
 
-        transaction.update(pollRef, {
-            voteCounts: counts,
-            totalVotes: total
-        });
+            transaction.set(userVoteRef, {
+                voteId: newVoteRef.id,
+                pseudo,
+                optionIndex: nouvelIndex,
+                createdAt: serverTimestamp()
+            });
+        }
     });
+
+    localStorage.setItem("monBotPC_pseudo", pseudo);
 }
 
-async function supprimerVote(pollId, options) {
-    if (!utilisateurActuel) throw new Error("Connectez-vous pour supprimer votre vote.");
+/* SUPPRIMER LE VOTE */
+
+async function supprimerVote(pollId) {
+    if (!utilisateurActuel) {
+        throw new Error("Connectez-vous pour supprimer votre vote.");
+    }
 
     const uid = utilisateurActuel.uid;
-    const pollRef = doc(db, "polls", pollId);
-    const voteRef = doc(db, "polls", pollId, "votes", uid);
+
+    const userVoteRef = doc(db, "polls", pollId, "userVotes", uid);
 
     await runTransaction(db, async transaction => {
-        const pollSnap = await transaction.get(pollRef);
+        const userVoteSnap = await transaction.get(userVoteRef);
+
+        if (!userVoteSnap.exists()) {
+            throw new Error("Vous n'avez pas encore voté à ce sondage.");
+        }
+
+        const userVote = userVoteSnap.data();
+
+        if (!userVote.voteId) {
+            throw new Error("Votre ancien vote doit être migré avant sa suppression.");
+        }
+
+        const voteRef = doc(
+            db,
+            "polls",
+            pollId,
+            "votes",
+            userVote.voteId
+        );
+
         const voteSnap = await transaction.get(voteRef);
 
-        if (!pollSnap.exists() || !voteSnap.exists()) {
-            throw new Error("Votre vote n'existe plus.");
+        if (!voteSnap.exists()) {
+            throw new Error("Le vote à supprimer est introuvable.");
         }
 
-        const poll = pollSnap.data();
-        const index = voteSnap.data().optionIndex;
-        const counts = Array.isArray(poll.voteCounts) ? [...poll.voteCounts] : null;
-        const total = poll.totalVotes;
-
-        if (!counts || counts.length !== options.length ||
-            !counts.every(n => Number.isInteger(n) && n >= 0) ||
-            !Number.isInteger(total) || total < 1 ||
-            counts.reduce((a, b) => a + b, 0) !== total ||
-            !Number.isInteger(index) || index < 0 || index >= options.length) {
-            throw new Error("Les compteurs de ce sondage ne sont pas initialisés correctement.");
-        }
-
-        counts[index] = Math.max(0, counts[index] - 1);
         transaction.delete(voteRef);
-        transaction.update(pollRef, {
-            voteCounts: counts,
-            totalVotes: total - 1
-        });
+        transaction.delete(userVoteRef);
     });
 }
 
-/* SONDAGES */
+/* AFFICHAGE DES SONDAGES */
+
 async function chargerSondages() {
     const generation = ++generationAffichage;
     const container = $("pollContainer");
 
     try {
-        const snap = await getDocs(collection(db, "polls"));
+        const snapshot = await getDocs(collection(db, "polls"));
+
         if (generation !== generationAffichage) return;
 
-        if (snap.empty) {
+        if (snapshot.empty) {
             message(container, "Aucun sondage publié pour le moment.");
             return;
         }
 
-        const polls = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const polls = snapshot.docs.map(d => ({
+            id: d.id,
+            ...d.data()
+        }));
+
         polls.sort((a, b) => dateValeur(b.createdAt) - dateValeur(a.createdAt));
+
         container.replaceChildren();
 
         for (const poll of polls) {
             const card = el("article");
             card.className = "item";
+
             card.appendChild(el("h3", poll.question || "Sondage sans question"));
 
             const date = dateTexte(poll.createdAt);
+
             if (date) {
                 const p = el("p", "Publié le " + date);
                 p.className = "muted";
@@ -503,6 +676,7 @@ async function chargerSondages() {
             }
 
             const options = normaliserOptions(poll.options);
+
             if (options.length < 2) {
                 const p = el("p", "Les réponses sont absentes ou incomplètes.");
                 p.className = "status error";
@@ -511,33 +685,48 @@ async function chargerSondages() {
                 continue;
             }
 
-           const form = el("form");
+            const form = el("form");
 
-const pseudoLabel = el("label", "👤 Choisis ton pseudo pour voter");
-pseudoLabel.style.display = "block";
-pseudoLabel.style.marginBottom = "8px";
+            const pseudoLabel = el("label", "👤 Ton pseudo");
+            pseudoLabel.className = "pseudo-label";
 
-const pseudoInput = document.createElement("input");
-pseudoInput.type = "text";
-pseudoInput.placeholder = "Ton pseudo";
-pseudoInput.maxLength = 20;
-pseudoInput.minLength = 3;
-pseudoInput.required = true;
-pseudoInput.autocomplete = "nickname";
-pseudoInput.style.width = "100%";
-pseudoInput.style.padding = "12px";
-pseudoInput.style.borderRadius = "9px";
-pseudoInput.style.border = "1px solid #475569";
-pseudoInput.style.background = "#111827";
-pseudoInput.style.color = "#F8FAFC";
+            const pseudoInput = document.createElement("input");
+            pseudoInput.className = "pseudo-input";
+            pseudoInput.type = "text";
+            pseudoInput.minLength = 3;
+            pseudoInput.maxLength = 20;
+            pseudoInput.required = true;
+            pseudoInput.autocomplete = "nickname";
+            pseudoInput.placeholder = "Choisis un pseudo (3 à 20 caractères)";
+            pseudoInput.value = localStorage.getItem("monBotPC_pseudo") || "";
 
-form.append(pseudoLabel, pseudoInput);
+            pseudoLabel.appendChild(pseudoInput);
+            form.appendChild(pseudoLabel);
+
+            const choices = el("div");
+            choices.className = "poll-options";
+
+            options.forEach((option, i) => {
+                const label = el("label");
+                label.className = "poll-option";
+
+                const radio = document.createElement("input");
+                radio.type = "radio";
+                radio.name = "poll-" + poll.id;
+                radio.value = String(i);
+                radio.required = true;
+
+                const text = el("span", option);
+                text.className = "poll-option-text";
+
+                label.append(radio, text);
+                choices.appendChild(label);
+            });
 
             form.appendChild(choices);
 
             const voteBtn = el("button", "🗳️ Voter");
             voteBtn.type = "submit";
-            form.appendChild(voteBtn);
 
             const editBtn = el("button", "✏️ Modifier mon vote");
             editBtn.type = "button";
@@ -552,47 +741,100 @@ form.append(pseudoLabel, pseudoInput);
             const status = el("div");
             status.setAttribute("aria-live", "polite");
 
+            form.appendChild(voteBtn);
             card.append(form, editBtn, deleteBtn, status);
-            afficherResultats(card, options, poll);
             container.appendChild(card);
 
-            let myVote = null;
+            let monVote = null;
 
             if (utilisateurActuel) {
                 try {
-                    const voteSnap = await getDoc(doc(db, "polls", poll.id, "votes", utilisateurActuel.uid));
-                    if (voteSnap.exists()) {
-                        const data = voteSnap.data();
+                    const userVoteSnap = await getDoc(
+                        doc(db, "polls", poll.id, "userVotes", utilisateurActuel.uid)
+                    );
+
+                    if (userVoteSnap.exists()) {
+                        const data = userVoteSnap.data();
+
                         if (Number.isInteger(data.optionIndex) &&
-                            data.optionIndex >= 0 && data.optionIndex < options.length) {
-                            myVote = data.optionIndex;
-                            const radio = form.querySelector(`input[value="${myVote}"]`);
+                            data.optionIndex >= 0 &&
+                            data.optionIndex < options.length) {
+                            monVote = data.optionIndex;
+                            pseudoInput.value = data.pseudo || pseudoInput.value;
+
+                            const radio = form.querySelector(
+                                `input[value="${monVote}"]`
+                            );
+
                             if (radio) radio.checked = true;
+
                             voteBtn.hidden = true;
                             editBtn.hidden = false;
                             deleteBtn.hidden = false;
                         }
                     }
                 } catch (error) {
-                    console.error("Impossible de vérifier le vote personnel :", error);
+                    console.error("Erreur lecture vote personnel :", error);
+                    message(
+                        status,
+                        "Impossible de vérifier votre vote : " + error.message,
+                        "error"
+                    );
                 }
+            }
+
+            try {
+                const votes = await lireVotes(poll.id);
+
+                if (generation !== generationAffichage) return;
+
+                afficherResultats(card, options, votes);
+            } catch (error) {
+                console.error("Erreur chargement des résultats :", error);
+
+                const p = el(
+                    "p",
+                    "Impossible de charger les résultats : " + error.message
+                );
+
+                p.className = "status error";
+                card.appendChild(p);
             }
 
             form.addEventListener("submit", async event => {
                 event.preventDefault();
+
                 if (!utilisateurActuel) {
                     message(status, "Connectez-vous pour participer.", "error");
                     return;
                 }
-                if (myVote !== null) {
-                    message(status, "Vous avez déjà voté. Utilisez « Modifier mon vote ».", "error");
+
+                if (monVote !== null) {
+                    message(
+                        status,
+                        "Vous avez déjà voté. Utilisez « Modifier mon vote ».",
+                        "error"
+                    );
                     return;
                 }
+
                 const selected = form.querySelector("input:checked");
-                if (!selected) return;
+
+                if (!selected) {
+                    message(status, "Choisissez une réponse.", "error");
+                    return;
+                }
+
                 voteBtn.disabled = true;
+
                 try {
-                    await changerVote(poll.id, options, Number(selected.value), null);
+                    await enregistrerVote(
+                        poll.id,
+                        options,
+                        Number(selected.value),
+                        pseudoInput.value
+                    );
+
                     message(status, "Votre vote a été enregistré.", "success");
                     await chargerSondages();
                     return;
@@ -605,14 +847,28 @@ form.append(pseudoLabel, pseudoInput);
             });
 
             editBtn.addEventListener("click", async () => {
+                if (!utilisateurActuel) {
+                    message(status, "Connectez-vous pour modifier votre vote.", "error");
+                    return;
+                }
+
                 const selected = form.querySelector("input:checked");
+
                 if (!selected) {
                     message(status, "Sélectionnez votre nouvelle réponse.", "error");
                     return;
                 }
+
                 editBtn.disabled = true;
+
                 try {
-                    await changerVote(poll.id, options, Number(selected.value), myVote);
+                    await enregistrerVote(
+                        poll.id,
+                        options,
+                        Number(selected.value),
+                        pseudoInput.value
+                    );
+
                     message(status, "Votre vote a été modifié.", "success");
                     await chargerSondages();
                     return;
@@ -626,9 +882,12 @@ form.append(pseudoLabel, pseudoInput);
 
             deleteBtn.addEventListener("click", async () => {
                 if (!confirm("Voulez-vous vraiment supprimer votre vote ?")) return;
+
                 deleteBtn.disabled = true;
+
                 try {
-                    await supprimerVote(poll.id, options);
+                    await supprimerVote(poll.id);
+
                     message(status, "Votre vote a été supprimé.", "success");
                     await chargerSondages();
                     return;
@@ -646,22 +905,30 @@ form.append(pseudoLabel, pseudoInput);
             }
         }
     } catch (error) {
-        console.error(error);
-        message(container, "Impossible de charger les sondages : " + error.message, "error");
+        console.error("Erreur sondages :", error);
+
+        message(
+            container,
+            "Impossible de charger les sondages : " + error.message,
+            "error"
+        );
     }
 }
 
 /* AUTHENTIFICATION */
+
 onAuthStateChanged(auth, async user => {
     utilisateurActuel = user;
+
     const link = $("accountLink");
     link.textContent = user ? "Mon compte" : "Connexion";
     link.href = "connexion.html";
 
-    await Promise.allSettled([chargerActualites(), chargerSondages()]);
+    await Promise.allSettled([
+        chargerActualites(),
+        chargerSondages()
+    ]);
 });
-
 </script>
 </body>
 </html>
-```
