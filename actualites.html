@@ -1,934 +1,359 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0B1120">
-<title>Actualités et sondages — Mon Bot PC</title>
-
-<style>
-* { box-sizing: border-box; }
-
-:root {
-    color-scheme: dark;
-    --background: #0B1120;
-    --card: #172033;
-    --border: #334155;
-    --blue: #3B82F6;
-    --blue-hover: #2563EB;
-    --text: #F8FAFC;
-    --muted: #94A3B8;
-}
-
-body {
-    margin: 0;
-    background: var(--background);
-    color: var(--text);
-    font-family: "Segoe UI", Arial, sans-serif;
-    line-height: 1.6;
-}
-
-header {
-    background: #111827;
-    border-bottom: 1px solid var(--border);
-    padding: 18px 20px;
-}
-
-.header-inner {
-    max-width: 1100px;
-    margin: auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-}
-
-.logo {
-    color: #60A5FA;
-    font-size: 22px;
-    font-weight: 800;
-    text-decoration: none;
-}
-
-nav { display: flex; flex-wrap: wrap; gap: 15px; }
-nav a, .back-link { color: #93C5FD; text-decoration: none; }
-nav a:hover, .back-link:hover { text-decoration: underline; }
-
-main {
-    max-width: 1000px;
-    margin: auto;
-    padding: 25px 18px 50px;
-}
-
-h1, h2, h3 { line-height: 1.3; }
-h1 { color: #60A5FA; font-size: clamp(27px, 5vw, 38px); }
-h2 { color: #93C5FD; margin-top: 0; }
-
-.card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 15px;
-    padding: 22px;
-    margin: 22px 0;
-    overflow-wrap: anywhere;
-}
-
-.item {
-    background: var(--background);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 18px;
-    margin: 16px 0;
-    overflow-wrap: anywhere;
-}
-
-.item h3 { color: #E2E8F0; margin-top: 0; }
-.muted { color: var(--muted); font-size: 14px; }
-
-button {
-    border: none;
-    border-radius: 9px;
-    padding: 12px 17px;
-    background: var(--blue);
-    color: white;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    margin: 6px 5px 6px 0;
-}
-
-button:hover:not(:disabled) { background: var(--blue-hover); }
-button:disabled { opacity: .55; cursor: not-allowed; }
-button.secondary { background: #334155; }
-button.secondary:hover:not(:disabled) { background: #475569; }
-button.danger { background: #991B1B; }
-button.danger:hover:not(:disabled) { background: #B91C1C; }
-
-.status {
-    padding: 12px 14px;
-    border-radius: 9px;
-    background: #1E293B;
-    color: #CBD5E1;
-    margin: 12px 0;
-    overflow-wrap: anywhere;
-}
-
-.status.error { background: #451A1A; color: #FECACA; border: 1px solid #7F1D1D; }
-.status.success { background: #052E16; color: #BBF7D0; border: 1px solid #166534; }
-
-.poll-options { display: grid; gap: 11px; margin: 18px 0; }
-
-.poll-option {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    background: #111827;
-    border: 1px solid #475569;
-    border-radius: 10px;
-    padding: 14px;
-    cursor: pointer;
-}
-
-.poll-option:hover { border-color: #60A5FA; background: #1E293B; }
-.poll-option:has(input:checked) { border-color: #3B82F6; background: #172554; }
-.poll-option input { width: 18px; height: 18px; margin-top: 3px; flex-shrink: 0; accent-color: #3B82F6; }
-.poll-option-text { flex: 1; overflow-wrap: anywhere; }
-
-.pseudo-label {
-    display: block;
-    margin-top: 12px;
-    font-weight: 600;
-}
-
-.pseudo-input {
-    display: block;
-    width: 100%;
-    margin-top: 6px;
-    padding: 12px;
-    border-radius: 9px;
-    border: 1px solid #475569;
-    background: #111827;
-    color: #F8FAFC;
-    font: inherit;
-}
-
-.results {
-    display: grid;
-    gap: 15px;
-    margin-top: 22px;
-    padding-top: 18px;
-    border-top: 1px solid var(--border);
-}
-
-.results-title { margin: 0; font-size: 17px; color: #E2E8F0; }
-.result-heading { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 7px; }
-.result-heading span:first-child { overflow-wrap: anywhere; }
-.result-heading span:last-child { flex-shrink: 0; color: #BFDBFE; font-weight: 700; }
-
-.progress { width: 100%; height: 12px; border-radius: 20px; background: #334155; overflow: hidden; }
-.progress-fill { height: 100%; width: 0; border-radius: 20px; background: #3B82F6; transition: width .3s ease; }
-.results-total { margin: 0; padding-top: 4px; color: var(--muted); font-size: 14px; }
-.news-category { display: inline-block; background: #1E3A8A; color: #DBEAFE; border-radius: 20px; padding: 4px 10px; font-size: 12px; margin-bottom: 10px; }
-.news-content { white-space: pre-wrap; overflow-wrap: anywhere; }
-
-footer { border-top: 1px solid var(--border); padding: 22px; text-align: center; color: var(--muted); }
-
-@media (max-width: 600px) {
-    main { padding: 18px 12px 35px; }
-    .card { padding: 16px; }
-    .item { padding: 14px; }
-    nav { gap: 10px; }
-}
-</style>
-</head>
-
-<body>
-<header>
-    <div class="header-inner">
-        <a class="logo" href="index.html">Mon Bot PC</a>
-        <nav>
-            <a href="index.html">Accueil</a>
-            <a href="connexion.html" id="accountLink">Connexion</a>
-            <a href="premium.html">Premium</a>
-        </nav>
-    </div>
-</header>
-
-<main>
-    <a class="back-link" href="index.html">← Retour à l'accueil</a>
-    <h1>📰 Actualités et sondages</h1>
-    <p class="muted">Retrouvez les dernières nouvelles de Mon Bot PC et participez aux sondages.</p>
-
-    <section class="card">
-        <h2>📰 Dernières actualités</h2>
-        <div id="newsContainer">
-            <p class="muted">Chargement des actualités...</p>
-        </div>
-    </section>
-
-    <section class="card">
-        <h2>📊 Sondages</h2>
-        <p class="muted">
-            Connectez-vous pour voter. Choisissez un pseudo qui sera affiché avec votre vote.
-        </p>
-        <div id="pollContainer">
-            <p class="muted">Chargement des sondages...</p>
-        </div>
-    </section>
-</main>
-
-<footer>© Mon Bot PC — Tous droits réservés.</footer>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-
-import {
-    getAuth,
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-
-import {
-    getFirestore,
-    collection,
-    doc,
-    getDocs,
-    getDoc,
-    setDoc,
-    deleteDoc,
-    runTransaction,
-    query,
-    orderBy,
-    serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-
-const firebaseConfig = {
-    apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
-    authDomain: "monbotpc.firebaseapp.com",
-    projectId: "monbotpc",
-    storageBucket: "monbotpc.firebasestorage.app",
-    messagingSenderId: "691729637594",
-    appId: "1:691729637594:web:9564d52349c04809fe85e3"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-const $ = id => document.getElementById(id);
-
-let utilisateurActuel = null;
-let generationAffichage = 0;
-
-function el(tag, texte = "") {
-    const node = document.createElement(tag);
-    node.textContent = texte;
-    return node;
-}
-
-function message(container, texte, type = "") {
-    container.replaceChildren();
-    const p = el("p", texte);
-    p.className = "status" + (type ? " " + type : "");
-    container.appendChild(p);
-}
-
-function dateValeur(value) {
-    if (!value) return 0;
-    if (typeof value.seconds === "number") return value.seconds;
-    if (typeof value.toDate === "function") return value.toDate().getTime();
-
-    const d = new Date(value);
-    return Number.isNaN(d.getTime()) ? 0 : d.getTime();
-}
-
-function dateTexte(value) {
-    if (!value) return "";
-
-    const d = typeof value.toDate === "function"
-        ? value.toDate()
-        : new Date(value);
-
-    return Number.isNaN(d.getTime())
-        ? ""
-        : d.toLocaleString("fr-CA", {
-            dateStyle: "medium",
-            timeStyle: "short"
-        });
-}
-
-function normaliserOptions(value) {
-    if (Array.isArray(value)) {
-        return value.map(v =>
-            typeof v === "string"
-                ? v.trim()
-                : String(v?.text ?? v?.label ?? v?.name ?? v?.title ?? "").trim()
-        ).filter(Boolean);
-    }
-
-    if (typeof value === "string") {
-        try {
-            const parsed = JSON.parse(value);
-            return Array.isArray(parsed) ? normaliserOptions(parsed) : [];
-        } catch {
-            return [];
-        }
-    }
-
-    return [];
-}
-
-function validerPseudo(value) {
-    const pseudo = String(value || "").trim();
-
-    if (pseudo.length < 3 || pseudo.length > 20) {
-        throw new Error("Le pseudo doit contenir entre 3 et 20 caractères.");
-    }
-
-    if (!/^[\p{L}\p{N}_ -]+$/u.test(pseudo)) {
-        throw new Error("Le pseudo contient des caractères non autorisés.");
-    }
-
-    return pseudo;
-}
-
-/* ACTUALITÉS */
-
-async function chargerActualites() {
-    const container = $("newsContainer");
-
-    try {
-        let snap;
-
-        try {
-            snap = await getDocs(
-                query(collection(db, "news"), orderBy("createdAt", "desc"))
-            );
-        } catch {
-            snap = await getDocs(collection(db, "news"));
-        }
-
-        if (snap.empty) {
-            message(container, "Aucune actualité publiée pour le moment.");
-            return;
-        }
-
-        const items = snap.docs.map(d => ({
-            id: d.id,
-            ...d.data()
-        }));
-
-        items.sort((a, b) => dateValeur(b.createdAt) - dateValeur(a.createdAt));
-        container.replaceChildren();
-
-        for (const item of items) {
-            const card = el("article");
-            card.className = "item";
-
-            card.appendChild(el("h3", item.title || "Actualité sans titre"));
-
-            if (item.category) {
-                const badge = el("span", item.category);
-                badge.className = "news-category";
-                card.appendChild(badge);
-            }
-
-            const content = el("p", item.content || "Aucun contenu.");
-            content.className = "news-content";
-            card.appendChild(content);
-
-            const date = dateTexte(item.createdAt);
-
-            if (date) {
-                const p = el("p", "Publié le " + date);
-                p.className = "muted";
-                card.appendChild(p);
-            }
-
-            container.appendChild(card);
-        }
-    } catch (error) {
-        console.error("Erreur actualités :", error);
-        message(
-            container,
-            "Impossible de charger les actualités : " + error.message,
-            "error"
-        );
-    }
-}
-
-/*
- * Nouvelle structure :
- *
- * polls/{pollId}/votes/{voteId}
- *   pseudo
- *   optionIndex
- *   createdAt
- *
- * polls/{pollId}/userVotes/{uid}
- *   voteId
- *   pseudo
- *   optionIndex
- *
- * Le document public du vote ne contient pas l'UID.
- * Le lien entre l'utilisateur et son vote est dans userVotes,
- * dont la lecture doit être limitée au propriétaire.
- */
-
-function afficherResultats(card, options, votes) {
-    const section = el("section");
-    section.className = "results";
-
-    section.appendChild(el("h4", "📊 Résultats"));
-
-    const counts = options.map(() => 0);
-
-    for (const vote of votes) {
-        const index = vote.optionIndex;
-
-        if (Number.isInteger(index) && index >= 0 && index < options.length) {
-            counts[index]++;
-        }
-    }
-
-    const total = counts.reduce((a, b) => a + b, 0);
-
-    options.forEach((option, i) => {
-        const n = counts[i];
-        const pct = total ? Math.round(n * 100 / total) : 0;
-
-        const row = el("div");
-        const heading = el("div");
-        heading.className = "result-heading";
-
-        heading.append(
-            el("span", option),
-            el("span", `${pct} % (${n} vote${n > 1 ? "s" : ""})`)
-        );
-
-        const bar = el("div");
-        bar.className = "progress";
-        bar.setAttribute("role", "progressbar");
-        bar.setAttribute("aria-valuemin", "0");
-        bar.setAttribute("aria-valuemax", "100");
-        bar.setAttribute("aria-valuenow", String(pct));
-
-        const fill = el("div");
-        fill.className = "progress-fill";
-        fill.style.width = pct + "%";
-
-        bar.appendChild(fill);
-        row.append(heading, bar);
-        section.appendChild(row);
-    });
-
-    section.appendChild(
-        el("p", `👥 ${total} participant${total === 1 ? "" : "s"} au total`)
-    );
-
-    section.lastElementChild.className = "results-total";
-
-    const voterList = el("div");
-    voterList.className = "muted";
-
-    if (votes.length) {
-        voterList.appendChild(el("p", "Participants :"));
-
-        for (const vote of votes) {
-            const index = vote.optionIndex;
-
-            if (index >= 0 && index < options.length) {
-                voterList.appendChild(
-                    el("p", `👤 ${vote.pseudo || "Participant"} — ${options[index]}`)
-                );
-            }
-        }
-    }
-
-    section.appendChild(voterList);
-    card.appendChild(section);
-}
-
-/* VOTER : lire les votes anonymes pour calculer les résultats */
-
-async function lireVotes(pollId) {
-    const snapshot = await getDocs(
-        collection(db, "polls", pollId, "votes")
-    );
-
-    return snapshot.docs.map(d => ({
-        id: d.id,
-        ...d.data()
-    }));
-}
-
-/* ENREGISTRER OU MODIFIER LE VOTE */
-
-async function enregistrerVote(pollId, options, nouvelIndex, pseudoSaisi) {
-    if (!utilisateurActuel) {
-        throw new Error("Connectez-vous pour voter.");
-    }
-
-    const pseudo = validerPseudo(pseudoSaisi);
-
-    if (!Number.isInteger(nouvelIndex) ||
-        nouvelIndex < 0 ||
-        nouvelIndex >= options.length) {
-        throw new Error("Choisissez une réponse valide.");
-    }
-
-    const uid = utilisateurActuel.uid;
-
-    const pollRef = doc(db, "polls", pollId);
-    const userVoteRef = doc(db, "polls", pollId, "userVotes", uid);
-
-    await runTransaction(db, async transaction => {
-        const pollSnap = await transaction.get(pollRef);
-        const userVoteSnap = await transaction.get(userVoteRef);
-
-        if (!pollSnap.exists()) {
-            throw new Error("Ce sondage n'existe plus.");
-        }
-
-        const pollOptions = normaliserOptions(pollSnap.data().options);
-
-        if (pollOptions.length !== options.length) {
-            throw new Error("Les options du sondage ont changé. Actualisez la page.");
-        }
-
-        let voteRef;
-        let voteData;
-
-        if (userVoteSnap.exists()) {
-            const previous = userVoteSnap.data();
-
-            if (!previous.voteId) {
-                throw new Error(
-                    "Votre ancien vote doit être migré avant de pouvoir être modifié."
-                );
-            }
-
-            voteRef = doc(db, "polls", pollId, "votes", previous.voteId);
-
-            const previousVoteSnap = await transaction.get(voteRef);
-
-            if (!previousVoteSnap.exists()) {
-                throw new Error(
-                    "Votre vote est introuvable. Supprimez votre référence de vote ou contactez un administrateur."
-                );
-            }
-
-            voteData = {
-                pseudo,
-                optionIndex: nouvelIndex
-            };
-
-            transaction.update(voteRef, voteData);
-
-            transaction.update(userVoteRef, {
-                pseudo,
-                optionIndex: nouvelIndex,
-                updatedAt: serverTimestamp()
-            });
-        } else {
-            const newVoteRef = doc(
-                collection(db, "polls", pollId, "votes")
-            );
-
-            transaction.set(newVoteRef, {
-                pseudo,
-                optionIndex: nouvelIndex,
-                createdAt: serverTimestamp()
-            });
-
-            transaction.set(userVoteRef, {
-                voteId: newVoteRef.id,
-                pseudo,
-                optionIndex: nouvelIndex,
-                createdAt: serverTimestamp()
-            });
-        }
-    });
-
-    localStorage.setItem("monBotPC_pseudo", pseudo);
-}
-
-/* SUPPRIMER LE VOTE */
-
-async function supprimerVote(pollId) {
-    if (!utilisateurActuel) {
-        throw new Error("Connectez-vous pour supprimer votre vote.");
-    }
-
-    const uid = utilisateurActuel.uid;
-
-    const userVoteRef = doc(db, "polls", pollId, "userVotes", uid);
-
-    await runTransaction(db, async transaction => {
-        const userVoteSnap = await transaction.get(userVoteRef);
-
-        if (!userVoteSnap.exists()) {
-            throw new Error("Vous n'avez pas encore voté à ce sondage.");
-        }
-
-        const userVote = userVoteSnap.data();
-
-        if (!userVote.voteId) {
-            throw new Error("Votre ancien vote doit être migré avant sa suppression.");
-        }
-
-        const voteRef = doc(
-            db,
-            "polls",
-            pollId,
-            "votes",
-            userVote.voteId
-        );
-
-        const voteSnap = await transaction.get(voteRef);
-
-        if (!voteSnap.exists()) {
-            throw new Error("Le vote à supprimer est introuvable.");
-        }
-
-        transaction.delete(voteRef);
-        transaction.delete(userVoteRef);
-    });
-}
-
-/* AFFICHAGE DES SONDAGES */
-
+```javascript
 async function chargerSondages() {
-    const generation = ++generationAffichage;
-    const container = $("pollContainer");
+    const container = document.getElementById("polls-container");
+
+    if (!container) {
+        console.error("Élément polls-container introuvable.");
+        return;
+    }
+
+    container.innerHTML = "";
 
     try {
-        const snapshot = await getDocs(collection(db, "polls"));
+        const pollsRef = collection(db, "polls");
+        const pollsSnapshot = await getDocs(pollsRef);
 
-        if (generation !== generationAffichage) return;
-
-        if (snapshot.empty) {
-            message(container, "Aucun sondage publié pour le moment.");
+        if (pollsSnapshot.empty) {
+            container.innerHTML = "<p>Aucun sondage pour le moment.</p>";
             return;
         }
 
-        const polls = snapshot.docs.map(d => ({
-            id: d.id,
-            ...d.data()
-        }));
+        for (const pollDocument of pollsSnapshot.docs) {
+            const poll = pollDocument.data();
+            const pollId = pollDocument.id;
+            const pollRef = doc(db, "polls", pollId);
 
-        polls.sort((a, b) => dateValeur(b.createdAt) - dateValeur(a.createdAt));
-
-        container.replaceChildren();
-
-        for (const poll of polls) {
-            const card = el("article");
-            card.className = "item";
-
-            card.appendChild(el("h3", poll.question || "Sondage sans question"));
-
-            const date = dateTexte(poll.createdAt);
-
-            if (date) {
-                const p = el("p", "Publié le " + date);
-                p.className = "muted";
-                card.appendChild(p);
-            }
-
-            const options = normaliserOptions(poll.options);
+            const options = Array.isArray(poll.options) ? poll.options : [];
 
             if (options.length < 2) {
-                const p = el("p", "Les réponses sont absentes ou incomplètes.");
-                p.className = "status error";
-                card.appendChild(p);
-                container.appendChild(card);
+                console.warn("Sondage ignoré : options invalides.", pollId);
                 continue;
             }
 
+            const card = el("div");
+            card.className = "poll-card";
+
+            const question = el("h3", poll.question || "Sondage sans titre");
+            card.appendChild(question);
+
+            /*
+             * CHOIX DU PSEUDO
+             */
             const form = el("form");
+            form.className = "poll-form";
 
             const pseudoLabel = el("label", "👤 Ton pseudo");
-            pseudoLabel.className = "pseudo-label";
+            pseudoLabel.className = "poll-pseudo-label";
 
-            const pseudoInput = document.createElement("input");
-            pseudoInput.className = "pseudo-input";
+            const pseudoInput = el("input");
             pseudoInput.type = "text";
-            pseudoInput.minLength = 3;
-            pseudoInput.maxLength = 20;
+            pseudoInput.placeholder = "Entre ton pseudo";
+            pseudoInput.maxLength = 24;
             pseudoInput.required = true;
             pseudoInput.autocomplete = "nickname";
-            pseudoInput.placeholder = "Choisis un pseudo (3 à 20 caractères)";
-            pseudoInput.value = localStorage.getItem("monBotPC_pseudo") || "";
+            pseudoInput.className = "poll-pseudo-input";
 
             pseudoLabel.appendChild(pseudoInput);
             form.appendChild(pseudoLabel);
 
+            /*
+             * CHOIX DE LA RÉPONSE
+             * La variable choices est déclarée ici,
+             * avant d'être utilisée.
+             */
             const choices = el("div");
             choices.className = "poll-options";
 
-            options.forEach((option, i) => {
+            options.forEach((option, index) => {
                 const label = el("label");
                 label.className = "poll-option";
 
-                const radio = document.createElement("input");
+                const radio = el("input");
                 radio.type = "radio";
-                radio.name = "poll-" + poll.id;
-                radio.value = String(i);
+                radio.name = `poll-${pollId}`;
+                radio.value = String(index);
                 radio.required = true;
 
-                const text = el("span", option);
-                text.className = "poll-option-text";
+                const optionText = el("span", String(option));
 
-                label.append(radio, text);
+                label.appendChild(radio);
+                label.appendChild(optionText);
                 choices.appendChild(label);
             });
 
             form.appendChild(choices);
 
-            const voteBtn = el("button", "🗳️ Voter");
-            voteBtn.type = "submit";
+            /*
+             * BOUTON POUR VOTER
+             */
+            const voteButton = el("button", "🗳️ Voter");
+            voteButton.type = "submit";
+            voteButton.className = "poll-vote-button";
 
-            const editBtn = el("button", "✏️ Modifier mon vote");
-            editBtn.type = "button";
-            editBtn.className = "secondary";
-            editBtn.hidden = true;
+            form.appendChild(voteButton);
 
-            const deleteBtn = el("button", "🗑️ Supprimer mon vote");
-            deleteBtn.type = "button";
-            deleteBtn.className = "danger";
-            deleteBtn.hidden = true;
+            /*
+             * RÉSULTATS DU SONDAGE
+             */
+            const results = el("div");
+            results.className = "poll-results";
 
-            const status = el("div");
-            status.setAttribute("aria-live", "polite");
+            const totalVotesElement = el("p", "Chargement des résultats...");
+            totalVotesElement.className = "poll-total-votes";
 
-            form.appendChild(voteBtn);
-            card.append(form, editBtn, deleteBtn, status);
+            results.appendChild(totalVotesElement);
+
+            const resultsList = el("div");
+            resultsList.className = "poll-results-list";
+
+            results.appendChild(resultsList);
+
+            /*
+             * MESSAGE DE STATUT
+             */
+            const status = el("p");
+            status.className = "poll-status";
+            status.setAttribute("role", "status");
+
+            /*
+             * BOUTONS ADMINISTRATEUR
+             */
+            const editButton = el("button", "✏️ Modifier");
+            editButton.type = "button";
+            editButton.className = "poll-edit-button";
+            editButton.hidden = true;
+
+            const deleteButton = el("button", "🗑️ Supprimer");
+            deleteButton.type = "button";
+            deleteButton.className = "poll-delete-button";
+            deleteButton.hidden = true;
+
+            /*
+             * ASSEMBLAGE DE LA CARTE
+             */
+            card.appendChild(form);
+            card.appendChild(results);
+            card.appendChild(status);
+            card.appendChild(editButton);
+            card.appendChild(deleteButton);
+
             container.appendChild(card);
 
-            let monVote = null;
+            /*
+             * CHARGER LES VOTES ET AFFICHER LES POURCENTAGES
+             */
+            try {
+                const votesRef = collection(db, "polls", pollId, "votes");
+                const votesSnapshot = await getDocs(votesRef);
 
-            if (utilisateurActuel) {
-                try {
-                    const userVoteSnap = await getDoc(
-                        doc(db, "polls", poll.id, "userVotes", utilisateurActuel.uid)
-                    );
+                const counts = new Array(options.length).fill(0);
+                const votersByOption = new Array(options.length)
+                    .fill(null)
+                    .map(() => []);
 
-                    if (userVoteSnap.exists()) {
-                        const data = userVoteSnap.data();
+                votesSnapshot.forEach((voteDocument) => {
+                    const vote = voteDocument.data();
+                    const optionIndex = vote.optionIndex;
 
-                        if (Number.isInteger(data.optionIndex) &&
-                            data.optionIndex >= 0 &&
-                            data.optionIndex < options.length) {
-                            monVote = data.optionIndex;
-                            pseudoInput.value = data.pseudo || pseudoInput.value;
+                    if (
+                        Number.isInteger(optionIndex) &&
+                        optionIndex >= 0 &&
+                        optionIndex < options.length
+                    ) {
+                        counts[optionIndex]++;
 
-                            const radio = form.querySelector(
-                                `input[value="${monVote}"]`
-                            );
-
-                            if (radio) radio.checked = true;
-
-                            voteBtn.hidden = true;
-                            editBtn.hidden = false;
-                            deleteBtn.hidden = false;
+                        if (typeof vote.pseudo === "string" && vote.pseudo.trim()) {
+                            votersByOption[optionIndex].push(vote.pseudo.trim());
                         }
                     }
-                } catch (error) {
-                    console.error("Erreur lecture vote personnel :", error);
-                    message(
-                        status,
-                        "Impossible de vérifier votre vote : " + error.message,
-                        "error"
+                });
+
+                const totalVotes = votesSnapshot.size;
+
+                totalVotesElement.textContent =
+                    `👥 ${totalVotes} participant${totalVotes > 1 ? "s" : ""}`;
+
+                resultsList.innerHTML = "";
+
+                options.forEach((option, index) => {
+                    const count = counts[index];
+                    const percentage = totalVotes > 0
+                        ? Math.round((count / totalVotes) * 100)
+                        : 0;
+
+                    const resultRow = el("div");
+                    resultRow.className = "poll-result-row";
+
+                    const resultTitle = el(
+                        "div",
+                        `${option} — ${count} vote${count > 1 ? "s" : ""} (${percentage} %)`
                     );
-                }
-            }
+                    resultTitle.className = "poll-result-title";
 
-            try {
-                const votes = await lireVotes(poll.id);
+                    const progressTrack = el("div");
+                    progressTrack.className = "poll-progress-track";
 
-                if (generation !== generationAffichage) return;
+                    const progressBar = el("div");
+                    progressBar.className = "poll-progress-bar";
+                    progressBar.style.width = `${percentage}%`;
+                    progressBar.setAttribute("aria-label", `${percentage} %`);
 
-                afficherResultats(card, options, votes);
+                    progressTrack.appendChild(progressBar);
+                    resultRow.appendChild(resultTitle);
+                    resultRow.appendChild(progressTrack);
+
+                    if (votersByOption[index].length > 0) {
+                        const voters = el(
+                            "p",
+                            `👤 ${votersByOption[index].join(", ")}`
+                        );
+                        voters.className = "poll-voters";
+                        resultRow.appendChild(voters);
+                    }
+
+                    resultsList.appendChild(resultRow);
+                });
             } catch (error) {
-                console.error("Erreur chargement des résultats :", error);
-
-                const p = el(
-                    "p",
-                    "Impossible de charger les résultats : " + error.message
+                console.error(
+                    `Erreur de chargement des votes du sondage ${pollId} :`,
+                    error
                 );
 
-                p.className = "status error";
-                card.appendChild(p);
+                totalVotesElement.textContent =
+                    "Impossible de charger les résultats. Vérifie les règles Firestore.";
             }
 
-            form.addEventListener("submit", async event => {
+            /*
+             * ENREGISTRER OU MODIFIER LE VOTE
+             * Cette fonction utilise enregistrerVote() si elle existe.
+             */
+            form.addEventListener("submit", async (event) => {
                 event.preventDefault();
 
-                if (!utilisateurActuel) {
-                    message(status, "Connectez-vous pour participer.", "error");
+                const pseudo = pseudoInput.value.trim();
+                const selected = form.querySelector(
+                    `input[name="poll-${pollId}"]:checked`
+                );
+
+                if (!pseudo) {
+                    status.textContent = "Entre ton pseudo avant de voter.";
+                    pseudoInput.focus();
                     return;
                 }
-
-                if (monVote !== null) {
-                    message(
-                        status,
-                        "Vous avez déjà voté. Utilisez « Modifier mon vote ».",
-                        "error"
-                    );
-                    return;
-                }
-
-                const selected = form.querySelector("input:checked");
 
                 if (!selected) {
-                    message(status, "Choisissez une réponse.", "error");
+                    status.textContent = "Choisis une réponse.";
                     return;
                 }
 
-                voteBtn.disabled = true;
+                if (typeof enregistrerVote !== "function") {
+                    status.textContent =
+                        "La fonction enregistrerVote() est introuvable dans le script.";
+                    console.error("Fonction enregistrerVote() introuvable.");
+                    return;
+                }
+
+                voteButton.disabled = true;
+                status.textContent = "Enregistrement du vote...";
 
                 try {
                     await enregistrerVote(
-                        poll.id,
-                        options,
+                        pollId,
                         Number(selected.value),
-                        pseudoInput.value
+                        pseudo
                     );
 
-                    message(status, "Votre vote a été enregistré.", "success");
+                    status.textContent = "✅ Ton vote a été enregistré.";
                     await chargerSondages();
-                    return;
                 } catch (error) {
-                    console.error(error);
-                    message(status, error.message, "error");
+                    console.error("Erreur lors du vote :", error);
+                    status.textContent =
+                        "Impossible d'enregistrer ton vote. Vérifie les règles Firestore et réessaie.";
                 } finally {
-                    voteBtn.disabled = false;
+                    voteButton.disabled = false;
                 }
             });
 
-            editBtn.addEventListener("click", async () => {
-                if (!utilisateurActuel) {
-                    message(status, "Connectez-vous pour modifier votre vote.", "error");
-                    return;
-                }
-
-                const selected = form.querySelector("input:checked");
-
-                if (!selected) {
-                    message(status, "Sélectionnez votre nouvelle réponse.", "error");
-                    return;
-                }
-
-                editBtn.disabled = true;
-
-                try {
-                    await enregistrerVote(
-                        poll.id,
-                        options,
-                        Number(selected.value),
-                        pseudoInput.value
-                    );
-
-                    message(status, "Votre vote a été modifié.", "success");
-                    await chargerSondages();
-                    return;
-                } catch (error) {
-                    console.error(error);
-                    message(status, error.message, "error");
-                } finally {
-                    editBtn.disabled = false;
-                }
-            });
-
-            deleteBtn.addEventListener("click", async () => {
-                if (!confirm("Voulez-vous vraiment supprimer votre vote ?")) return;
-
-                deleteBtn.disabled = true;
-
-                try {
-                    await supprimerVote(poll.id);
-
-                    message(status, "Votre vote a été supprimé.", "success");
-                    await chargerSondages();
-                    return;
-                } catch (error) {
-                    console.error(error);
-                    message(status, error.message, "error");
-                } finally {
-                    deleteBtn.disabled = false;
-                }
-            });
-
-            if (!utilisateurActuel) {
-                voteBtn.disabled = true;
-                voteBtn.title = "Connectez-vous pour voter";
+            /*
+             * AFFICHER LES BOUTONS ADMIN SI L'UTILISATEUR EST ADMIN
+             */
+            if (typeof estAdmin !== "undefined" && estAdmin) {
+                editButton.hidden = false;
+                deleteButton.hidden = false;
             }
+
+            /*
+             * SUPPRIMER UN SONDAGE
+             */
+            deleteButton.addEventListener("click", async () => {
+                if (typeof estAdmin === "undefined" || !estAdmin) {
+                    status.textContent =
+                        "Seuls les administrateurs peuvent supprimer un sondage.";
+                    return;
+                }
+
+                if (!confirm("Veux-tu vraiment supprimer ce sondage ?")) {
+                    return;
+                }
+
+                try {
+                    await deleteDoc(pollRef);
+                    status.textContent = "Sondage supprimé.";
+                    await chargerSondages();
+                } catch (error) {
+                    console.error("Erreur de suppression :", error);
+                    status.textContent =
+                        "Impossible de supprimer le sondage.";
+                }
+            });
+
+            /*
+             * MODIFIER UN SONDAGE
+             */
+            editButton.addEventListener("click", async () => {
+                if (typeof estAdmin === "undefined" || !estAdmin) {
+                    status.textContent =
+                        "Seuls les administrateurs peuvent modifier un sondage.";
+                    return;
+                }
+
+                const nouvelleQuestion = prompt(
+                    "Nouvelle question :",
+                    poll.question || ""
+                );
+
+                if (nouvelleQuestion === null) {
+                    return;
+                }
+
+                const questionNettoyee = nouvelleQuestion.trim();
+
+                if (!questionNettoyee) {
+                    alert("La question ne peut pas être vide.");
+                    return;
+                }
+
+                try {
+                    await updateDoc(pollRef, {
+                        question: questionNettoyee
+                    });
+
+                    await chargerSondages();
+                } catch (error) {
+                    console.error("Erreur de modification :", error);
+                    status.textContent =
+                        "Impossible de modifier le sondage.";
+                }
+            });
+        }
+
+        if (!container.hasChildNodes()) {
+            container.innerHTML = "<p>Aucun sondage valide à afficher.</p>";
         }
     } catch (error) {
-        console.error("Erreur sondages :", error);
-
-        message(
-            container,
-            "Impossible de charger les sondages : " + error.message,
-            "error"
-        );
+        console.error("Impossible de charger les sondages :", error);
+        container.innerHTML =
+            "<p>Impossible de charger les sondages. Vérifie la connexion Firebase et les règles Firestore.</p>";
     }
 }
-
-/* AUTHENTIFICATION */
-
-onAuthStateChanged(auth, async user => {
-    utilisateurActuel = user;
-
-    const link = $("accountLink");
-    link.textContent = user ? "Mon compte" : "Connexion";
-    link.href = "connexion.html";
-
-    await Promise.allSettled([
-        chargerActualites(),
-        chargerSondages()
-    ]);
-});
-</script>
-</body>
-</html>
+```
