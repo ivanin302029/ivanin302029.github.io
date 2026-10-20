@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -158,6 +157,7 @@ button.secondary:hover:not(:disabled) {
     background: #1E293B;
     color: #CBD5E1;
     margin: 12px 0;
+    overflow-wrap: anywhere;
 }
 
 .status.error {
@@ -208,19 +208,33 @@ button.secondary:hover:not(:disabled) {
     accent-color: #3B82F6;
 }
 
+.poll-option input:disabled {
+    cursor: not-allowed;
+}
+
 .poll-option-text {
     flex: 1;
     overflow-wrap: anywhere;
 }
 
+/* Résultats façon sondage Discord */
+
 .results {
     display: grid;
     gap: 15px;
-    margin-top: 18px;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+}
+
+.results-title {
+    margin: 0;
+    font-size: 17px;
+    color: #E2E8F0;
 }
 
 .result-row {
-    margin: 12px 0;
+    margin: 4px 0;
 }
 
 .result-heading {
@@ -255,6 +269,19 @@ button.secondary:hover:not(:disabled) {
     border-radius: 20px;
     background: #3B82F6;
     transition: width .3s ease;
+}
+
+.results-total {
+    margin: 0;
+    padding-top: 4px;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.results-unavailable {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 0;
 }
 
 .news-category {
@@ -333,6 +360,7 @@ footer {
 
     <section class="card" aria-labelledby="newsTitle">
         <h2 id="newsTitle">📰 Dernières actualités</h2>
+
         <div id="newsContainer">
             <p class="muted">Chargement des actualités...</p>
         </div>
@@ -340,6 +368,7 @@ footer {
 
     <section class="card" aria-labelledby="pollTitle">
         <h2 id="pollTitle">📊 Sondages</h2>
+
         <p class="muted">
             Sélectionnez une réponse et votez. Vous devez être connecté
             pour participer.
@@ -376,6 +405,10 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
+/* ==========================================
+   CONFIGURATION FIREBASE
+========================================== */
+
 const firebaseConfig = {
     apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
     authDomain: "monbotpc.firebaseapp.com",
@@ -392,7 +425,12 @@ const db = getFirestore(app);
 const $ = id => document.getElementById(id);
 
 let utilisateurActuel = null;
-let sondagesCharges = false;
+let premiereInitialisation = true;
+let chargementSondages = false;
+
+/* ==========================================
+   OUTILS GÉNÉRAUX
+========================================== */
 
 function creerElement(tag, texte = "") {
     const element = document.createElement(tag);
@@ -428,10 +466,23 @@ function dateTexte(timestamp) {
     }
 }
 
+function valeurDate(timestamp) {
+    if (!timestamp) return 0;
+
+    if (typeof timestamp.seconds === "number") {
+        return timestamp.seconds;
+    }
+
+    if (typeof timestamp.toDate === "function") {
+        return timestamp.toDate().getTime() / 1000;
+    }
+
+    const date = new Date(timestamp);
+    return Number.isNaN(date.getTime()) ? 0 : date.getTime() / 1000;
+}
+
 /*
- * Normalise plusieurs formats possibles d'options.
- * Le format créé par admin.html est un tableau de chaînes :
- * options: ["Réponse 1", "Réponse 2"]
+ * Normalise les options des sondages.
  */
 function normaliserOptions(valeur) {
     if (Array.isArray(valeur)) {
@@ -441,10 +492,7 @@ function normaliserOptions(valeur) {
                     return option.trim();
                 }
 
-                if (
-                    option &&
-                    typeof option === "object"
-                ) {
+                if (option && typeof option === "object") {
                     return String(
                         option.text ??
                         option.label ??
@@ -459,7 +507,6 @@ function normaliserOptions(valeur) {
             .filter(option => option.length > 0);
     }
 
-    // Prend aussi en charge une chaîne JSON contenant un tableau.
     if (typeof valeur === "string") {
         try {
             const decode = JSON.parse(valeur);
@@ -468,7 +515,7 @@ function normaliserOptions(valeur) {
                 return normaliserOptions(decode);
             }
         } catch {
-            // La chaîne n'est pas un tableau JSON.
+            // La valeur n'est pas un tableau JSON.
         }
     }
 
@@ -491,15 +538,16 @@ async function chargerActualites() {
                 query(reference, orderBy("createdAt", "desc"))
             );
         } catch {
-            // Permet de charger les actualités même si certaines
-            // anciennes données ne possèdent pas createdAt.
             snapshot = await getDocs(reference);
         }
 
         container.replaceChildren();
 
         if (snapshot.empty) {
-            afficherMessage(container, "Aucune actualité publiée.");
+            afficherMessage(
+                container,
+                "Aucune actualité publiée pour le moment."
+            );
             return;
         }
 
@@ -508,11 +556,9 @@ async function chargerActualites() {
             ...document.data()
         }));
 
-        actualites.sort((a, b) => {
-            const dateA = a.createdAt?.seconds || 0;
-            const dateB = b.createdAt?.seconds || 0;
-            return dateB - dateA;
-        });
+        actualites.sort(
+            (a, b) => valeurDate(b.createdAt) - valeurDate(a.createdAt)
+        );
 
         for (const actualite of actualites) {
             const carte = creerElement("article");
@@ -530,6 +576,7 @@ async function chargerActualites() {
                     "span",
                     actualite.category
                 );
+
                 categorie.className = "news-category";
                 carte.appendChild(categorie);
             }
@@ -538,6 +585,7 @@ async function chargerActualites() {
                 "p",
                 actualite.content || "Aucun contenu."
             );
+
             contenu.className = "news-content";
             carte.appendChild(contenu);
 
@@ -548,6 +596,7 @@ async function chargerActualites() {
                     "p",
                     "Publié le " + date
                 );
+
                 dateElement.className = "muted";
                 carte.appendChild(dateElement);
             }
@@ -567,28 +616,216 @@ async function chargerActualites() {
 }
 
 /* ==========================================
-   SONDAGES
+   AFFICHAGE DES RÉSULTATS
 ========================================== */
 
 /*
- * Les règles Firebase fournies autorisent la lecture des documents
- * polls. Elles ne donnent cependant pas accès aux votes individuels
- * des autres utilisateurs.
+ * Les résultats sont lus dans les champs du document du sondage :
  *
- * Les résultats ci-dessous ne sont donc pas calculés en lisant
- * publiquement la sous-collection votes.
+ * voteCounts: [2, 0]
+ * totalVotes: 2
+ *
+ * Cette fonction n'accède jamais à la liste des votes individuels.
+ * Les noms et identifiants des votants ne sont donc pas affichés.
  */
 
+function lireCompteurs(sondage, nombreOptions) {
+    const compteurs = sondage.voteCounts;
+    const totalEnregistre = sondage.totalVotes;
+
+    if (
+        !Array.isArray(compteurs) ||
+        compteurs.length !== nombreOptions ||
+        !compteurs.every(
+            nombre => Number.isInteger(nombre) && nombre >= 0
+        )
+    ) {
+        return null;
+    }
+
+    const totalCalcule = compteurs.reduce(
+        (somme, nombre) => somme + nombre,
+        0
+    );
+
+    if (
+        totalEnregistre !== undefined &&
+        (
+            !Number.isInteger(totalEnregistre) ||
+            totalEnregistre < 0 ||
+            totalEnregistre !== totalCalcule
+        )
+    ) {
+        return null;
+    }
+
+    return {
+        compteurs,
+        total: totalCalcule
+    };
+}
+
+function afficherResultatsSondage(
+    carte,
+    options,
+    sondage
+) {
+    const resultats = document.createElement("section");
+    resultats.className = "results";
+    resultats.setAttribute(
+        "aria-label",
+        "Résultats du sondage"
+    );
+
+    const titre = creerElement("h4", "📊 Résultats");
+    titre.className = "results-title";
+    resultats.appendChild(titre);
+
+    const donnees = lireCompteurs(
+        sondage,
+        options.length
+    );
+
+    if (!donnees) {
+        const information = creerElement(
+            "p",
+            "Les compteurs de résultats ne sont pas encore initialisés."
+        );
+
+        information.className = "results-unavailable";
+        resultats.appendChild(information);
+        carte.appendChild(resultats);
+
+        return;
+    }
+
+    const { compteurs, total } = donnees;
+
+    options.forEach((option, index) => {
+        const nombre = compteurs[index];
+
+        const pourcentage = total > 0
+            ? Math.round((nombre / total) * 100)
+            : 0;
+
+        const ligne = document.createElement("div");
+        ligne.className = "result-row";
+
+        const entete = document.createElement("div");
+        entete.className = "result-heading";
+
+        const texteOption = creerElement(
+            "span",
+            option
+        );
+
+        const chiffres = creerElement(
+            "span",
+            `${pourcentage} % (${nombre})`
+        );
+
+        entete.append(
+            texteOption,
+            chiffres
+        );
+
+        const barre = document.createElement("div");
+        barre.className = "progress";
+        barre.setAttribute("role", "progressbar");
+        barre.setAttribute("aria-label", option);
+        barre.setAttribute("aria-valuemin", "0");
+        barre.setAttribute("aria-valuemax", "100");
+        barre.setAttribute("aria-valuenow", String(pourcentage));
+
+        const remplissage = document.createElement("div");
+        remplissage.className = "progress-fill";
+        remplissage.style.width = `${pourcentage}%`;
+
+        barre.appendChild(remplissage);
+        ligne.append(entete, barre);
+        resultats.appendChild(ligne);
+    });
+
+    const totalTexte = creerElement(
+        "p",
+        `👥 ${total} participant${total > 1 ? "s" : ""} au total`
+    );
+
+    totalTexte.className = "results-total";
+    resultats.appendChild(totalTexte);
+
+    carte.appendChild(resultats);
+}
+
+/* ==========================================
+   VÉRIFICATION DU VOTE PERSONNEL
+========================================== */
+
+async function verifierVotePersonnel(
+    sondageId,
+    uid,
+    formulaire,
+    bouton,
+    message
+) {
+    try {
+        const voteRef = doc(
+            db,
+            "polls",
+            sondageId,
+            "votes",
+            uid
+        );
+
+        const vote = await getDoc(voteRef);
+
+        if (vote.exists()) {
+            formulaire.querySelectorAll("input").forEach(input => {
+                input.disabled = true;
+            });
+
+            bouton.disabled = true;
+            bouton.textContent = "Vote déjà enregistré";
+
+            afficherMessage(
+                message,
+                "Vous avez déjà participé à ce sondage."
+            );
+        }
+    } catch (error) {
+        console.warn(
+            "Impossible de vérifier le vote personnel :",
+            error
+        );
+    }
+}
+
+/* ==========================================
+   SONDAGES
+========================================== */
+
 async function chargerSondages() {
+    if (chargementSondages) {
+        return;
+    }
+
+    chargementSondages = true;
+
     const container = $("pollContainer");
 
     try {
-        const snapshot = await getDocs(collection(db, "polls"));
+        const snapshot = await getDocs(
+            collection(db, "polls")
+        );
 
         container.replaceChildren();
 
         if (snapshot.empty) {
-            afficherMessage(container, "Aucun sondage publié pour le moment.");
+            afficherMessage(
+                container,
+                "Aucun sondage publié pour le moment."
+            );
+
             return;
         }
 
@@ -597,11 +834,9 @@ async function chargerSondages() {
             ...document.data()
         }));
 
-        sondages.sort((a, b) => {
-            const dateA = a.createdAt?.seconds || 0;
-            const dateB = b.createdAt?.seconds || 0;
-            return dateB - dateA;
-        });
+        sondages.sort(
+            (a, b) => valeurDate(b.createdAt) - valeurDate(a.createdAt)
+        );
 
         for (const sondage of sondages) {
             const carte = creerElement("article");
@@ -611,6 +846,7 @@ async function chargerSondages() {
                 "h3",
                 sondage.question || "Sondage sans question"
             );
+
             carte.appendChild(question);
 
             const date = dateTexte(sondage.createdAt);
@@ -620,25 +856,25 @@ async function chargerSondages() {
                     "p",
                     "Publié le " + date
                 );
+
                 dateElement.className = "muted";
                 carte.appendChild(dateElement);
             }
 
-            /*
-             * Le panneau admin fourni enregistre les réponses
-             * dans sondage.options.
-             */
-            const options = normaliserOptions(sondage.options);
+            const options = normaliserOptions(
+                sondage.options
+            );
 
             if (options.length < 2) {
                 const avertissement = creerElement(
                     "p",
-                    "Les réponses de ce sondage sont absentes ou " +
-                    "incomplètes dans la base de données."
+                    "Les réponses de ce sondage sont absentes ou incomplètes."
                 );
+
                 avertissement.className = "status error";
                 carte.appendChild(avertissement);
                 container.appendChild(carte);
+
                 continue;
             }
 
@@ -677,6 +913,13 @@ async function chargerSondages() {
             const message = document.createElement("div");
             message.setAttribute("aria-live", "polite");
 
+            /*
+             * Enregistrement du vote.
+             *
+             * Le vote est enregistré dans le document de l'utilisateur.
+             * Les règles Firestore existantes doivent autoriser cette
+             * opération pour que l'enregistrement réussisse.
+             */
             formulaire.addEventListener("submit", async event => {
                 event.preventDefault();
 
@@ -686,6 +929,7 @@ async function chargerSondages() {
                         "Connectez-vous pour participer au sondage.",
                         "error"
                     );
+
                     return;
                 }
 
@@ -699,6 +943,7 @@ async function chargerSondages() {
                         "Choisissez une réponse avant de voter.",
                         "error"
                     );
+
                     return;
                 }
 
@@ -714,6 +959,7 @@ async function chargerSondages() {
                         "La réponse sélectionnée est invalide.",
                         "error"
                     );
+
                     return;
                 }
 
@@ -736,7 +982,13 @@ async function chargerSondages() {
                             "Vous avez déjà participé à ce sondage.",
                             "error"
                         );
-                        bouton.disabled = false;
+
+                        formulaire.querySelectorAll("input").forEach(input => {
+                            input.disabled = true;
+                        });
+
+                        bouton.textContent = "Vote déjà enregistré";
+
                         return;
                     }
 
@@ -757,17 +1009,24 @@ async function chargerSondages() {
                     });
 
                     bouton.textContent = "Vote enregistré";
-                    bouton.disabled = true;
+
+                    /*
+                     * Ne modifie pas artificiellement les résultats :
+                     * les compteurs affichés doivent provenir de données
+                     * Firestore protégées, et non du navigateur du votant.
+                     */
 
                 } catch (error) {
-                    console.error("Erreur pendant le vote :", error);
+                    console.error(
+                        "Erreur pendant le vote :",
+                        error
+                    );
 
                     if (error.code === "permission-denied") {
                         afficherMessage(
                             message,
-                            "Firebase a refusé le vote. Vérifiez que vous " +
-                            "êtes connecté et que les règles de la sous-collection " +
-                            "votes autorisent cette opération. Détail : " +
+                            "Firebase a refusé le vote. Vérifiez la connexion " +
+                            "et les règles de sécurité. Détail : " +
                             error.message,
                             "error"
                         );
@@ -785,24 +1044,35 @@ async function chargerSondages() {
             });
 
             carte.append(formulaire, message);
+
+            // Affiche les résultats enregistrés dans le document du sondage.
+            afficherResultatsSondage(
+                carte,
+                options,
+                sondage
+            );
+
             container.appendChild(carte);
 
-            /*
-             * Si l'utilisateur est déjà connecté, vérifie s'il a voté.
-             * Les règles fournies autorisent la lecture de son propre vote.
-             */
             if (utilisateurActuel) {
-                verifierVotePersonnel(
+                await verifierVotePersonnel(
                     sondage.id,
                     utilisateurActuel.uid,
                     formulaire,
                     bouton,
                     message
                 );
+            } else {
+                bouton.disabled = true;
+                bouton.title = "Connectez-vous pour voter";
             }
         }
+
     } catch (error) {
-        console.error("Erreur de chargement des sondages :", error);
+        console.error(
+            "Erreur de chargement des sondages :",
+            error
+        );
 
         afficherMessage(
             container,
@@ -810,49 +1080,9 @@ async function chargerSondages() {
             "Détail : " + error.message,
             "error"
         );
-    }
-}
 
-async function verifierVotePersonnel(
-    sondageId,
-    uid,
-    formulaire,
-    bouton,
-    message
-) {
-    try {
-        const voteRef = doc(
-            db,
-            "polls",
-            sondageId,
-            "votes",
-            uid
-        );
-
-        const vote = await getDoc(voteRef);
-
-        if (vote.exists()) {
-            formulaire.querySelectorAll("input").forEach(input => {
-                input.disabled = true;
-            });
-
-            bouton.disabled = true;
-            bouton.textContent = "Vote déjà enregistré";
-
-            afficherMessage(
-                message,
-                "Vous avez déjà participé à ce sondage."
-            );
-        }
-    } catch (error) {
-        /*
-         * On ne bloque pas l'affichage des réponses si la vérification
-         * du vote personnel échoue.
-         */
-        console.warn(
-            "Impossible de vérifier le vote personnel :",
-            error
-        );
+    } finally {
+        chargementSondages = false;
     }
 }
 
@@ -873,12 +1103,9 @@ onAuthStateChanged(auth, async user => {
         lienCompte.href = "connexion.html";
     }
 
-    /*
-     * Recharge les sondages pour actualiser l'état des boutons
-     * lorsqu'un utilisateur se connecte ou se déconnecte.
-     */
-    if (!sondagesCharges) {
-        sondagesCharges = true;
+    if (premiereInitialisation) {
+        premiereInitialisation = false;
+
         await Promise.allSettled([
             chargerActualites(),
             chargerSondages()
@@ -891,4 +1118,3 @@ onAuthStateChanged(auth, async user => {
 
 </body>
 </html>
-```
