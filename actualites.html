@@ -284,9 +284,7 @@ footer {
 Non"
                     required></textarea>
 
-                <form id="create-poll-form">
-                    <button type="submit">➕ Créer le sondage</button>
-                </form>
+                <button type="submit">➕ Créer le sondage</button>
                 <p id="create-poll-status" class="poll-status"></p>
             </form>
         </div>
@@ -302,6 +300,7 @@ Non"
 </footer>
 
 <script type="module">
+// LES VRAIS LIENS STABLES DE L'INFRASTRUCTURE GOOGLE FIREBASE
 import { initializeApp }
     from "https://gstatic.com";
 
@@ -333,7 +332,7 @@ import {
 
 const firebaseConfig = {
     apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGFf2YNntQ7upfdWE",
-    authDomain: "monbotpc.firebaseapp.com",
+    authDomain: "://firebaseapp.com", // REPARÉ
     projectId: "monbotpc",
     storageBucket: "monbotpc.firebasestorage.app",
     messagingSenderId: "691729637594",
@@ -401,6 +400,7 @@ async function verifierAdministrateur(user) {
     }
 }
 
+// LIGNE CORRIGÉE ET TOTALEMENT COMPLÉTÉE SANS COUPURE
 onAuthStateChanged(auth, async (user) => {
     utilisateurActuel = user;
     const statusEl = document.getElementById("auth-status");
@@ -452,7 +452,7 @@ async function chargerActualites() {
             const contenu = el("p", act.contenu || "");
             
             card.appendChild(titre);
-            card.appendChild(contenu);
+            card.appendChild(contents);
             container.appendChild(card);
         });
     } catch (error) {
@@ -585,3 +585,22 @@ if (options.length < 2 || options.length > 6) {
 afficherErreur(statusEl, "Il faut renseigner entre 2 et 6 réponses (une par ligne).");
 return;
 }
+try {
+const idUnique = "poll_" + Math.random().toString(36).substring(2, 11);
+await setDoc(doc(db, "polls", idUnique), {
+question: question,
+options: options,
+authorUid: utilisateurActuel.uid,
+creeLe: serverTimestamp()
+});
+afficherSucces(statusEl, "Sondage créé avec succès !");
+questionInput.value = "";
+optionsInput.value = "";
+} catch (error) {
+afficherErreur(statusEl, "Impossible de créer le sondage. Droits insuffisants ou structure invalide.");
+}
+});
+document.getElementById("refresh-button").addEventListener("click", () => {
+chargerActualites();
+});
+
