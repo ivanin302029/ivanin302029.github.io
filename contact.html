@@ -1,16 +1,13 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
+<meta name="theme-color" content="#0B1120">
 <title>Assistance — Mon Bot PC</title>
 
 <style>
-* {
-    box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
     margin: 0;
@@ -21,19 +18,11 @@ body {
     padding: 30px 15px;
 }
 
-.container {
-    max-width: 900px;
-    margin: auto;
-}
+.container { max-width: 900px; margin: auto; }
 
-a {
-    color: #60A5FA;
-    text-decoration: none;
-}
+a { color: #60A5FA; text-decoration: none; }
 
-h1, h2 {
-    color: #60A5FA;
-}
+h1, h2, .ticket h3 { color: #60A5FA; }
 
 .card {
     background: #172033;
@@ -54,10 +43,7 @@ input, textarea, select {
     font-family: inherit;
 }
 
-textarea {
-    min-height: 110px;
-    resize: vertical;
-}
+textarea { min-height: 110px; resize: vertical; }
 
 button, .button {
     display: inline-block;
@@ -71,14 +57,9 @@ button, .button {
     text-decoration: none;
 }
 
-button:disabled {
-    opacity: .5;
-    cursor: wait;
-}
+button:disabled { opacity: .5; cursor: wait; }
 
-.hidden {
-    display: none !important;
-}
+.hidden { display: none !important; }
 
 .ticket {
     background: #0B1120;
@@ -88,19 +69,9 @@ button:disabled {
     margin-top: 18px;
 }
 
-.ticket h3 {
-    color: #60A5FA;
-}
+.small { color: #94A3B8; font-size: 13px; }
 
-.small {
-    color: #94A3B8;
-    font-size: 13px;
-}
-
-.status {
-    color: #22C55E;
-    font-weight: bold;
-}
+.status { color: #22C55E; font-weight: bold; }
 
 .conversation {
     background: #111827;
@@ -119,73 +90,63 @@ button:disabled {
     overflow-wrap: anywhere;
 }
 
-.bubble p {
-    white-space: pre-wrap;
-    line-height: 1.6;
+.bubble p { white-space: pre-wrap; line-height: 1.6; }
+
+.user-message { background: #1D4ED8; margin-left: auto; }
+.admin-message { background: #334155; margin-right: auto; }
+.old-message { background: #263445; }
+
+.file-link { display: block; margin-top: 10px; color: #93C5FD; }
+
+.notice { color: #22C55E; margin: 15px 0; overflow-wrap: anywhere; }
+
+.message-author {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 8px;
+    min-height: 32px;
 }
 
-.user-message {
+.message-avatar, .message-avatar-placeholder {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex: 0 0 30px;
+}
+
+.message-avatar-placeholder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background: #1D4ED8;
-    margin-left: auto;
-}
-
-.admin-message {
-    background: #334155;
-    margin-right: auto;
-}
-
-.old-message {
-    background: #263445;
-}
-
-.file-link {
-    display: block;
-    margin-top: 10px;
-    color: #93C5FD;
-}
-
-.notice {
-    color: #22C55E;
-    margin: 15px 0;
-    overflow-wrap: anywhere;
 }
 </style>
-
 </head>
 
 <body>
-
 <div class="container">
 
 <a href="index.html">← Retour à l'accueil</a>
 
 <h1>📩 Assistance Mon Bot PC</h1>
 
-<p>
-    Contactez notre assistance et retrouvez
-    toutes vos conversations.
-</p>
+<p>Contactez notre assistance et retrouvez toutes vos conversations.</p>
 
 <div id="loading" class="card">
     Vérification de votre connexion...
 </div>
 
 <div id="notConnected" class="card hidden">
-
     <h2>Connexion nécessaire</h2>
-
     <p>Connectez-vous pour contacter l'assistance.</p>
-
-    <a class="button" href="connexion.html">
-        Se connecter
-    </a>
-
+    <a class="button" href="connexion.html">Se connecter</a>
 </div>
 
 <div id="support" class="hidden">
 
     <section class="card">
-
         <h2>➕ Nouveau ticket</h2>
 
         <p class="small">
@@ -193,9 +154,7 @@ button:disabled {
         </p>
 
         <form id="contactForm">
-
-            <label>Sujet</label>
-
+            <label for="subject">Sujet</label>
             <select id="subject" required>
                 <option value="">Choisir un sujet</option>
                 <option>Problème technique</option>
@@ -205,56 +164,37 @@ button:disabled {
                 <option>Autre</option>
             </select>
 
-            <label>Titre</label>
+            <label for="title">Titre</label>
+            <input id="title" maxlength="120" required
+                   placeholder="Titre du problème">
 
-            <input
-                id="title"
-                maxlength="120"
-                required
-                placeholder="Titre du problème"
-            >
-
-            <label>Message</label>
-
-            <textarea
-                id="content"
-                minlength="10"
-                maxlength="3000"
-                required
-                placeholder="Expliquez votre problème..."
-            ></textarea>
+            <label for="content">Message</label>
+            <textarea id="content" minlength="10" maxlength="3000"
+                      required
+                      placeholder="Expliquez votre problème..."></textarea>
 
             <button id="sendButton" type="submit">
                 Envoyer le ticket
             </button>
-
         </form>
 
-        <p id="notice" class="notice"></p>
-
+        <p id="notice" class="notice" role="status"></p>
     </section>
 
     <section class="card">
-
         <h2>💬 Mes conversations</h2>
 
-        <button id="refresh">
-            ↻ Actualiser
-        </button>
+        <button id="refresh" type="button">↻ Actualiser</button>
 
         <div id="tickets"></div>
-
     </section>
 
 </div>
-
 </div>
 
 <script type="module">
-
-import {
-    initializeApp
-} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { initializeApp } from
+    "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 
 import {
     getAuth,
@@ -266,10 +206,11 @@ import {
     collection,
     doc,
     addDoc,
-    getDocs,
+    setDoc,
     query,
     where,
-    serverTimestamp
+    serverTimestamp,
+    onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 import {
@@ -278,6 +219,7 @@ import {
     uploadBytes,
     getDownloadURL
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
+
 
 const firebaseConfig = {
     apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGF2FYnntQ7upfdWE",
@@ -289,15 +231,14 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-let currentUser = null;
-
-const ticketsContainer = document.getElementById("tickets");
-const notice = document.getElementById("notice");
+const ADMIN_UIDS = [
+    "rWEk3vGHK1W2EDvemVfw6xNtKxU2",
+    "8lq3zxa8nkdZ6hXpa8FeZTpI55Q2"
+];
 
 const allowedTypes = [
     "image/png",
@@ -307,6 +248,20 @@ const allowedTypes = [
     "text/plain"
 ];
 
+let currentUser = null;
+let unsubscribeTickets = null;
+let unsubscribeProfiles = [];
+const unsubscribeMessages = new Map();
+const ticketUIs = new Map();
+const adminProfiles = new Map();
+
+const ticketsContainer = document.getElementById("tickets");
+const notice = document.getElementById("notice");
+const loading = document.getElementById("loading");
+const notConnected = document.getElementById("notConnected");
+const support = document.getElementById("support");
+
+
 function showNotice(text, error = false) {
     notice.textContent = text;
     notice.style.color = error ? "#EF4444" : "#22C55E";
@@ -315,49 +270,59 @@ function showNotice(text, error = false) {
 function make(tag, text = "", className = "") {
     const element = document.createElement(tag);
     element.textContent = text;
-    element.className = className;
+
+    if (className) {
+        element.className = className;
+    }
+
     return element;
 }
 
 function formatDate(timestamp) {
-    return timestamp?.toDate
-        ? timestamp.toDate().toLocaleString("fr-CA")
-        : "";
+    if (!timestamp?.toDate) {
+        return "Envoi en cours…";
+    }
+
+    return timestamp.toDate().toLocaleString("fr-CA");
 }
 
 function validateFile(file) {
-
-    if (!file) return true;
+    if (!file) return;
 
     if (!allowedTypes.includes(file.type)) {
-        throw new Error("Type de fichier non autorisé.");
+        throw new Error(
+            "Type de fichier non autorisé. Formats acceptés : PNG, JPG, WEBP, PDF ou TXT."
+        );
     }
 
     if (file.size > 5 * 1024 * 1024) {
-        throw new Error("Fichier trop volumineux : maximum 5 Mo.");
+        throw new Error(
+            "Fichier trop volumineux : maximum 5 Mo."
+        );
     }
-
-    return true;
 }
 
 async function uploadAttachment(ticketId, messageId, file) {
-
     validateFile(file);
 
-    const extension = {
+    const extensions = {
         "image/png": "png",
         "image/jpeg": "jpg",
         "image/webp": "webp",
         "application/pdf": "pdf",
         "text/plain": "txt"
-    }[file.type];
+    };
+
+    const extension = extensions[file.type];
+
+    if (!extension) {
+        throw new Error("Format de pièce jointe non accepté.");
+    }
 
     const path =
         `tickets/${ticketId}/${messageId}/piece-jointe.${extension}`;
 
-    const fileRef = ref(storage, path);
-
-    await uploadBytes(fileRef, file, {
+    await uploadBytes(ref(storage, path), file, {
         contentType: file.type
     });
 
@@ -367,8 +332,7 @@ async function uploadAttachment(ticketId, messageId, file) {
     };
 }
 
-function addFileLink(container, ticketId, messageId, data) {
-
+function addFileLink(container, data) {
     if (!data.attachmentPath) return;
 
     const link = make(
@@ -382,146 +346,273 @@ function addFileLink(container, ticketId, messageId, data) {
     link.rel = "noopener noreferrer";
 
     link.addEventListener("click", async event => {
-
         event.preventDefault();
 
         try {
-            const fileRef = ref(storage, data.attachmentPath);
-            const url = await getDownloadURL(fileRef);
+            const url = await getDownloadURL(
+                ref(storage, data.attachmentPath)
+            );
 
             window.open(url, "_blank", "noopener,noreferrer");
-
         } catch (error) {
-            console.error(error);
-            alert("Impossible d'ouvrir la pièce jointe.");
+            console.error("Erreur ouverture pièce jointe :", error);
+
+            alert(
+                "Impossible d'ouvrir la pièce jointe. Vérifiez les règles Firebase Storage."
+            );
         }
     });
 
     container.append(link);
 }
 
-async function loadConversation(ticket, container) {
-
-    container.textContent = "Chargement de la conversation...";
-
-    try {
-
-        const snapshot = await getDocs(
-            collection(
-                db,
-                "support_messages",
-                ticket.id,
-                "messages"
-            )
-        );
-
-        const messages = snapshot.docs.map(item => ({
-            id: item.id,
-            ...item.data()
-        }));
-
-        messages.sort((a, b) =>
-            (a.createdAt?.seconds || 0) -
-            (b.createdAt?.seconds || 0)
-        );
-
-        container.replaceChildren();
-
-        // Conservation du premier message des anciens tickets
-        const original = make(
-            "div",
-            "",
-            "bubble old-message"
-        );
-
-        original.append(
-            make("strong", "👤 Message initial"),
-            make("p", ticket.content || "")
-        );
-
-        container.append(original);
-
-        // Conservation des anciennes réponses administrateur
-        if (ticket.reply) {
-
-            const oldReply = make(
-                "div",
-                "",
-                "bubble admin-message"
-            );
-
-            oldReply.append(
-                make("strong", "🛠️ Ancienne réponse de l'assistance"),
-                make("p", ticket.reply)
-            );
-
-            container.append(oldReply);
-        }
-
-        messages.forEach(message => {
-
-            const isAdminMessage =
-                message.uid !== ticket.uid;
-
-            const bubble = make(
-                "div",
-                "",
-                "bubble " + (
-                    isAdminMessage
-                        ? "admin-message"
-                        : "user-message"
-                )
-            );
-
-            bubble.append(
-                make(
-                    "strong",
-                    isAdminMessage
-                        ? "🛠️ Assistance Mon Bot PC"
-                        : "👤 Vous"
-                ),
-                make("p", message.text || ""),
-                make(
-                    "div",
-                    formatDate(message.createdAt),
-                    "small"
-                )
-            );
-
-            addFileLink(
-                bubble,
-                ticket.id,
-                message.id,
-                message
-            );
-
-            container.append(bubble);
-
-        });
-
-        container.scrollTop = container.scrollHeight;
-
-    } catch (error) {
-
-        console.error(error);
-
-        container.textContent =
-            "Impossible de charger la conversation.";
-    }
+function profileFor(uid) {
+    return adminProfiles.get(uid) || {
+        nickname: "Assistance",
+        avatarUrl: ""
+    };
 }
 
-async function sendReply(ticket, textarea, fileInput, button, conversation) {
+function appendAuthor(container, profile, fallbackIcon) {
+    const row = make("div", "", "message-author");
 
-    const text = textarea.value.trim();
-    const file = fileInput.files[0];
+    if (profile.avatarUrl) {
+        const avatar = document.createElement("img");
 
-    if (!text && !file) {
-        alert("Écrivez un message ou ajoutez un fichier.");
+        avatar.className = "message-avatar";
+        avatar.src = profile.avatarUrl;
+        avatar.alt = "";
+        avatar.referrerPolicy = "no-referrer";
+
+        avatar.onerror = () => {
+            avatar.remove();
+        };
+
+        row.append(avatar);
+    } else {
+        row.append(
+            make(
+                "span",
+                fallbackIcon,
+                "message-avatar-placeholder"
+            )
+        );
+    }
+
+    row.append(
+        make("strong", profile.nickname || "Assistance")
+    );
+
+    container.append(row);
+}
+
+function renderMessages(ticket, ui, messages) {
+    const container = ui.conversation;
+    container.replaceChildren();
+
+    // Message original du ticket.
+    const original = make("div", "", "bubble old-message");
+
+    original.append(
+        make("strong", "👤 Message initial"),
+        make("p", ticket.content || "")
+    );
+
+    container.append(original);
+
+    // Compatibilité avec les anciens tickets utilisant ticket.reply.
+    if (ticket.reply) {
+        const oldReply = make(
+            "div",
+            "",
+            "bubble admin-message"
+        );
+
+        appendAuthor(
+            oldReply,
+            { nickname: "Assistance", avatarUrl: "" },
+            "🛠️"
+        );
+
+        oldReply.append(make("p", ticket.reply));
+        container.append(oldReply);
+    }
+
+    const sortedMessages = [...messages].sort((a, b) => {
+        return (a.createdAt?.seconds || 0) -
+               (b.createdAt?.seconds || 0);
+    });
+
+    for (const message of sortedMessages) {
+        const isAdmin = ADMIN_UIDS.includes(message.uid);
+
+        const bubble = make(
+            "div",
+            "",
+            "bubble " +
+            (isAdmin ? "admin-message" : "user-message")
+        );
+
+        if (isAdmin) {
+            appendAuthor(
+                bubble,
+                profileFor(message.uid),
+                "🛠️"
+            );
+        } else {
+            bubble.append(make("strong", "👤 Vous"));
+        }
+
+        bubble.append(
+            make("p", message.text || ""),
+            make("div", formatDate(message.createdAt), "small")
+        );
+
+        addFileLink(bubble, message);
+        container.append(bubble);
+    }
+
+    container.scrollTop = container.scrollHeight;
+}
+
+function updateTicketUI(ticket, ui) {
+    ui.ticket = ticket;
+
+    ui.title.textContent = ticket.title || "Sans titre";
+
+    ui.subject.textContent =
+        "Sujet : " + (ticket.subject || "Non précisé");
+
+    ui.status.textContent =
+        "Statut : " + (ticket.status || "En attente");
+
+    ui.status.style.color =
+        ticket.status === "Fermé" ? "#F87171" : "#22C55E";
+
+    const closed = ticket.status === "Fermé";
+
+    ui.replyArea.classList.toggle("hidden", closed);
+    ui.closedNotice.classList.toggle("hidden", !closed);
+}
+
+function createTicketUI(ticket) {
+    const card = make("article", "", "ticket");
+
+    const title = make("h3", ticket.title || "Sans titre");
+
+    const subject = make(
+        "p",
+        "Sujet : " + (ticket.subject || "Non précisé"),
+        "small"
+    );
+
+    const status = make(
+        "p",
+        "Statut : " + (ticket.status || "En attente"),
+        "status"
+    );
+
+    const conversation = make(
+        "div",
+        "Chargement de la conversation…",
+        "conversation"
+    );
+
+    const replyArea = make("div");
+
+    const textarea = document.createElement("textarea");
+    textarea.placeholder = "Répondez à l'assistance…";
+    textarea.maxLength = 3000;
+    textarea.setAttribute("aria-label", "Votre réponse");
+
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = ".png,.jpg,.jpeg,.webp,.pdf,.txt";
+    fileInput.setAttribute(
+        "aria-label",
+        "Ajouter une pièce jointe (facultatif)"
+    );
+
+    const button = make("button", "📨 Envoyer le message");
+    button.type = "button";
+
+    const replyNotice = make("p", "", "notice");
+
+    const closedNotice = make(
+        "p",
+        "🔒 Ce ticket est fermé.",
+        "small hidden"
+    );
+
+    const ui = {
+        card,
+        title,
+        subject,
+        status,
+        conversation,
+        replyArea,
+        closedNotice,
+        textarea,
+        fileInput,
+        button,
+        replyNotice,
+        ticket,
+        messages: []
+    };
+
+    button.addEventListener("click", async () => {
+        await sendReply(
+            ui.ticket,
+            textarea,
+            fileInput,
+            button,
+            replyNotice
+        );
+    });
+
+    replyArea.append(
+        textarea,
+        fileInput,
+        button,
+        replyNotice
+    );
+
+    card.append(
+        title,
+        subject,
+        status,
+        conversation,
+        replyArea,
+        closedNotice
+    );
+
+    updateTicketUI(ticket, ui);
+
+    return ui;
+}
+
+async function sendReply(
+    ticket,
+    textarea,
+    fileInput,
+    button,
+    replyNotice
+) {
+    if (!currentUser) {
+        alert("Connectez-vous pour répondre.");
         return;
     }
 
     if (ticket.status === "Fermé") {
         alert("Ce ticket est fermé.");
+        return;
+    }
+
+    const text = textarea.value.trim();
+    const file = fileInput.files?.[0] || null;
+
+    if (!text && !file) {
+        alert("Écrivez un message ou ajoutez un fichier.");
         return;
     }
 
@@ -533,9 +624,11 @@ async function sendReply(ticket, textarea, fileInput, button, conversation) {
     }
 
     button.disabled = true;
+    replyNotice.textContent = "";
+    replyNotice.style.color = "#22C55E";
 
     try {
-
+        // Le fichier et le message utilisent le même identifiant.
         const messageRef = doc(
             collection(
                 db,
@@ -566,231 +659,291 @@ async function sendReply(ticket, textarea, fileInput, button, conversation) {
             data.attachmentName = attachment.name;
         }
 
-        await addDoc(
-            collection(
-                db,
-                "support_messages",
-                ticket.id,
-                "messages"
-            ),
-            data
-        );
+        await setDoc(messageRef, data);
 
         textarea.value = "";
         fileInput.value = "";
 
-        await loadConversation(ticket, conversation);
-
+        replyNotice.textContent = "Message envoyé.";
     } catch (error) {
+        console.error("Erreur envoi réponse :", error);
 
-        console.error(error);
+        replyNotice.textContent =
+            "Erreur d'envoi : " +
+            (error.message || "Veuillez réessayer.");
 
-        alert("Erreur d'envoi : " + error.message);
-
+        replyNotice.style.color = "#EF4444";
     } finally {
         button.disabled = false;
     }
 }
 
-async function loadTickets() {
+function subscribeToTicketMessages(ticketId, ui) {
+    if (unsubscribeMessages.has(ticketId)) return;
 
+    const unsubscribe = onSnapshot(
+        collection(
+            db,
+            "support_messages",
+            ticketId,
+            "messages"
+        ),
+        snapshot => {
+            ui.messages = snapshot.docs.map(item => ({
+                id: item.id,
+                ...item.data()
+            }));
+
+            renderMessages(ui.ticket, ui, ui.messages);
+        },
+        error => {
+            console.error("Erreur écoute messages :", error);
+
+            ui.conversation.textContent =
+                "Impossible de charger les messages. Vérifiez les règles Firestore.";
+        }
+    );
+
+    unsubscribeMessages.set(ticketId, unsubscribe);
+}
+
+function subscribeToTickets() {
     if (!currentUser) return;
 
-    ticketsContainer.textContent = "Chargement...";
+    if (unsubscribeTickets) {
+        unsubscribeTickets();
+        unsubscribeTickets = null;
+    }
 
-    try {
+    unsubscribeTickets = onSnapshot(
+        query(
+            collection(db, "support_messages"),
+            where("uid", "==", currentUser.uid)
+        ),
+        snapshot => {
+            const tickets = snapshot.docs.map(item => ({
+                id: item.id,
+                ...item.data()
+            }));
 
-        const snapshot = await getDocs(
-            query(
-                collection(db, "support_messages"),
-                where("uid", "==", currentUser.uid)
-            )
-        );
+            tickets.sort((a, b) => {
+                return (b.createdAt?.seconds || 0) -
+                       (a.createdAt?.seconds || 0);
+            });
 
-        const tickets = snapshot.docs.map(item => ({
-            id: item.id,
-            ...item.data()
-        }));
-
-        tickets.sort((a, b) =>
-            (b.createdAt?.seconds || 0) -
-            (a.createdAt?.seconds || 0)
-        );
-
-        ticketsContainer.replaceChildren();
-
-        if (!tickets.length) {
-            ticketsContainer.textContent = "Aucun ticket.";
-            return;
-        }
-
-        tickets.forEach(ticket => {
-
-            const card = make("article", "", "ticket");
-
-            card.append(
-                make("h3", ticket.title || "Sans titre"),
-                make("p", "Sujet : " + ticket.subject, "small"),
-                make("p", "Statut : " + ticket.status, "status")
+            const liveIds = new Set(
+                tickets.map(ticket => ticket.id)
             );
 
-            const conversation = make(
-                "div",
-                "",
-                "conversation"
-            );
+            // Nettoyer les tickets supprimés.
+            for (const [ticketId, ui] of ticketUIs.entries()) {
+                if (!liveIds.has(ticketId)) {
+                    unsubscribeMessages.get(ticketId)?.();
+                    unsubscribeMessages.delete(ticketId);
 
-            card.append(conversation);
-
-            loadConversation(ticket, conversation);
-
-            if (ticket.status !== "Fermé") {
-
-                const textarea = document.createElement("textarea");
-
-                textarea.placeholder =
-                    "Répondez à l'assistance...";
-
-                textarea.maxLength = 3000;
-
-                const fileInput = document.createElement("input");
-
-                fileInput.type = "file";
-
-                fileInput.accept =
-                    ".png,.jpg,.jpeg,.webp,.pdf,.txt";
-
-                const button = make(
-                    "button",
-                    "📨 Envoyer le message"
-                );
-
-                button.addEventListener("click", () => {
-
-                    sendReply(
-                        ticket,
-                        textarea,
-                        fileInput,
-                        button,
-                        conversation
-                    );
-                });
-
-                card.append(
-                    textarea,
-                    fileInput,
-                    button
-                );
-
-            } else {
-
-                card.append(
-                    make(
-                        "p",
-                        "🔒 Ce ticket est fermé.",
-                        "small"
-                    )
-                );
+                    ui.card.remove();
+                    ticketUIs.delete(ticketId);
+                }
             }
 
-            ticketsContainer.append(card);
-        });
+            if (tickets.length === 0) {
+                ticketsContainer.textContent =
+                    "Aucun ticket pour le moment.";
+                return;
+            }
 
-    } catch (error) {
+            ticketsContainer.replaceChildren();
 
-        console.error(error);
+            for (const ticket of tickets) {
+                let ui = ticketUIs.get(ticket.id);
 
-        ticketsContainer.textContent =
-            "Impossible de charger les tickets.";
+                if (!ui) {
+                    ui = createTicketUI(ticket);
+                    ticketUIs.set(ticket.id, ui);
+
+                    subscribeToTicketMessages(ticket.id, ui);
+                } else {
+                    updateTicketUI(ticket, ui);
+                    renderMessages(ticket, ui, ui.messages);
+                }
+
+                ticketsContainer.append(ui.card);
+            }
+        },
+        error => {
+            console.error("Erreur écoute tickets :", error);
+
+            ticketsContainer.textContent =
+                "Impossible de charger les tickets. Vérifiez les règles Firestore.";
+        }
+    );
+}
+
+function subscribeToAdminProfiles() {
+    // Éviter de créer plusieurs écouteurs sur les profils.
+    for (const unsubscribe of unsubscribeProfiles) {
+        unsubscribe();
+    }
+
+    unsubscribeProfiles = [];
+
+    for (const uid of ADMIN_UIDS) {
+        const unsubscribe = onSnapshot(
+            doc(db, "admin_profiles", uid),
+            snapshot => {
+                const data = snapshot.exists()
+                    ? snapshot.data()
+                    : {};
+
+                adminProfiles.set(uid, {
+                    nickname:
+                        typeof data.nickname === "string" &&
+                        data.nickname.trim()
+                            ? data.nickname.trim()
+                            : "Assistance",
+
+                    avatarUrl:
+                        typeof data.avatarUrl === "string"
+                            ? data.avatarUrl
+                            : ""
+                });
+
+                for (const ui of ticketUIs.values()) {
+                    renderMessages(ui.ticket, ui, ui.messages);
+                }
+            },
+            error => {
+                console.warn(
+                    "Profil administrateur indisponible :",
+                    error
+                );
+
+                adminProfiles.set(uid, {
+                    nickname: "Assistance",
+                    avatarUrl: ""
+                });
+            }
+        );
+
+        unsubscribeProfiles.push(unsubscribe);
     }
 }
 
-onAuthStateChanged(auth, async user => {
-
+onAuthStateChanged(auth, user => {
     currentUser = user;
 
-    document.getElementById("loading")
-        .classList.add("hidden");
+    loading.classList.add("hidden");
 
     if (!user) {
+        if (unsubscribeTickets) {
+            unsubscribeTickets();
+            unsubscribeTickets = null;
+        }
 
-        document.getElementById("notConnected")
-            .classList.remove("hidden");
+        for (const unsubscribe of unsubscribeMessages.values()) {
+            unsubscribe();
+        }
 
-        document.getElementById("support")
-            .classList.add("hidden");
+        unsubscribeMessages.clear();
+
+        for (const unsubscribe of unsubscribeProfiles) {
+            unsubscribe();
+        }
+
+        unsubscribeProfiles = [];
+        ticketUIs.clear();
+        adminProfiles.clear();
+        ticketsContainer.replaceChildren();
+
+        notConnected.classList.remove("hidden");
+        support.classList.add("hidden");
 
         return;
     }
 
-    document.getElementById("notConnected")
-        .classList.add("hidden");
-
-    document.getElementById("support")
-        .classList.remove("hidden");
+    notConnected.classList.add("hidden");
+    support.classList.remove("hidden");
 
     document.getElementById("userEmail").textContent =
         user.email || "Compte connecté";
 
-    await loadTickets();
+    subscribeToAdminProfiles();
+    subscribeToTickets();
 });
 
-document.getElementById("contactForm")
-.addEventListener("submit", async event => {
+document.getElementById("contactForm").addEventListener(
+    "submit",
+    async event => {
+        event.preventDefault();
 
-    event.preventDefault();
+        if (!currentUser) {
+            showNotice(
+                "Connectez-vous avant de créer un ticket.",
+                true
+            );
+            return;
+        }
 
-    if (!currentUser) return;
+        const subject =
+            document.getElementById("subject").value;
 
-    const subject = document.getElementById("subject").value;
-    const title = document.getElementById("title").value.trim();
-    const content = document.getElementById("content").value.trim();
+        const title =
+            document.getElementById("title").value.trim();
 
-    if (!subject || !title || content.length < 10) {
-        showNotice("Complétez correctement le formulaire.", true);
-        return;
+        const content =
+            document.getElementById("content").value.trim();
+
+        if (!subject || !title || content.length < 10) {
+            showNotice(
+                "Complétez correctement le formulaire. Le message doit contenir au moins 10 caractères.",
+                true
+            );
+            return;
+        }
+
+        const button = document.getElementById("sendButton");
+        button.disabled = true;
+
+        try {
+            await addDoc(
+                collection(db, "support_messages"),
+                {
+                    uid: currentUser.uid,
+                    email: currentUser.email || "",
+                    subject,
+                    title,
+                    content,
+                    status: "En attente",
+                    createdAt: serverTimestamp()
+                }
+            );
+
+            document.getElementById("contactForm").reset();
+
+            showNotice(
+                "Ticket créé avec succès ! Il apparaîtra automatiquement dans vos conversations."
+            );
+        } catch (error) {
+            console.error("Erreur création ticket :", error);
+
+            showNotice(
+                "Erreur : " +
+                (error.message || "Impossible de créer le ticket."),
+                true
+            );
+        } finally {
+            button.disabled = false;
+        }
     }
+);
 
-    const button = document.getElementById("sendButton");
-
-    button.disabled = true;
-
-    try {
-
-        await addDoc(
-            collection(db, "support_messages"),
-            {
-                uid: currentUser.uid,
-                email: currentUser.email || "",
-                subject,
-                title,
-                content,
-                status: "En attente",
-                createdAt: serverTimestamp()
-            }
-        );
-
-        document.getElementById("contactForm").reset();
-
-        showNotice("Ticket créé avec succès !");
-
-        await loadTickets();
-
-    } catch (error) {
-
-        console.error(error);
-
-        showNotice("Erreur : " + error.message, true);
-
-    } finally {
-
-        button.disabled = false;
+document.getElementById("refresh").addEventListener(
+    "click",
+    () => {
+        // Les écouteurs se mettent déjà à jour automatiquement.
+        subscribeToTickets();
     }
-});
-
-document.getElementById("refresh")
-.addEventListener("click", loadTickets);
-
+);
 </script>
 
 <script type="module" src="maintenance.js"></script>
