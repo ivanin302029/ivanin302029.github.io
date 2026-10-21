@@ -396,7 +396,7 @@ async function chargerSondages() {
                 radio.type = "radio";
                 radio.name = "vote-" + pollId;
                 radio.value = String(index);
-                radio.disabled = !utilisateur;
+                radio.disabled = false;
 
                 label.appendChild(radio);
                 label.appendChild(element("span", String(option)));
