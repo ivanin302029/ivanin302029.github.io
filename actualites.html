@@ -284,7 +284,9 @@ footer {
 Non"
                     required></textarea>
 
-                <button type="submit">➕ Créer le sondage</button>
+                <form id="create-poll-form">
+                    <button type="submit">➕ Créer le sondage</button>
+                </form>
                 <p id="create-poll-status" class="poll-status"></p>
             </form>
         </div>
@@ -331,7 +333,7 @@ import {
 
 const firebaseConfig = {
     apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGFf2YNntQ7upfdWE",
-    authDomain: "://firebaseapp.com",
+    authDomain: "monbotpc.firebaseapp.com",
     projectId: "monbotpc",
     storageBucket: "monbotpc.firebasestorage.app",
     messagingSenderId: "691729637594",
@@ -432,7 +434,6 @@ async function chargerActualites() {
     container.textContent = "Chargement des actualités...";
 
     try {
-        // Correction : Retrait temporaire du orderBy pour éviter le crash silencieux d'index manquant
         const newsQuery = query(collection(db, "news"), limit(10));
         const querySnapshot = await getDocs(newsQuery);
 
@@ -465,7 +466,6 @@ function ecouterSondagesEnTempsReel() {
 if (desabonnementSondages) desabonnementSondages();
 const container = document.getElementById("polls-container");
 container.textContent = "Chargement des sondages...";
-// Correction : Retrait temporaire du orderBy pour éviter le blocage si l'index Firestore n'est pas généré
 const pollsQuery = query(collection(db, "polls"));
 desabonnementSondages = onSnapshot(pollsQuery, (querySnapshot) => {
 container.innerHTML = "";
@@ -585,22 +585,3 @@ if (options.length < 2 || options.length > 6) {
 afficherErreur(statusEl, "Il faut renseigner entre 2 et 6 réponses (une par ligne).");
 return;
 }
-try {
-const idUnique = "poll_" + Math.random().toString(36).substring(2, 11);
-await setDoc(doc(db, "polls", idUnique), {
-question: question,
-options: options,
-authorUid: utilisateurActuel.uid,
-creeLe: serverTimestamp()
-});
-afficherSucces(statusEl, "Sondage créé avec succès !");
-questionInput.value = "";
-optionsInput.value = "";
-} catch (error) {
-afficherErreur(statusEl, "Impossible de créer le sondage. Droits insuffisants ou structure invalide.");
-}
-});
-document.getElementById("refresh-button").addEventListener("click", () => {
-chargerActualites();
-});
-
