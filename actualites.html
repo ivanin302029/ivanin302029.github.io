@@ -407,7 +407,7 @@ async function chargerSondages() {
 
             const voter = element("button", "🗳️ Voter");
             voter.type = "submit";
-            voter.disabled = !utilisateur;
+           voter.disabled = false;
             form.appendChild(voter);
 
             const voirResultats = element("button", "📊 Voir les résultats");
