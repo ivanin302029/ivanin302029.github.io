@@ -248,13 +248,13 @@ function erreurMessage(error) {
 
 async function verifierAdmin(user) {
     if (!user) return false;
-    try {
-        const snap = await getDoc(doc(db, "admins", user.uid));
-        return snap.exists();
-    } catch (error) {
-        console.error(error);
-        return false;
-    }
+
+    const ADMINS = [
+        "rWEk3vGHK1W2EDvemVfw6xNtKxU2",
+        "8lq3zxa8nkdZ6hXpa8FeZTpI55Q2"
+    ];
+
+    return ADMINS.includes(user.uid);
 }
 
 onAuthStateChanged(auth, async user => {
