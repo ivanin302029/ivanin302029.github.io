@@ -280,7 +280,8 @@ footer {
                 </label>
                 <textarea
                     id="new-poll-options"
-                    placeholder="Oui&#10;Non"
+                    placeholder="Oui
+Non"
                     required></textarea>
 
                 <button type="submit">➕ Créer le sondage</button>
@@ -300,12 +301,12 @@ footer {
 
 <script type="module">
 import { initializeApp }
-    from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+    from "https://gstatic.com";
 
 import {
     getAuth,
     onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+} from "https://gstatic.com";
 
 import {
     getFirestore,
@@ -319,8 +320,9 @@ import {
     query,
     orderBy,
     limit,
+    onSnapshot,
     serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+} from "https://gstatic.com";
 
 
 /* =========================
@@ -329,7 +331,7 @@ import {
 
 const firebaseConfig = {
     apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGFf2YNntQ7upfdWE",
-    authDomain: "monbotpc.firebaseapp.com",
+    authDomain: "://firebaseapp.com",
     projectId: "monbotpc",
     storageBucket: "monbotpc.firebasestorage.app",
     messagingSenderId: "691729637594",
@@ -347,9 +349,7 @@ const db = getFirestore(app);
 
 let utilisateurActuel = null;
 let estAdmin = false;
-let chargementSondages = false;
-let actualisationDemandee = false;
-let generationSondages = 0;
+let desabonnementSondages = null;
 
 const el = (tag, text = "") => {
     const element = document.createElement(tag);
@@ -373,16 +373,13 @@ function nettoyerPseudo(pseudo) {
 
 function messageErreurFirestore(error) {
     console.error(error);
-
     if (error?.code === "permission-denied") {
-        return "Accès refusé par Firestore. Les règles de sécurité doivent être corrigées.";
+        return "Accès refusé par Firestore. Vérifiez vos règles de sécurité ou votre UID administrateur.";
     }
-
     if (error?.code === "unavailable") {
-        return "Firebase est momentanément indisponible. Réessaie.";
+        return "Firebase est momentanément indisponible.";
     }
-
-    return "Une erreur est survenue. Consulte la console du navigateur pour le détail.";
+    return "Une erreur est survenue avec la base de données.";
 }
 
 
@@ -392,7 +389,6 @@ function messageErreurFirestore(error) {
 
 async function verifierAdministrateur(user) {
     if (!user) return false;
-
     try {
         const adminRef = doc(db, "admins", user.uid);
         const adminSnapshot = await getDoc(adminRef);
@@ -405,681 +401,63 @@ async function verifierAdministrateur(user) {
 
 onAuthStateChanged(auth, async (user) => {
     utilisateurActuel = user;
-    estAdmin = await verifierAdministrateur(user);
-
-    const authStatus = document.getElementById("auth-status");
+    const statusEl = document.getElementById("auth-status");
     const adminPanel = document.getElementById("admin-panel");
 
     if (user) {
-        authStatus.textContent = estAdmin
-            ? "Connecté — Administrateur"
-            : "Connecté — Tu peux participer aux sondages.";
+        statusEl.textContent = `Connecté en tant que : ${user.email || user.uid}`;
+        estAdmin = await verifierAdministrateur(user);
+        if (estAdmin) {
+            adminPanel.removeAttribute("hidden");
+        } else {
+            adminPanel.setAttribute("hidden", "true");
+        }
     } else {
-        authStatus.textContent =
-            "Non connecté — Connecte-toi pour participer aux sondages.";
+        statusEl.textContent = "Mode invité — Connectez-vous sur la page d'accueil pour pouvoir voter.";
+        estAdmin = false;
+        adminPanel.setAttribute("hidden", "true");
     }
 
-    adminPanel.hidden = !estAdmin;
-
-    await chargerActualites();
-    await chargerSondages();
+    chargerActualites();
+    ecouterSondagesEnTempsReel();
 });
 
 
 /* =========================
-   CHARGER LES ACTUALITÉS
+   GESTION DES ACTUALITÉS (NEWS)
    ========================= */
 
 async function chargerActualites() {
     const container = document.getElementById("news-container");
-    container.replaceChildren(el("p", "Chargement des actualités..."));
+    container.textContent = "Chargement des actualités...";
 
     try {
-        const newsQuery = query(
-            collection(db, "news"),
-            orderBy("createdAt", "desc"),
-            limit(30)
-        );
+        const newsQuery = query(collection(db, "news"), orderBy("date", "desc"), limit(10));
+        const querySnapshot = await getDocs(newsQuery);
 
-        const snapshot = await getDocs(newsQuery);
-        container.replaceChildren();
-
-        if (snapshot.empty) {
-            container.appendChild(el("p", "Aucune actualité pour le moment."));
+        container.innerHTML = "";
+        if (querySnapshot.empty) {
+            container.textContent = "Aucune actualité publiée pour le moment.";
             return;
         }
 
-        snapshot.forEach(documentSnapshot => {
-            const news = documentSnapshot.data();
-            const card = el("article");
+        querySnapshot.forEach((docSnap) => {
+            const act = docSnap.data();
+            const card = el("div");
             card.className = "card";
 
-            if (news.category) {
-                const category = el("p", "📌 " + news.category);
-                category.className = "muted";
-                card.appendChild(category);
-            }
-
-            card.appendChild(
-                el("h3", news.title || news.titre || "Actualité")
-            );
-
-            const content = el(
-                "p",
-                news.content || news.contenu || news.description || ""
-            );
-            content.style.whiteSpace = "pre-wrap";
-            card.appendChild(content);
-
-            if (news.createdAt?.toDate) {
-                card.appendChild(
-                    el("small", news.createdAt.toDate().toLocaleString("fr-CA"))
-                );
-            }
-
+            const titre = el("h3", act.titre || "Actualité");
+            const contenu = el("p", act.contenu || "");
+            
+            card.appendChild(titre);
+            card.appendChild(contenu);
             container.appendChild(card);
         });
     } catch (error) {
-        console.error("Erreur de chargement des actualités :", error);
-        container.replaceChildren(
-            el("p", messageErreurFirestore(error))
-        );
+        afficherErreur(container, messageErreurFirestore(error));
     }
 }
 
 
 /* =========================
-   CRÉER UN SONDAGE
-   ========================= */
-
-document.getElementById("create-poll-form")
-.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const status = document.getElementById("create-poll-status");
-    const questionInput = document.getElementById("new-poll-question");
-    const optionsInput = document.getElementById("new-poll-options");
-
-    if (!utilisateurActuel || !estAdmin) {
-        afficherErreur(status, "Seuls les administrateurs peuvent créer un sondage.");
-        return;
-    }
-
-    const question = questionInput.value.trim();
-    const options = optionsInput.value
-        .split("\n")
-        .map(option => option.trim())
-        .filter(Boolean);
-
-    if (!question) {
-        afficherErreur(status, "Entre une question.");
-        return;
-    }
-
-    if (options.length < 2 || options.length > 6) {
-        afficherErreur(status, "Il faut entre 2 et 6 réponses.");
-        return;
-    }
-
-    const optionsNormalisees = options.map(option => option.toLowerCase());
-
-    if (new Set(optionsNormalisees).size !== options.length) {
-        afficherErreur(status, "Les réponses doivent être différentes.");
-        return;
-    }
-
-    const submitButton = event.submitter;
-    if (submitButton) submitButton.disabled = true;
-
-    try {
-        const pollRef = doc(collection(db, "polls"));
-
-        await setDoc(pollRef, {
-            question,
-            options,
-            authorUid: utilisateurActuel.uid,
-            createdAt: serverTimestamp()
-        });
-
-        questionInput.value = "";
-        optionsInput.value = "";
-
-        afficherSucces(status, "✅ Sondage créé !");
-        await chargerSondages();
-    } catch (error) {
-        afficherErreur(status, messageErreurFirestore(error));
-    } finally {
-        if (submitButton) submitButton.disabled = false;
-    }
-});
-
-
-/* =========================
-   VOTER OU MODIFIER SON VOTE
-   Un utilisateur = un document votes/{uid}
-   ========================= */
-
-async function enregistrerVote(pollId, optionIndex, pseudo) {
-    if (!utilisateurActuel) {
-        throw new Error("CONNEXION_REQUISE");
-    }
-
-    pseudo = nettoyerPseudo(pseudo);
-
-    if (!pseudo || pseudo.length > 24) {
-        throw new Error("PSEUDO_INVALIDE");
-    }
-
-    const pollRef = doc(db, "polls", pollId);
-    const pollSnapshot = await getDoc(pollRef);
-
-    if (!pollSnapshot.exists()) {
-        throw new Error("SONDAGE_INTROUVABLE");
-    }
-
-    const options = pollSnapshot.data().options;
-
-    if (
-        !Array.isArray(options) ||
-        !Number.isInteger(optionIndex) ||
-        optionIndex < 0 ||
-        optionIndex >= options.length
-    ) {
-        throw new Error("REPONSE_INVALIDE");
-    }
-
-    const voteRef = doc(
-        db, "polls", pollId, "votes", utilisateurActuel.uid
-    );
-
-    const voteSnapshot = await getDoc(voteRef);
-
-    if (voteSnapshot.exists()) {
-        await updateDoc(voteRef, {
-            optionIndex,
-            pseudo
-        });
-    } else {
-        await setDoc(voteRef, {
-            uid: utilisateurActuel.uid,
-            pseudo,
-            optionIndex,
-            createdAt: serverTimestamp()
-        });
-    }
-}
-
-
-/* =========================
-   SUPPRIMER SON VOTE
-   ========================= */
-
-async function supprimerMonVote(pollId) {
-    if (!utilisateurActuel) {
-        throw new Error("CONNEXION_REQUISE");
-    }
-
-    const voteRef = doc(
-        db, "polls", pollId, "votes", utilisateurActuel.uid
-    );
-
-    const voteSnapshot = await getDoc(voteRef);
-
-    if (voteSnapshot.exists()) {
-        await deleteDoc(voteRef);
-    }
-}
-
-
-/* =========================
-   CHARGER LES SONDAGES
-   ========================= */
-
-async function chargerSondages() {
-    /*
-     * Si un chargement est déjà en cours, on programme un nouveau
-     * chargement après celui-ci. Cela évite les doubles chargements
-     * et les boutons qui semblent ne rien faire.
-     */
-    if (chargementSondages) {
-        actualisationDemandee = true;
-        return;
-    }
-
-    chargementSondages = true;
-    actualisationDemandee = false;
-
-    const maGeneration = ++generationSondages;
-    const container = document.getElementById("polls-container");
-
-    container.replaceChildren(el("p", "Chargement des sondages..."));
-
-    try {
-        const pollsSnapshot = await getDocs(
-            query(collection(db, "polls"), limit(100))
-        );
-
-        if (maGeneration !== generationSondages) return;
-
-        container.replaceChildren();
-
-        if (pollsSnapshot.empty) {
-            container.appendChild(el("p", "Aucun sondage pour le moment."));
-            return;
-        }
-
-        for (const pollDocument of pollsSnapshot.docs) {
-            if (maGeneration !== generationSondages) return;
-
-            const poll = pollDocument.data();
-            const pollId = pollDocument.id;
-            const options = Array.isArray(poll.options) ? poll.options : [];
-
-            if (options.length < 2) continue;
-
-            const card = el("article");
-            card.className = "card";
-            card.appendChild(el("h3", poll.question || "Sondage sans titre"));
-
-            const form = el("form");
-            form.className = "poll-form";
-
-            const pseudoLabel = el("label", "👤 Ton pseudo");
-            pseudoLabel.className = "poll-pseudo-label";
-
-            const pseudoInput = el("input");
-            pseudoInput.type = "text";
-            pseudoInput.maxLength = 24;
-            pseudoInput.minLength = 1;
-            pseudoInput.placeholder = utilisateurActuel
-                ? "Choisis ton pseudo"
-                : "Connecte-toi pour voter";
-            pseudoInput.autocomplete = "nickname";
-            pseudoInput.required = true;
-            pseudoInput.disabled = !utilisateurActuel;
-
-            pseudoLabel.appendChild(pseudoInput);
-            form.appendChild(pseudoLabel);
-
-            // Le conteneur choices est créé séparément pour chaque sondage.
-            const choices = el("div");
-            choices.className = "poll-options";
-
-            options.forEach((option, index) => {
-                const label = el("label");
-                label.className = "poll-option";
-
-                const radio = el("input");
-                radio.type = "radio";
-                radio.name = "poll-" + pollId;
-                radio.value = String(index);
-                radio.required = true;
-                radio.disabled = !utilisateurActuel;
-
-                label.appendChild(radio);
-                label.appendChild(el("span", String(option)));
-                choices.appendChild(label);
-            });
-
-            form.appendChild(choices);
-
-            const voteButton = el("button", "🗳️ Voter");
-            voteButton.type = "submit";
-            voteButton.disabled = !utilisateurActuel;
-            form.appendChild(voteButton);
-
-            const results = el("div");
-            results.className = "poll-results";
-
-            const totalElement = el("p", "Chargement des résultats...");
-            totalElement.className = "poll-total-votes";
-
-            const resultsList = el("div");
-            resultsList.className = "poll-results-list";
-
-            results.appendChild(totalElement);
-            results.appendChild(resultsList);
-
-            const status = el("p");
-            status.className = "poll-status";
-            status.setAttribute("role", "status");
-
-            const deleteMyVoteButton = el("button", "🗑️ Supprimer mon vote");
-            deleteMyVoteButton.type = "button";
-            deleteMyVoteButton.className = "secondary";
-            deleteMyVoteButton.hidden = true;
-            deleteMyVoteButton.disabled = !utilisateurActuel;
-
-            const editButton = el("button", "✏️ Modifier la question");
-            editButton.type = "button";
-            editButton.hidden = !estAdmin;
-
-            const deletePollButton = el("button", "❌ Supprimer le sondage");
-            deletePollButton.type = "button";
-            deletePollButton.className = "danger";
-            deletePollButton.hidden = !estAdmin;
-
-            card.appendChild(form);
-            card.appendChild(results);
-            card.appendChild(status);
-            card.appendChild(deleteMyVoteButton);
-            card.appendChild(editButton);
-            card.appendChild(deletePollButton);
-
-            container.appendChild(card);
-
-            /*
-             * Charger tous les votes pour calculer les résultats.
-             */
-            try {
-                const votesSnapshot = await getDocs(
-                    collection(db, "polls", pollId, "votes")
-                );
-
-                if (maGeneration !== generationSondages) return;
-
-                const counts = new Array(options.length).fill(0);
-                const voters = new Array(options.length)
-                    .fill(null)
-                    .map(() => []);
-
-                votesSnapshot.forEach(voteDocument => {
-                    const vote = voteDocument.data();
-                    const index = vote.optionIndex;
-
-                    if (
-                        Number.isInteger(index) &&
-                        index >= 0 &&
-                        index < options.length
-                    ) {
-                        counts[index]++;
-
-                        if (typeof vote.pseudo === "string" && vote.pseudo.trim()) {
-                            voters[index].push(vote.pseudo.trim());
-                        }
-                    }
-                });
-
-                const totalVotes = counts.reduce((sum, count) => sum + count, 0);
-
-                totalElement.textContent =
-                    "👥 " + totalVotes + " participant" +
-                    (totalVotes === 1 ? "" : "s");
-
-                resultsList.replaceChildren();
-
-                options.forEach((option, index) => {
-                    const count = counts[index];
-                    const percentage = totalVotes
-                        ? Math.round(count / totalVotes * 100)
-                        : 0;
-
-                    const row = el("div");
-                    row.className = "poll-result-row";
-
-                    const title = el(
-                        "div",
-                        `${option} — ${count} vote${count === 1 ? "" : "s"} (${percentage} %)`
-                    );
-                    title.className = "poll-result-title";
-
-                    const track = el("div");
-                    track.className = "poll-progress-track";
-
-                    const bar = el("div");
-                    bar.className = "poll-progress-bar";
-                    bar.style.width = percentage + "%";
-
-                    track.appendChild(bar);
-                    row.appendChild(title);
-                    row.appendChild(track);
-
-                    if (voters[index].length > 0) {
-                        const voterList = el(
-                            "p",
-                            "👤 " + voters[index].join(", ")
-                        );
-                        voterList.className = "poll-voters";
-                        row.appendChild(voterList);
-                    }
-
-                    resultsList.appendChild(row);
-                });
-
-                if (utilisateurActuel) {
-                    const myVoteRef = doc(
-                        db, "polls", pollId, "votes", utilisateurActuel.uid
-                    );
-
-                    const myVoteSnapshot = await getDoc(myVoteRef);
-
-                    if (maGeneration !== generationSondages) return;
-
-                    if (myVoteSnapshot.exists()) {
-                        const myVote = myVoteSnapshot.data();
-
-                        deleteMyVoteButton.hidden = false;
-
-                        const selectedRadio = form.querySelector(
-                            `input[value="${myVote.optionIndex}"]`
-                        );
-
-                        if (selectedRadio) selectedRadio.checked = true;
-
-                        if (myVote.pseudo) pseudoInput.value = myVote.pseudo;
-
-                        voteButton.textContent = "✏️ Modifier mon vote";
-                    }
-                }
-            } catch (error) {
-                console.error("Erreur de chargement des votes :", error);
-
-                totalElement.textContent = error?.code === "permission-denied"
-                    ? "Accès aux résultats refusé par Firestore."
-                    : "Impossible de charger les résultats. Réessaie.";
-            }
-
-
-            /* ENREGISTRER OU MODIFIER LE VOTE */
-
-            form.addEventListener("submit", async event => {
-                event.preventDefault();
-
-                if (!utilisateurActuel) {
-                    afficherErreur(status, "Connecte-toi pour voter.");
-                    return;
-                }
-
-                const pseudo = nettoyerPseudo(pseudoInput.value);
-                const selected = form.querySelector(
-                    `input[name="poll-${pollId}"]:checked`
-                );
-
-                if (!pseudo || pseudo.length > 24) {
-                    afficherErreur(
-                        status,
-                        "Ton pseudo doit contenir de 1 à 24 caractères."
-                    );
-                    return;
-                }
-
-                if (!selected) {
-                    afficherErreur(status, "Choisis une réponse.");
-                    return;
-                }
-
-                voteButton.disabled = true;
-                deleteMyVoteButton.disabled = true;
-
-                try {
-                    await enregistrerVote(
-                        pollId,
-                        Number(selected.value),
-                        pseudo
-                    );
-
-                    afficherSucces(status, "✅ Vote enregistré !");
-                    await demanderActualisationSondages();
-                } catch (error) {
-                    console.error("Erreur lors du vote :", error);
-
-                    let message = messageErreurFirestore(error);
-
-                    if (error.message === "CONNEXION_REQUISE") {
-                        message = "Connecte-toi pour voter.";
-                    } else if (error.message === "PSEUDO_INVALIDE") {
-                        message = "Ton pseudo doit contenir de 1 à 24 caractères.";
-                    } else if (error.message === "REPONSE_INVALIDE") {
-                        message = "La réponse sélectionnée est invalide.";
-                    } else if (error.message === "SONDAGE_INTROUVABLE") {
-                        message = "Ce sondage n'existe plus.";
-                    }
-
-                    afficherErreur(status, message);
-                } finally {
-                    voteButton.disabled = !utilisateurActuel;
-                    deleteMyVoteButton.disabled = !utilisateurActuel;
-                }
-            });
-
-
-            /* SUPPRIMER SON PROPRE VOTE */
-
-            deleteMyVoteButton.addEventListener("click", async () => {
-                if (!utilisateurActuel) {
-                    afficherErreur(status, "Connecte-toi d'abord.");
-                    return;
-                }
-
-                if (!confirm("Veux-tu vraiment supprimer ton vote ?")) return;
-
-                deleteMyVoteButton.disabled = true;
-                voteButton.disabled = true;
-
-                try {
-                    await supprimerMonVote(pollId);
-                    afficherSucces(status, "✅ Ton vote a été supprimé.");
-                    await demanderActualisationSondages();
-                } catch (error) {
-                    afficherErreur(status, messageErreurFirestore(error));
-                } finally {
-                    deleteMyVoteButton.disabled = !utilisateurActuel;
-                    voteButton.disabled = !utilisateurActuel;
-                }
-            });
-
-
-            /* MODIFIER LA QUESTION — ADMINISTRATEUR */
-
-            editButton.addEventListener("click", async () => {
-                if (!estAdmin) return;
-
-                const nouvelleQuestion = prompt(
-                    "Nouvelle question :",
-                    poll.question || ""
-                );
-
-                if (nouvelleQuestion === null) return;
-
-                if (!nouvelleQuestion.trim()) {
-                    alert("La question ne peut pas être vide.");
-                    return;
-                }
-
-                try {
-                    await updateDoc(doc(db, "polls", pollId), {
-                        question: nouvelleQuestion.trim()
-                    });
-
-                    await demanderActualisationSondages();
-                } catch (error) {
-                    afficherErreur(status, messageErreurFirestore(error));
-                }
-            });
-
-
-            /* SUPPRIMER LE SONDAGE — ADMINISTRATEUR */
-
-            deletePollButton.addEventListener("click", async () => {
-                if (!estAdmin) return;
-
-                if (!confirm(
-                    "Supprimer ce sondage ? Les votes associés devront aussi être supprimés."
-                )) return;
-
-                try {
-                    /*
-                     * Firestore ne supprime pas automatiquement les sous-collections.
-                     * On supprime donc les votes avant le document du sondage.
-                     */
-                    const votesSnapshot = await getDocs(
-                        collection(db, "polls", pollId, "votes")
-                    );
-
-                    for (const voteDocument of votesSnapshot.docs) {
-                        await deleteDoc(voteDocument.ref);
-                    }
-
-                    await deleteDoc(doc(db, "polls", pollId));
-                    await demanderActualisationSondages();
-                } catch (error) {
-                    afficherErreur(status, messageErreurFirestore(error));
-                }
-            });
-        }
-
-        if (!container.hasChildNodes()) {
-            container.appendChild(el("p", "Aucun sondage valide à afficher."));
-        }
-    } catch (error) {
-        console.error("Impossible de charger les sondages :", error);
-
-        container.replaceChildren(
-            el("p", messageErreurFirestore(error))
-        );
-    } finally {
-        chargementSondages = false;
-
-        if (actualisationDemandee) {
-            actualisationDemandee = false;
-            queueMicrotask(() => chargerSondages());
-        }
-    }
-}
-
-
-/*
- * Demande une actualisation après un vote ou une suppression.
- * Si un chargement est en cours, une nouvelle actualisation sera
- * exécutée automatiquement dès qu'il sera terminé.
- */
-async function demanderActualisationSondages() {
-    if (chargementSondages) {
-        actualisationDemandee = true;
-        return;
-    }
-
-    await chargerSondages();
-}
-
-
-/* =========================
-   BOUTON ACTUALISER
-   ========================= */
-
-document.getElementById("refresh-button")
-.addEventListener("click", async event => {
-    const button = event.currentTarget;
-    button.disabled = true;
-
-    try {
-        await chargerActualites();
-        await demanderActualisationSondages();
-    } finally {
-        button.disabled = false;
-    }
-});
-
-</script>
-</body>
-</html>
+   LOGIQUE SONDAGES (STYLE DISCORD)
