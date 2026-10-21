@@ -1,44 +1,694 @@
-```javascript
-async function chargerSondages() {
-    const container = document.getElementById("polls-container");
 
-    if (!container) {
-        console.error("Élément polls-container introuvable.");
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0B1120">
+<title>Actualités et sondages — Mon Bot PC</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+:root {
+    color-scheme: dark;
+    --background: #0B1120;
+    --card: #172033;
+    --border: #2D3B55;
+    --text: #F1F5F9;
+    --muted: #A8B4C8;
+    --accent: #60A5FA;
+    --green: #34D399;
+    --red: #FB7185;
+}
+
+body {
+    margin: 0;
+    padding: 24px;
+    background: var(--background);
+    color: var(--text);
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+header {
+    max-width: 1000px;
+    margin: 0 auto 28px;
+}
+
+h1 {
+    margin-bottom: 8px;
+    font-size: clamp(25px, 5vw, 36px);
+}
+
+header p,
+.muted {
+    color: var(--muted);
+}
+
+main {
+    max-width: 1000px;
+    margin: auto;
+}
+
+section {
+    margin-bottom: 32px;
+}
+
+.section-title {
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.card {
+    margin: 16px 0;
+    padding: 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow-wrap: anywhere;
+}
+
+.card h3 {
+    margin-top: 0;
+}
+
+button,
+input,
+textarea {
+    font: inherit;
+}
+
+button {
+    padding: 10px 15px;
+    margin: 5px 5px 5px 0;
+    border: 0;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #07111F;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    filter: brightness(1.1);
+}
+
+button:disabled {
+    opacity: .55;
+    cursor: wait;
+}
+
+button.danger {
+    background: var(--red);
+}
+
+button.secondary {
+    background: #334155;
+    color: white;
+}
+
+input[type="text"],
+textarea {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0 14px;
+    color: white;
+    background: #0B1120;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+label {
+    display: block;
+}
+
+.poll-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    margin: 8px 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.poll-option:hover {
+    border-color: var(--accent);
+}
+
+.poll-option input {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.poll-pseudo-label {
+    margin-top: 14px;
+    color: var(--muted);
+}
+
+.poll-total-votes {
+    margin-top: 20px;
+    color: var(--muted);
+}
+
+.poll-result-row {
+    margin: 15px 0;
+}
+
+.poll-result-title {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 7px;
+    font-size: 14px;
+}
+
+.poll-progress-track {
+    width: 100%;
+    height: 12px;
+    background: #263449;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.poll-progress-bar {
+    width: 0;
+    height: 100%;
+    background: var(--accent);
+    border-radius: 20px;
+    transition: width .3s ease;
+}
+
+.poll-voters {
+    color: var(--muted);
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+
+.poll-status {
+    min-height: 20px;
+    color: var(--green);
+}
+
+.status-error {
+    color: var(--red);
+}
+
+.admin-panel {
+    padding: 18px;
+    margin: 20px 0;
+    border: 1px dashed var(--accent);
+    border-radius: 12px;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+footer {
+    max-width: 1000px;
+    margin: 35px auto 0;
+    padding-top: 15px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 13px;
+}
+
+@media (max-width: 600px) {
+    body {
+        padding: 14px;
+    }
+
+    .card {
+        padding: 15px;
+    }
+
+    .poll-result-title {
+        flex-direction: column;
+        gap: 4px;
+    }
+}
+</style>
+</head>
+
+<body>
+<header>
+    <h1>📰 Actualités et sondages</h1>
+    <p>Mon Bot PC — Actualités, votes et résultats de la communauté.</p>
+    <p id="auth-status" class="muted">Vérification de la connexion...</p>
+    <button id="refresh-button" type="button">🔄 Actualiser</button>
+</header>
+
+<main>
+    <section>
+        <h2 class="section-title">📢 Actualités</h2>
+        <div id="news-container" aria-live="polite">
+            Chargement des actualités...
+        </div>
+    </section>
+
+    <section>
+        <h2 class="section-title">🗳️ Sondages</h2>
+
+        <div id="admin-panel" class="admin-panel" hidden>
+            <h3>Administration des sondages</h3>
+
+            <form id="create-poll-form">
+                <label for="new-poll-question">Question du sondage</label>
+                <input
+                    id="new-poll-question"
+                    type="text"
+                    maxlength="250"
+                    placeholder="Écris ta question..."
+                    required
+                >
+
+                <label for="new-poll-options">
+                    Réponses (une réponse par ligne, de 2 à 6)
+                </label>
+                <textarea
+                    id="new-poll-options"
+                    placeholder="Oui&#10;Non"
+                    required
+                ></textarea>
+
+                <button type="submit">➕ Créer le sondage</button>
+                <p id="create-poll-status" class="poll-status"></p>
+            </form>
+        </div>
+
+        <div id="polls-container" aria-live="polite">
+            Chargement des sondages...
+        </div>
+    </section>
+</main>
+
+<footer>
+    Mon Bot PC — Les résultats sont calculés à partir des votes enregistrés.
+</footer>
+
+<script type="module">
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+
+import {
+    getAuth,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+import {
+    getFirestore,
+    collection,
+    doc,
+    getDocs,
+    getDoc,
+    setDoc,
+    deleteDoc,
+    updateDoc,
+    query,
+    orderBy,
+    limit,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+
+/* =========================================================
+   FIREBASE
+   ========================================================= */
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAkH3gJ0OyXagfgTbZGFf2YNntQ7upfdWE",
+    authDomain: "monbotpc.firebaseapp.com",
+    projectId: "monbotpc",
+    storageBucket: "monbotpc.firebasestorage.app",
+    messagingSenderId: "691729637594",
+    appId: "1:691729637594:web:9564d52349c04809fe85e3"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+
+/* =========================================================
+   ÉTAT DE L'APPLICATION
+   ========================================================= */
+
+let utilisateurActuel = null;
+let estAdmin = false;
+let chargementSondages = false;
+
+const el = (tag, text = "") => {
+    const element = document.createElement(tag);
+
+    if (text !== "") {
+        element.textContent = text;
+    }
+
+    return element;
+};
+
+function afficherErreur(element, message) {
+    element.textContent = message;
+    element.classList.add("status-error");
+}
+
+function afficherSucces(element, message) {
+    element.textContent = message;
+    element.classList.remove("status-error");
+}
+
+function nettoyerPseudo(pseudo) {
+    return String(pseudo || "").trim().replace(/\s+/g, " ");
+}
+
+
+/* =========================================================
+   AUTHENTIFICATION ET ADMINISTRATEURS
+   ========================================================= */
+
+async function verifierAdministrateur(user) {
+    if (!user) {
+        return false;
+    }
+
+    try {
+        const adminRef = doc(db, "admins", user.uid);
+        const adminSnapshot = await getDoc(adminRef);
+        return adminSnapshot.exists();
+    } catch (error) {
+        console.error("Vérification administrateur impossible :", error);
+        return false;
+    }
+}
+
+onAuthStateChanged(auth, async (user) => {
+    utilisateurActuel = user;
+    estAdmin = await verifierAdministrateur(user);
+
+    const authStatus = document.getElementById("auth-status");
+    const adminPanel = document.getElementById("admin-panel");
+
+    if (user) {
+        authStatus.textContent = estAdmin
+            ? "Connecté — Administrateur"
+            : "Connecté";
+    } else {
+        authStatus.textContent =
+            "Non connecté — Connecte-toi pour participer aux sondages.";
+    }
+
+    adminPanel.hidden = !estAdmin;
+
+    await chargerActualites();
+    await chargerSondages();
+});
+
+
+/* =========================================================
+   ACTUALITÉS
+   ========================================================= */
+
+async function chargerActualites() {
+    const container = document.getElementById("news-container");
+    container.replaceChildren(el("p", "Chargement des actualités..."));
+
+    try {
+        const newsQuery = query(
+            collection(db, "news"),
+            orderBy("createdAt", "desc"),
+            limit(30)
+        );
+
+        const snapshot = await getDocs(newsQuery);
+        container.replaceChildren();
+
+        if (snapshot.empty) {
+            container.appendChild(
+                el("p", "Aucune actualité pour le moment.")
+            );
+            return;
+        }
+
+        for (const documentSnapshot of snapshot.docs) {
+            const news = documentSnapshot.data();
+            const card = el("article");
+            card.className = "card";
+
+            if (news.category) {
+                const category = el("p", `📌 ${news.category}`);
+                category.className = "muted";
+                card.appendChild(category);
+            }
+
+            card.appendChild(
+                el("h3", news.title || news.titre || "Actualité")
+            );
+
+            const content = el(
+                "p",
+                news.content || news.contenu || news.description || ""
+            );
+
+            content.style.whiteSpace = "pre-wrap";
+            card.appendChild(content);
+
+            if (news.createdAt?.toDate) {
+                card.appendChild(
+                    el(
+                        "small",
+                        news.createdAt.toDate().toLocaleString("fr-CA")
+                    )
+                );
+            }
+
+            container.appendChild(card);
+        }
+    } catch (error) {
+        console.error("Erreur de chargement des actualités :", error);
+        container.replaceChildren(
+            el("p", "Impossible de charger les actualités.")
+        );
+    }
+}
+
+
+/* =========================================================
+   CRÉER UN SONDAGE — ADMINISTRATEUR
+   ========================================================= */
+
+document.getElementById("create-poll-form")
+    .addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const status = document.getElementById("create-poll-status");
+        const questionInput = document.getElementById("new-poll-question");
+        const optionsInput = document.getElementById("new-poll-options");
+
+        if (!utilisateurActuel || !estAdmin) {
+            afficherErreur(
+                status,
+                "Seuls les administrateurs peuvent créer un sondage."
+            );
+            return;
+        }
+
+        const question = questionInput.value.trim();
+
+        const options = optionsInput.value
+            .split("\n")
+            .map(option => option.trim())
+            .filter(Boolean);
+
+        if (!question) {
+            afficherErreur(status, "Entre une question.");
+            return;
+        }
+
+        if (options.length < 2 || options.length > 6) {
+            afficherErreur(
+                status,
+                "Un sondage doit contenir de 2 à 6 réponses."
+            );
+            return;
+        }
+
+        if (new Set(options.map(option => option.toLowerCase())).size
+            !== options.length) {
+            afficherErreur(status, "Les réponses doivent être différentes.");
+            return;
+        }
+
+        try {
+            const pollRef = doc(collection(db, "polls"));
+
+            await setDoc(pollRef, {
+                question,
+                options,
+                authorUid: utilisateurActuel.uid,
+                createdAt: serverTimestamp()
+            });
+
+            questionInput.value = "";
+            optionsInput.value = "";
+
+            afficherSucces(status, "Sondage créé !");
+            await chargerSondages();
+        } catch (error) {
+            console.error("Erreur de création du sondage :", error);
+            afficherErreur(
+                status,
+                "Création impossible. Vérifie les règles Firestore."
+            );
+        }
+    });
+
+
+/* =========================================================
+   ENREGISTRER OU MODIFIER SON VOTE
+   Chaque utilisateur connecté possède un document votes/{uid}.
+   ========================================================= */
+
+async function enregistrerVote(pollId, optionIndex, pseudo) {
+    if (!utilisateurActuel) {
+        throw new Error("CONNEXION_REQUISE");
+    }
+
+    pseudo = nettoyerPseudo(pseudo);
+
+    if (!pseudo || pseudo.length > 24) {
+        throw new Error("PSEUDO_INVALIDE");
+    }
+
+    const pollRef = doc(db, "polls", pollId);
+    const pollSnapshot = await getDoc(pollRef);
+
+    if (!pollSnapshot.exists()) {
+        throw new Error("SONDAGE_INTROUVABLE");
+    }
+
+    const options = pollSnapshot.data().options;
+
+    if (
+        !Number.isInteger(optionIndex) ||
+        optionIndex < 0 ||
+        optionIndex >= options.length
+    ) {
+        throw new Error("REPONSE_INVALIDE");
+    }
+
+    const voteRef = doc(
+        db,
+        "polls",
+        pollId,
+        "votes",
+        utilisateurActuel.uid
+    );
+
+    const voteSnapshot = await getDoc(voteRef);
+
+    if (voteSnapshot.exists()) {
+        // Modification de son vote : le pseudo reste celui du premier vote.
+        await updateDoc(voteRef, {
+            optionIndex
+        });
+    } else {
+        // Premier vote de cet utilisateur pour ce sondage.
+        await setDoc(voteRef, {
+            uid: utilisateurActuel.uid,
+            pseudo,
+            optionIndex,
+            createdAt: serverTimestamp()
+        });
+    }
+}
+
+
+/* =========================================================
+   SUPPRIMER SON PROPRE VOTE
+   ========================================================= */
+
+async function supprimerMonVote(pollId) {
+    if (!utilisateurActuel) {
+        throw new Error("CONNEXION_REQUISE");
+    }
+
+    const voteRef = doc(
+        db,
+        "polls",
+        pollId,
+        "votes",
+        utilisateurActuel.uid
+    );
+
+    const voteSnapshot = await getDoc(voteRef);
+
+    if (voteSnapshot.exists()) {
+        await deleteDoc(voteRef);
+    }
+}
+
+
+/* =========================================================
+   CHARGER LES SONDAGES ET LES RÉSULTATS
+   ========================================================= */
+
+async function chargerSondages() {
+    if (chargementSondages) {
         return;
     }
 
-    container.innerHTML = "";
+    chargementSondages = true;
+
+    const container = document.getElementById("polls-container");
+    container.replaceChildren(el("p", "Chargement des sondages..."));
 
     try {
-        const pollsRef = collection(db, "polls");
-        const pollsSnapshot = await getDocs(pollsRef);
+        const pollsSnapshot = await getDocs(
+            query(
+                collection(db, "polls"),
+                limit(100)
+            )
+        );
+
+        container.replaceChildren();
 
         if (pollsSnapshot.empty) {
-            container.innerHTML = "<p>Aucun sondage pour le moment.</p>";
+            container.appendChild(
+                el("p", "Aucun sondage pour le moment.")
+            );
             return;
         }
 
         for (const pollDocument of pollsSnapshot.docs) {
             const poll = pollDocument.data();
             const pollId = pollDocument.id;
-            const pollRef = doc(db, "polls", pollId);
-
-            const options = Array.isArray(poll.options) ? poll.options : [];
+            const options = Array.isArray(poll.options)
+                ? poll.options
+                : [];
 
             if (options.length < 2) {
-                console.warn("Sondage ignoré : options invalides.", pollId);
                 continue;
             }
 
-            const card = el("div");
-            card.className = "poll-card";
+            const card = el("article");
+            card.className = "card";
 
-            const question = el("h3", poll.question || "Sondage sans titre");
-            card.appendChild(question);
+            card.appendChild(
+                el("h3", poll.question || "Sondage sans titre")
+            );
 
-            /*
-             * CHOIX DU PSEUDO
-             */
             const form = el("form");
             form.className = "poll-form";
 
@@ -47,20 +697,21 @@ async function chargerSondages() {
 
             const pseudoInput = el("input");
             pseudoInput.type = "text";
-            pseudoInput.placeholder = "Entre ton pseudo";
             pseudoInput.maxLength = 24;
-            pseudoInput.required = true;
+            pseudoInput.minLength = 1;
+            pseudoInput.placeholder = "Choisis ton pseudo";
             pseudoInput.autocomplete = "nickname";
-            pseudoInput.className = "poll-pseudo-input";
+            pseudoInput.required = true;
+
+            if (!utilisateurActuel) {
+                pseudoInput.disabled = true;
+                pseudoInput.placeholder = "Connecte-toi pour voter";
+            }
 
             pseudoLabel.appendChild(pseudoInput);
             form.appendChild(pseudoLabel);
 
-            /*
-             * CHOIX DE LA RÉPONSE
-             * La variable choices est déclarée ici,
-             * avant d'être utilisée.
-             */
+            // IMPORTANT : choices est déclaré dans la portée de ce sondage.
             const choices = el("div");
             choices.className = "poll-options";
 
@@ -73,188 +724,220 @@ async function chargerSondages() {
                 radio.name = `poll-${pollId}`;
                 radio.value = String(index);
                 radio.required = true;
-
-                const optionText = el("span", String(option));
+                radio.disabled = !utilisateurActuel;
 
                 label.appendChild(radio);
-                label.appendChild(optionText);
+                label.appendChild(el("span", String(option)));
+
                 choices.appendChild(label);
             });
 
             form.appendChild(choices);
 
-            /*
-             * BOUTON POUR VOTER
-             */
             const voteButton = el("button", "🗳️ Voter");
             voteButton.type = "submit";
-            voteButton.className = "poll-vote-button";
-
+            voteButton.disabled = !utilisateurActuel;
             form.appendChild(voteButton);
 
-            /*
-             * RÉSULTATS DU SONDAGE
-             */
             const results = el("div");
             results.className = "poll-results";
 
-            const totalVotesElement = el("p", "Chargement des résultats...");
-            totalVotesElement.className = "poll-total-votes";
-
-            results.appendChild(totalVotesElement);
+            const totalElement = el(
+                "p",
+                "Chargement des résultats..."
+            );
+            totalElement.className = "poll-total-votes";
+            results.appendChild(totalElement);
 
             const resultsList = el("div");
             resultsList.className = "poll-results-list";
-
             results.appendChild(resultsList);
 
-            /*
-             * MESSAGE DE STATUT
-             */
             const status = el("p");
             status.className = "poll-status";
             status.setAttribute("role", "status");
 
-            /*
-             * BOUTONS ADMINISTRATEUR
-             */
-            const editButton = el("button", "✏️ Modifier");
+            const deleteMyVoteButton = el(
+                "button",
+                "🗑️ Supprimer mon vote"
+            );
+            deleteMyVoteButton.type = "button";
+            deleteMyVoteButton.className = "secondary";
+            deleteMyVoteButton.hidden = true;
+
+            const editButton = el("button", "✏️ Modifier la question");
             editButton.type = "button";
-            editButton.className = "poll-edit-button";
-            editButton.hidden = true;
+            editButton.hidden = !estAdmin;
 
-            const deleteButton = el("button", "🗑️ Supprimer");
-            deleteButton.type = "button";
-            deleteButton.className = "poll-delete-button";
-            deleteButton.hidden = true;
+            const deletePollButton = el("button", "❌ Supprimer le sondage");
+            deletePollButton.type = "button";
+            deletePollButton.className = "danger";
+            deletePollButton.hidden = !estAdmin;
 
-            /*
-             * ASSEMBLAGE DE LA CARTE
-             */
             card.appendChild(form);
             card.appendChild(results);
             card.appendChild(status);
+            card.appendChild(deleteMyVoteButton);
             card.appendChild(editButton);
-            card.appendChild(deleteButton);
+            card.appendChild(deletePollButton);
 
             container.appendChild(card);
 
             /*
-             * CHARGER LES VOTES ET AFFICHER LES POURCENTAGES
+             * CHARGER LES VOTES
+             * Les documents votes doivent être lisibles par les visiteurs
+             * pour afficher publiquement les résultats et les pseudos.
              */
+
             try {
-                const votesRef = collection(db, "polls", pollId, "votes");
-                const votesSnapshot = await getDocs(votesRef);
+                const votesSnapshot = await getDocs(
+                    collection(db, "polls", pollId, "votes")
+                );
 
                 const counts = new Array(options.length).fill(0);
-                const votersByOption = new Array(options.length)
+                const voters = new Array(options.length)
                     .fill(null)
                     .map(() => []);
 
-                votesSnapshot.forEach((voteDocument) => {
+                votesSnapshot.forEach(voteDocument => {
                     const vote = voteDocument.data();
-                    const optionIndex = vote.optionIndex;
+                    const index = vote.optionIndex;
 
                     if (
-                        Number.isInteger(optionIndex) &&
-                        optionIndex >= 0 &&
-                        optionIndex < options.length
+                        Number.isInteger(index) &&
+                        index >= 0 &&
+                        index < options.length
                     ) {
-                        counts[optionIndex]++;
+                        counts[index]++;
 
-                        if (typeof vote.pseudo === "string" && vote.pseudo.trim()) {
-                            votersByOption[optionIndex].push(vote.pseudo.trim());
+                        if (
+                            typeof vote.pseudo === "string" &&
+                            vote.pseudo.trim()
+                        ) {
+                            voters[index].push(vote.pseudo.trim());
                         }
                     }
                 });
 
                 const totalVotes = votesSnapshot.size;
 
-                totalVotesElement.textContent =
-                    `👥 ${totalVotes} participant${totalVotes > 1 ? "s" : ""}`;
+                totalElement.textContent =
+                    `👥 ${totalVotes} participant${totalVotes === 1 ? "" : "s"}`;
 
-                resultsList.innerHTML = "";
+                resultsList.replaceChildren();
 
                 options.forEach((option, index) => {
                     const count = counts[index];
-                    const percentage = totalVotes > 0
-                        ? Math.round((count / totalVotes) * 100)
+
+                    const percentage = totalVotes
+                        ? Math.round(count / totalVotes * 100)
                         : 0;
 
-                    const resultRow = el("div");
-                    resultRow.className = "poll-result-row";
+                    const row = el("div");
+                    row.className = "poll-result-row";
 
-                    const resultTitle = el(
+                    const title = el(
                         "div",
-                        `${option} — ${count} vote${count > 1 ? "s" : ""} (${percentage} %)`
+                        `${option} — ${count} vote${count === 1 ? "" : "s"} (${percentage} %)`
                     );
-                    resultTitle.className = "poll-result-title";
+                    title.className = "poll-result-title";
 
-                    const progressTrack = el("div");
-                    progressTrack.className = "poll-progress-track";
+                    const track = el("div");
+                    track.className = "poll-progress-track";
 
-                    const progressBar = el("div");
-                    progressBar.className = "poll-progress-bar";
-                    progressBar.style.width = `${percentage}%`;
-                    progressBar.setAttribute("aria-label", `${percentage} %`);
+                    const bar = el("div");
+                    bar.className = "poll-progress-bar";
+                    bar.style.width = `${percentage}%`;
 
-                    progressTrack.appendChild(progressBar);
-                    resultRow.appendChild(resultTitle);
-                    resultRow.appendChild(progressTrack);
+                    track.appendChild(bar);
+                    row.appendChild(title);
+                    row.appendChild(track);
 
-                    if (votersByOption[index].length > 0) {
-                        const voters = el(
+                    if (voters[index].length) {
+                        const voterList = el(
                             "p",
-                            `👤 ${votersByOption[index].join(", ")}`
+                            `👤 ${voters[index].join(", ")}`
                         );
-                        voters.className = "poll-voters";
-                        resultRow.appendChild(voters);
+                        voterList.className = "poll-voters";
+                        row.appendChild(voterList);
                     }
 
-                    resultsList.appendChild(resultRow);
+                    resultsList.appendChild(row);
                 });
+
+                if (utilisateurActuel) {
+                    const myVoteRef = doc(
+                        db,
+                        "polls",
+                        pollId,
+                        "votes",
+                        utilisateurActuel.uid
+                    );
+
+                    const myVoteSnapshot = await getDoc(myVoteRef);
+
+                    if (myVoteSnapshot.exists()) {
+                        const myVote = myVoteSnapshot.data();
+
+                        deleteMyVoteButton.hidden = false;
+
+                        const selectedRadio = form.querySelector(
+                            `input[value="${myVote.optionIndex}"]`
+                        );
+
+                        if (selectedRadio) {
+                            selectedRadio.checked = true;
+                        }
+
+                        if (myVote.pseudo) {
+                            pseudoInput.value = myVote.pseudo;
+                        }
+
+                        voteButton.textContent = "✏️ Modifier mon vote";
+                    }
+                }
             } catch (error) {
                 console.error(
-                    `Erreur de chargement des votes du sondage ${pollId} :`,
+                    `Erreur de chargement des résultats du sondage ${pollId}:`,
                     error
                 );
 
-                totalVotesElement.textContent =
-                    "Impossible de charger les résultats. Vérifie les règles Firestore.";
+                totalElement.textContent =
+                    "Impossible de recharger les résultats : " +
+                    "vérifie les permissions Firestore.";
             }
 
             /*
-             * ENREGISTRER OU MODIFIER LE VOTE
-             * Cette fonction utilise enregistrerVote() si elle existe.
+             * VOTER OU MODIFIER SON VOTE
              */
-            form.addEventListener("submit", async (event) => {
+
+            form.addEventListener("submit", async event => {
                 event.preventDefault();
 
-                const pseudo = pseudoInput.value.trim();
+                if (!utilisateurActuel) {
+                    afficherErreur(status, "Connecte-toi pour voter.");
+                    return;
+                }
+
+                const pseudo = nettoyerPseudo(pseudoInput.value);
                 const selected = form.querySelector(
                     `input[name="poll-${pollId}"]:checked`
                 );
 
-                if (!pseudo) {
-                    status.textContent = "Entre ton pseudo avant de voter.";
-                    pseudoInput.focus();
+                if (!pseudo || pseudo.length > 24) {
+                    afficherErreur(
+                        status,
+                        "Ton pseudo doit contenir de 1 à 24 caractères."
+                    );
                     return;
                 }
 
                 if (!selected) {
-                    status.textContent = "Choisis une réponse.";
-                    return;
-                }
-
-                if (typeof enregistrerVote !== "function") {
-                    status.textContent =
-                        "La fonction enregistrerVote() est introuvable dans le script.";
-                    console.error("Fonction enregistrerVote() introuvable.");
+                    afficherErreur(status, "Choisis une réponse.");
                     return;
                 }
 
                 voteButton.disabled = true;
-                status.textContent = "Enregistrement du vote...";
 
                 try {
                     await enregistrerVote(
@@ -263,57 +946,59 @@ async function chargerSondages() {
                         pseudo
                     );
 
-                    status.textContent = "✅ Ton vote a été enregistré.";
+                    afficherSucces(status, "✅ Vote enregistré !");
                     await chargerSondages();
                 } catch (error) {
                     console.error("Erreur lors du vote :", error);
-                    status.textContent =
-                        "Impossible d'enregistrer ton vote. Vérifie les règles Firestore et réessaie.";
+
+                    afficherErreur(
+                        status,
+                        error.message === "CONNEXION_REQUISE"
+                            ? "Connecte-toi pour voter."
+                            : "Vote impossible : vérifie les règles Firestore."
+                    );
                 } finally {
                     voteButton.disabled = false;
                 }
             });
 
             /*
-             * AFFICHER LES BOUTONS ADMIN SI L'UTILISATEUR EST ADMIN
+             * SUPPRIMER SON VOTE
              */
-            if (typeof estAdmin !== "undefined" && estAdmin) {
-                editButton.hidden = false;
-                deleteButton.hidden = false;
-            }
 
-            /*
-             * SUPPRIMER UN SONDAGE
-             */
-            deleteButton.addEventListener("click", async () => {
-                if (typeof estAdmin === "undefined" || !estAdmin) {
-                    status.textContent =
-                        "Seuls les administrateurs peuvent supprimer un sondage.";
+            deleteMyVoteButton.addEventListener("click", async () => {
+                if (!utilisateurActuel) {
+                    afficherErreur(status, "Connecte-toi d'abord.");
                     return;
                 }
 
-                if (!confirm("Veux-tu vraiment supprimer ce sondage ?")) {
+                if (!confirm("Veux-tu supprimer ton vote ?")) {
                     return;
                 }
+
+                deleteMyVoteButton.disabled = true;
 
                 try {
-                    await deleteDoc(pollRef);
-                    status.textContent = "Sondage supprimé.";
+                    await supprimerMonVote(pollId);
+                    afficherSucces(status, "Vote supprimé.");
                     await chargerSondages();
                 } catch (error) {
-                    console.error("Erreur de suppression :", error);
-                    status.textContent =
-                        "Impossible de supprimer le sondage.";
+                    console.error("Erreur de suppression du vote :", error);
+                    afficherErreur(
+                        status,
+                        "Impossible de supprimer ton vote. Vérifie les règles Firestore."
+                    );
+                } finally {
+                    deleteMyVoteButton.disabled = false;
                 }
             });
 
             /*
-             * MODIFIER UN SONDAGE
+             * MODIFIER LA QUESTION — ADMIN
              */
+
             editButton.addEventListener("click", async () => {
-                if (typeof estAdmin === "undefined" || !estAdmin) {
-                    status.textContent =
-                        "Seuls les administrateurs peuvent modifier un sondage.";
+                if (!estAdmin) {
                     return;
                 }
 
@@ -326,34 +1011,85 @@ async function chargerSondages() {
                     return;
                 }
 
-                const questionNettoyee = nouvelleQuestion.trim();
-
-                if (!questionNettoyee) {
+                if (!nouvelleQuestion.trim()) {
                     alert("La question ne peut pas être vide.");
                     return;
                 }
 
                 try {
-                    await updateDoc(pollRef, {
-                        question: questionNettoyee
-                    });
+                    await updateDoc(
+                        doc(db, "polls", pollId),
+                        { question: nouvelleQuestion.trim() }
+                    );
 
                     await chargerSondages();
                 } catch (error) {
                     console.error("Erreur de modification :", error);
-                    status.textContent =
-                        "Impossible de modifier le sondage.";
+                    afficherErreur(
+                        status,
+                        "Impossible de modifier le sondage."
+                    );
+                }
+            });
+
+            /*
+             * SUPPRIMER LE SONDAGE — ADMIN
+             */
+
+            deletePollButton.addEventListener("click", async () => {
+                if (!estAdmin) {
+                    return;
+                }
+
+                if (!confirm(
+                    "Supprimer ce sondage ? Cette action ne supprime pas automatiquement ses sous-collections."
+                )) {
+                    return;
+                }
+
+                try {
+                    await deleteDoc(doc(db, "polls", pollId));
+                    await chargerSondages();
+                } catch (error) {
+                    console.error("Erreur de suppression du sondage :", error);
+                    afficherErreur(
+                        status,
+                        "Impossible de supprimer le sondage."
+                    );
                 }
             });
         }
 
         if (!container.hasChildNodes()) {
-            container.innerHTML = "<p>Aucun sondage valide à afficher.</p>";
+            container.appendChild(
+                el("p", "Aucun sondage valide à afficher.")
+            );
         }
     } catch (error) {
         console.error("Impossible de charger les sondages :", error);
-        container.innerHTML =
-            "<p>Impossible de charger les sondages. Vérifie la connexion Firebase et les règles Firestore.</p>";
+
+        container.replaceChildren(
+            el(
+                "p",
+                "Impossible de charger les sondages. Vérifie la connexion Firebase et les règles Firestore."
+            )
+        );
+    } finally {
+        chargementSondages = false;
     }
 }
-```
+
+
+/* =========================================================
+   ACTUALISATION MANUELLE
+   ========================================================= */
+
+document.getElementById("refresh-button")
+    .addEventListener("click", async () => {
+        await chargerActualites();
+        await chargerSondages();
+    });
+
+</script>
+</body>
+</html>
