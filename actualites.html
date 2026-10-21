@@ -379,7 +379,7 @@ function messageErreurFirestore(error) {
     if (error?.code === "unavailable") {
         return "Firebase est momentanément indisponible.";
     }
-    return "Une erreur est survenue avec la base de données.";
+    return "Une erreur est survenue avec la base de données : " + error.message;
 }
 
 
@@ -432,7 +432,8 @@ async function chargerActualites() {
     container.textContent = "Chargement des actualités...";
 
     try {
-        const newsQuery = query(collection(db, "news"), orderBy("date", "desc"), limit(10));
+        // Correction : Retrait temporaire du orderBy pour éviter le crash silencieux d'index manquant
+        const newsQuery = query(collection(db, "news"), limit(10));
         const querySnapshot = await getDocs(newsQuery);
 
         container.innerHTML = "";
@@ -454,19 +455,18 @@ async function chargerActualites() {
             container.appendChild(card);
         });
     } catch (error) {
-        afficherErreur(container, messageErreurFirestore(error));
-    }
+afficherErreur(container, messageErreurFirestore(error));
 }
-
-
+}
 /* =========================
-   LOGIQUE SONDAGES (STYLE DISCORD)
+LOGIQUE SONDAGES (STYLE DISCORD)
 ========================= */
 function ecouterSondagesEnTempsReel() {
 if (desabonnementSondages) desabonnementSondages();
 const container = document.getElementById("polls-container");
 container.textContent = "Chargement des sondages...";
-const pollsQuery = query(collection(db, "polls"), orderBy("creeLe", "desc"));
+// Correction : Retrait temporaire du orderBy pour éviter le blocage si l'index Firestore n'est pas généré
+const pollsQuery = query(collection(db, "polls"));
 desabonnementSondages = onSnapshot(pollsQuery, (querySnapshot) => {
 container.innerHTML = "";
 if (querySnapshot.empty) {
@@ -497,7 +497,7 @@ utilisateurVoteDoc = vData;
 });
 const totalVotes = listVotes.length;
 const stats = {};
-pollData.options.forEach((_, idx) => stats[idx] = 0); // Réparé : index -> idx
+pollData.options.forEach((_, idx) => stats[idx] = 0);
 listVotes.forEach(v => {
 if (stats.hasOwnProperty(v.optionIndex)) {
 stats[v.optionIndex]++;
@@ -603,3 +603,4 @@ afficherErreur(statusEl, "Impossible de créer le sondage. Droits insuffisants o
 document.getElementById("refresh-button").addEventListener("click", () => {
 chargerActualites();
 });
+
