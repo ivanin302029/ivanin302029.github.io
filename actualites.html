@@ -181,7 +181,6 @@ function ecouterSondagesEnTempsReel() {
         querySnapshot.forEach((docSnap) => {
             const pollId = docSnap.id;
             const pollData = docSnap.data();
-            
             const card = el("div");
             card.className = "card";
 
