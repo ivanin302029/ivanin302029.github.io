@@ -461,3 +461,145 @@ async function chargerActualites() {
 
 /* =========================
    LOGIQUE SONDAGES (STYLE DISCORD)
+========================= */
+function ecouterSondagesEnTempsReel() {
+if (desabonnementSondages) desabonnementSondages();
+const container = document.getElementById("polls-container");
+container.textContent = "Chargement des sondages...";
+const pollsQuery = query(collection(db, "polls"), orderBy("creeLe", "desc"));
+desabonnementSondages = onSnapshot(pollsQuery, (querySnapshot) => {
+container.innerHTML = "";
+if (querySnapshot.empty) {
+container.textContent = "Aucun sondage disponible.";
+return;
+}
+querySnapshot.forEach((docSnap) => {
+const pollId = docSnap.id;
+const pollData = docSnap.data();
+const card = el("div");
+card.className = "card";
+const question = el("h3", pollData.question);
+card.appendChild(question);
+const optionsContainer = el("div");
+card.appendChild(optionsContainer);
+container.appendChild(card);
+const votesRef = collection(db, "polls", pollId, "votes");
+onSnapshot(votesRef, (votesSnapshot) => {
+optionsContainer.innerHTML = "";
+const listVotes = [];
+let utilisateurVoteDoc = null;
+votesSnapshot.forEach((vSnap) => {
+const vData = vSnap.data();
+listVotes.push(vData);
+if (utilisateurActuel && vSnap.id === utilisateurActuel.uid) {
+utilisateurVoteDoc = vData;
+}
+});
+const totalVotes = listVotes.length;
+const stats = {};
+pollData.options.forEach((_, idx) => stats[idx] = 0); // Réparé : index -> idx
+listVotes.forEach(v => {
+if (stats.hasOwnProperty(v.optionIndex)) {
+stats[v.optionIndex]++;
+}
+});
+const aVote = utilisateurVoteDoc !== null;
+pollData.options.forEach((opt, index) => {
+const count = stats[index] || 0;
+const pct = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+const utilisateurAVotePourCa = aVote && utilisateurVoteDoc.optionIndex === index;
+const row = el("div");
+row.className = "poll-result-row";
+row.style.cursor = utilisateurActuel ? "pointer" : "not-allowed";
+if (utilisateurAVotePourCa) {
+row.style.borderLeft = "4px solid var(--accent)";
+row.style.paddingLeft = "8px";
+}
+const title = el("div");
+title.className = "poll-result-title";
+const labelSpan = el("span", opt);
+if (utilisateurAVotePourCa) labelSpan.style.fontWeight = "bold";
+const countSpan = el("span", ${count} vote(s) (${pct}%));
+title.appendChild(labelSpan);
+title.appendChild(countSpan);
+const track = el("div");
+track.className = "poll-progress-track";
+const bar = el("div");
+bar.className = "poll-progress-bar";
+bar.style.width = ${pct}%;
+bar.style.background = utilisateurAVotePourCa ? "var(--accent)" : "#4B5563";
+track.appendChild(bar);
+row.appendChild(title);
+row.appendChild(track);
+if (utilisateurActuel) {
+row.addEventListener("click", async () => {
+const userVoteRef = doc(db, "polls", pollId, "votes", utilisateurActuel.uid);
+if (utilisateurAVotePourCa) {
+await deleteDoc(userVoteRef);
+} else {
+const monPseudo = nettoyerPseudo(utilisateurActuel.displayName || utilisateurActuel.email || "Anonyme");
+await setDoc(userVoteRef, {
+uid: utilisateurActuel.uid,
+pseudo: monPseudo.substring(0, 24),
+optionIndex: parseInt(index)
+});
+}
+});
+}
+optionsContainer.appendChild(row);
+});
+const totalEl = el("p", Total : ${totalVotes} participant(s));
+totalEl.className = "poll-total-votes";
+optionsContainer.appendChild(totalEl);
+if (estAdmin) {
+const btnSuppr = el("button", "🗑️ Supprimer le sondage");
+btnSuppr.className = "danger";
+btnSuppr.style.marginTop = "15px";
+btnSuppr.onclick = async (e) => {
+e.stopPropagation();
+if (confirm("Supprimer définitivement ce sondage ?")) {
+await deleteDoc(doc(db, "polls", pollId));
+}
+};
+optionsContainer.appendChild(btnSuppr);
+}
+});
+});
+}, (error) => {
+afficherErreur(container, messageErreurFirestore(error));
+});
+}
+/* =========================
+CREATION DE SONDAGE (ADMIN)
+========================= */
+document.getElementById("create-poll-form").addEventListener("submit", async (e) => {
+e.preventDefault();
+const statusEl = document.getElementById("create-poll-status");
+const questionInput = document.getElementById("new-poll-question");
+const optionsInput = document.getElementById("new-poll-options");
+const question = questionInput.value.trim();
+const options = optionsInput.value.split("\n")
+.map(o => o.trim())
+.filter(o => o.length > 0);
+if (options.length < 2 || options.length > 6) {
+afficherErreur(statusEl, "Il faut renseigner entre 2 et 6 réponses (une par ligne).");
+return;
+}
+try {
+const idUnique = "poll_" + Math.random().toString(36).substring(2, 11);
+await setDoc(doc(db, "polls", idUnique), {
+question: question,
+options: options,
+authorUid: utilisateurActuel.uid,
+creeLe: serverTimestamp()
+});
+afficherSucces(statusEl, "Sondage créé avec succès !");
+questionInput.value = "";
+optionsInput.value = "";
+} catch (error) {
+afficherErreur(statusEl, "Impossible de créer le sondage. Droits insuffisants ou structure invalide.");
+}
+});
+document.getElementById("refresh-button").addEventListener("click", () => {
+chargerActualites();
+});
