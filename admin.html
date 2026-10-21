@@ -618,181 +618,365 @@ $("profileForm").addEventListener("submit", async event => {
 });
 
 /* ==========================================
-   ASSISTANCE
+   ASSISTANCE — MISE À JOUR EN TEMPS RÉEL
 ========================================== */
 
-async function chargerTickets() {
+let unsubscribeTicketsAdmin = null;
+
+const unsubscribeMessagesAdmin = new Map();
+const ticketsAdminAffiches = new Map();
+
+function afficherMessageAssistance(message) {
+    const ligne = element(
+        "p",
+        (ADMINS.includes(message.uid)
+            ? "🛠️ Assistance : "
+            : "👤 Utilisateur : ") +
+        (message.text || "")
+    );
+
+    ligne.className = "text";
+
+    return ligne;
+}
+
+function afficherTicketAdmin(ticketId, ticket) {
     const container = $("tickets");
 
-    try {
-        const snapshot = await getDocs(
-            collection(db, "support_messages")
+    let carte = ticketsAdminAffiches.get(ticketId);
+
+    if (!carte) {
+        carte = {
+            element: element("article"),
+            ticket,
+            messages: [],
+            unsubscribeMessages: null
+        };
+
+        carte.element.className = "item";
+        ticketsAdminAffiches.set(ticketId, carte);
+    }
+
+    carte.ticket = ticket;
+
+    const article = carte.element;
+    article.replaceChildren();
+
+    article.append(
+        element("h3", ticket.title || "Ticket"),
+        element("p", "E-mail : " + (ticket.email || "Non renseigné")),
+        element("p", "Sujet : " + (ticket.subject || "Non précisé")),
+        element("p", ticket.content || ""),
+        element("p", "Statut : " + (ticket.status || "En attente"))
+    );
+
+    if (ticket.reply) {
+        article.appendChild(
+            element("p", "Ancienne réponse : " + ticket.reply)
         );
+    }
 
-        container.replaceChildren();
+    const conversation = element("div");
+    conversation.className = "conversation";
 
-        if (snapshot.empty) {
-            container.textContent = "Aucun ticket.";
+    const messages = [...carte.messages];
+
+    messages.sort((a, b) =>
+        (a.createdAt?.seconds || 0) -
+        (b.createdAt?.seconds || 0)
+    );
+
+    if (messages.length === 0) {
+        conversation.appendChild(
+            element("p", "Aucun message supplémentaire pour le moment.")
+        );
+    }
+
+    for (const message of messages) {
+        conversation.appendChild(
+            afficherMessageAssistance(message)
+        );
+    }
+
+    article.appendChild(conversation);
+
+    if (ticket.status !== "Fermé") {
+        const textarea = document.createElement("textarea");
+        textarea.placeholder = "Votre réponse...";
+        textarea.maxLength = 3000;
+
+        const bouton = element("button", "📨 Envoyer la réponse");
+
+        bouton.type = "button";
+
+        bouton.addEventListener("click", async () => {
+            const text = textarea.value.trim();
+
+            if (!text) {
+                notify("Écris une réponse avant de l'envoyer.", true);
+                return;
+            }
+
+            if (!admin(currentUser)) {
+                notify("Accès réservé aux administrateurs.", true);
+                return;
+            }
+
+            bouton.disabled = true;
+
+            try {
+                await addDoc(
+                    collection(
+                        db,
+                        "support_messages",
+                        ticketId,
+                        "messages"
+                    ),
+                    {
+                        uid: currentUser.uid,
+                        text,
+                        createdAt: serverTimestamp()
+                    }
+                );
+
+                await updateDoc(
+                    doc(db, "support_messages", ticketId),
+                    {
+                        status: "Répondu"
+                    }
+                );
+
+                textarea.value = "";
+                notify("✅ Réponse envoyée. Elle apparaîtra automatiquement.");
+
+            } catch (error) {
+                console.error("Erreur d'envoi de réponse :", error);
+
+                notify(
+                    "Impossible d'envoyer la réponse : " + error.message,
+                    true
+                );
+            } finally {
+                bouton.disabled = false;
+            }
+        });
+
+        const fermer = element("button", "🔒 Fermer le ticket");
+
+        fermer.type = "button";
+
+        fermer.addEventListener("click", async () => {
+            if (!confirm("Veux-tu fermer ce ticket ?")) return;
+
+            fermer.disabled = true;
+
+            try {
+                await updateDoc(
+                    doc(db, "support_messages", ticketId),
+                    {
+                        status: "Fermé"
+                    }
+                );
+
+                notify("Ticket fermé.");
+            } catch (error) {
+                console.error("Erreur fermeture ticket :", error);
+                notify("Impossible de fermer le ticket : " + error.message, true);
+            } finally {
+                fermer.disabled = false;
+            }
+        });
+
+        article.append(textarea, bouton, fermer);
+
+    } else {
+        const rouvrir = element("button", "🔓 Rouvrir le ticket");
+
+        rouvrir.type = "button";
+
+        rouvrir.addEventListener("click", async () => {
+            rouvrir.disabled = true;
+
+            try {
+                await updateDoc(
+                    doc(db, "support_messages", ticketId),
+                    {
+                        status: "En attente"
+                    }
+                );
+
+                notify("Ticket rouvert.");
+            } catch (error) {
+                console.error("Erreur réouverture ticket :", error);
+                notify("Impossible de rouvrir le ticket : " + error.message, true);
+            } finally {
+                rouvrir.disabled = false;
+            }
+        });
+
+        article.appendChild(rouvrir);
+    }
+
+    const supprimer = element("button", "🗑️ Supprimer le ticket");
+
+    supprimer.type = "button";
+    supprimer.className = "danger";
+
+    supprimer.addEventListener("click", async () => {
+        if (!confirm("Supprimer définitivement ce ticket et ses messages ?")) {
             return;
         }
 
-        for (const ticketDoc of snapshot.docs) {
-            const ticket = ticketDoc.data();
+        supprimer.disabled = true;
 
-            const carte = element("article");
-            carte.className = "item";
-
-            carte.append(
-                element("h3", ticket.title || "Ticket"),
-                element("p", ticket.email || ""),
-                element("p", ticket.content || ""),
-                element("p", "Statut : " + (ticket.status || "En attente"))
-            );
-
-            if (ticket.reply) {
-                carte.appendChild(
-                    element("p", "Ancienne réponse : " + ticket.reply)
-                );
-            }
-
-            const conversation = element("div");
-
-            const messages = await getDocs(
+        try {
+            const messagesSnapshot = await getDocs(
                 collection(
                     db,
                     "support_messages",
-                    ticketDoc.id,
+                    ticketId,
                     "messages"
                 )
             );
 
-            const liste = messages.docs.map(m => m.data());
+            for (const messageDoc of messagesSnapshot.docs) {
+                await deleteDoc(messageDoc.ref);
+            }
 
-            liste.sort((a, b) =>
-                (a.createdAt?.seconds || 0) -
-                (b.createdAt?.seconds || 0)
+            await deleteDoc(
+                doc(db, "support_messages", ticketId)
             );
 
-            for (const message of liste) {
-                conversation.appendChild(
-                    element(
-                        "p",
-                        (ADMINS.includes(message.uid)
-                            ? "🛠️ Assistance : "
-                            : "👤 Utilisateur : ") +
-                        (message.text || "")
-                    )
-                );
-            }
+            notify("Ticket supprimé.");
 
-            carte.appendChild(conversation);
+        } catch (error) {
+            console.error("Erreur suppression ticket :", error);
 
-            if (ticket.status !== "Fermé") {
-                const textarea = element("textarea");
-                textarea.placeholder = "Votre réponse...";
+            notify(
+                "Impossible de supprimer le ticket : " + error.message,
+                true
+            );
 
-                const bouton = element("button", "Répondre");
-
-                bouton.addEventListener("click", async () => {
-                    const text = textarea.value.trim();
-
-                    if (!text) return;
-
-                    bouton.disabled = true;
-
-                    try {
-                        await addDoc(
-                            collection(
-                                db,
-                                "support_messages",
-                                ticketDoc.id,
-                                "messages"
-                            ),
-                            {
-                                uid: currentUser.uid,
-                                text,
-                                createdAt: serverTimestamp()
-                            }
-                        );
-
-                        await updateDoc(
-                            ticketDoc.ref,
-                            { status: "Répondu" }
-                        );
-
-                        await chargerTickets();
-
-                    } catch (error) {
-                        notify(error.message, true);
-                        bouton.disabled = false;
-                    }
-                });
-
-                const fermer = element("button", "Fermer");
-
-                fermer.addEventListener("click", async () => {
-                    try {
-                        await updateDoc(
-                            ticketDoc.ref,
-                            { status: "Fermé" }
-                        );
-
-                        await chargerTickets();
-                    } catch (error) {
-                        notify(error.message, true);
-                    }
-                });
-
-                carte.append(textarea, bouton, fermer);
-
-            } else {
-                const rouvrir = element("button", "Rouvrir");
-
-                rouvrir.addEventListener("click", async () => {
-                    try {
-                        await updateDoc(
-                            ticketDoc.ref,
-                            { status: "En attente" }
-                        );
-
-                        await chargerTickets();
-                    } catch (error) {
-                        notify(error.message, true);
-                    }
-                });
-
-                carte.appendChild(rouvrir);
-            }
-
-            const supprimer = element("button", "Supprimer");
-            supprimer.className = "danger";
-
-            supprimer.addEventListener("click", async () => {
-                if (!confirm("Supprimer ce ticket ?")) return;
-
-                try {
-                    for (const message of messages.docs) {
-                        await deleteDoc(message.ref);
-                    }
-
-                    await deleteDoc(ticketDoc.ref);
-                    await chargerTickets();
-
-                } catch (error) {
-                    notify(error.message, true);
-                }
-            });
-
-            carte.appendChild(supprimer);
-            container.appendChild(carte);
+            supprimer.disabled = false;
         }
+    });
 
-    } catch (error) {
-        container.textContent = "Erreur : " + error.message;
+    article.appendChild(supprimer);
+
+    if (!article.isConnected) {
+        container.appendChild(article);
     }
 }
 
-$("refreshTickets").addEventListener("click", chargerTickets);
+function ecouterMessagesTicketAdmin(ticketId) {
+    if (unsubscribeMessagesAdmin.has(ticketId)) {
+        return;
+    }
+
+    const messagesRef = collection(
+        db,
+        "support_messages",
+        ticketId,
+        "messages"
+    );
+
+    const unsubscribe = onSnapshot(
+        messagesRef,
+        snapshot => {
+            const carte = ticketsAdminAffiches.get(ticketId);
+
+            if (!carte) return;
+
+            carte.messages = snapshot.docs.map(messageDoc => ({
+                id: messageDoc.id,
+                ...messageDoc.data()
+            }));
+
+            afficherTicketAdmin(ticketId, carte.ticket);
+        },
+        error => {
+            console.error(
+                "Erreur écoute des messages du ticket " + ticketId,
+                error
+            );
+
+            notify(
+                "Impossible de recevoir les messages : " + error.message,
+                true
+            );
+        }
+    );
+
+    unsubscribeMessagesAdmin.set(ticketId, unsubscribe);
+}
+
+function chargerTickets() {
+    if (!admin(currentUser)) return;
+
+    if (unsubscribeTicketsAdmin) {
+        unsubscribeTicketsAdmin();
+        unsubscribeTicketsAdmin = null;
+    }
+
+    const container = $("tickets");
+
+    container.textContent = "Chargement des tickets...";
+
+    unsubscribeTicketsAdmin = onSnapshot(
+        collection(db, "support_messages"),
+        snapshot => {
+            const tickets = snapshot.docs.map(ticketDoc => ({
+                id: ticketDoc.id,
+                ref: ticketDoc.ref,
+                ...ticketDoc.data()
+            }));
+
+            tickets.sort((a, b) =>
+                (b.createdAt?.seconds || 0) -
+                (a.createdAt?.seconds || 0)
+            );
+
+            const idsActuels = new Set(
+                tickets.map(ticket => ticket.id)
+            );
+
+            // Arrêter les écouteurs des tickets supprimés.
+            for (const [ticketId, unsubscribe] of unsubscribeMessagesAdmin) {
+                if (!idsActuels.has(ticketId)) {
+                    unsubscribe();
+                    unsubscribeMessagesAdmin.delete(ticketId);
+                    ticketsAdminAffiches.delete(ticketId);
+                }
+            }
+
+            container.replaceChildren();
+
+            if (tickets.length === 0) {
+                container.textContent = "Aucun ticket.";
+                return;
+            }
+
+            for (const ticket of tickets) {
+                const { id, ref: ticketRef, ...ticketData } = ticket;
+
+                afficherTicketAdmin(id, ticketData);
+                ecouterMessagesTicketAdmin(id);
+            }
+
+        },
+        error => {
+            console.error("Erreur écoute des tickets :", error);
+
+            container.textContent =
+                "Erreur de chargement des tickets : " + error.message;
+        }
+    );
+}
+
+$("refreshTickets").addEventListener("click", () => {
+    chargerTickets();
+    notify("Actualisation des tickets demandée.");
+});
 
 /* ==========================================
    ACTUALITÉS
